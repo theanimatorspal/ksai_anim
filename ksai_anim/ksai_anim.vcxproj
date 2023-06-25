@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2015-2019 LunarG, Inc. -->
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1d285e31-b051-488e-9a1b-0dfedb83e52d}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>ksai_anim</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>ClangCL</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>ClangCL</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(VULKAN_SDK)\Third-Party\Include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>vulkan-1.lib;SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib32;$(VULKAN_SDK)\Third-Party\Bin32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\thean\OneDrive\Documents\ksai_anim\ksai_anim\src;$(VULKAN_SDK)\Include;$(VULKAN_SDK)\Third-Party\Include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>vulkan-1.lib;SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(VULKAN_SDK)\Third-Party\Bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(VULKAN_SDK)\Third-Party\Include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>vulkan-1.lib;SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib32;$(VULKAN_SDK)\Third-Party\Bin32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\thean\OneDrive\Documents\ksai_anim\ksai_anim\src;$(VULKAN_SDK)\Include;$(VULKAN_SDK)\Third-Party\Include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>vulkan-1.lib;SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(VULKAN_SDK)\Third-Party\Bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\application\application.c" />
+    <ClCompile Include="src\backend\ui\font.c" />
+    <ClCompile Include="src\backend\ui\ui.c" />
+    <ClCompile Include="src\backend\vulkan\backend.c" />
+    <ClCompile Include="src\backend\vulkan\cleanup.c" />
+    <ClCompile Include="src\backend\vulkan\init.c" />
+    <ClCompile Include="src\backend\vulkan\pipelines.c" />
+    <ClCompile Include="src\backend\vulkan\resize.c" />
+    <ClCompile Include="src\backend\vulkan\run.c" />
+    <ClCompile Include="src\backend\vulkan\sync.c" />
+    <ClCompile Include="src\backend\vulkan\utils.c" />
+    <ClCompile Include="src\ksai\ksai.c" />
+    <ClCompile Include="src\ksai\ksai_memory.c" />
+    <ClCompile Include="src\ksai\ksai_primitives.c" />
+    <ClCompile Include="src\vendor\stbi\stbi.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\backend\ui\font.h" />
+    <ClInclude Include="src\backend\ui\ui.h" />
+    <ClInclude Include="src\backend\vulkan\backend.h" />
+    <ClInclude Include="src\backend\vulkan\cleanup.h" />
+    <ClInclude Include="src\backend\vulkan\init.h" />
+    <ClInclude Include="src\backend\vulkan\pipelines.h" />
+    <ClInclude Include="src\backend\vulkan\resize.h" />
+    <ClInclude Include="src\backend\vulkan\run.h" />
+    <ClInclude Include="src\backend\vulkan\sync.h" />
+    <ClInclude Include="src\backend\vulkan\utils.h" />
+    <ClInclude Include="src\engine\objects\object.h" />
+    <ClInclude Include="src\ksai\ksai.h" />
+    <ClInclude Include="src\ksai\ksai_debug.h" />
+    <ClInclude Include="src\ksai\ksai_memory.h" />
+    <ClInclude Include="src\ksai\ksai_primitives.h" />
+    <ClInclude Include="src\vendor\cglm\affine-mat.h" />
+    <ClInclude Include="src\vendor\cglm\affine-post.h" />
+    <ClInclude Include="src\vendor\cglm\affine-pre.h" />
+    <ClInclude Include="src\vendor\cglm\affine.h" />
+    <ClInclude Include="src\vendor\cglm\affine2d.h" />
+    <ClInclude Include="src\vendor\cglm\applesimd.h" />
+    <ClInclude Include="src\vendor\cglm\bezier.h" />
+    <ClInclude Include="src\vendor\cglm\box.h" />
+    <ClInclude Include="src\vendor\cglm\call.h" />
+    <ClInclude Include="src\vendor\cglm\call\affine.h" />
+    <ClInclude Include="src\vendor\cglm\call\affine2d.h" />
+    <ClInclude Include="src\vendor\cglm\call\bezier.h" />
+    <ClInclude Include="src\vendor\cglm\call\box.h" />
+    <ClInclude Include="src\vendor\cglm\call\cam.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\ortho_lh_no.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\ortho_lh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\ortho_rh_no.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\ortho_rh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\persp_lh_no.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\persp_lh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\persp_rh_no.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\persp_rh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\project_no.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\project_zo.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\view_lh_no.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\view_lh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\view_rh_no.h" />
+    <ClInclude Include="src\vendor\cglm\call\clipspace\view_rh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\call\curve.h" />
+    <ClInclude Include="src\vendor\cglm\call\ease.h" />
+    <ClInclude Include="src\vendor\cglm\call\euler.h" />
+    <ClInclude Include="src\vendor\cglm\call\frustum.h" />
+    <ClInclude Include="src\vendor\cglm\call\io.h" />
+    <ClInclude Include="src\vendor\cglm\call\ivec2.h" />
+    <ClInclude Include="src\vendor\cglm\call\ivec3.h" />
+    <ClInclude Include="src\vendor\cglm\call\ivec4.h" />
+    <ClInclude Include="src\vendor\cglm\call\mat2.h" />
+    <ClInclude Include="src\vendor\cglm\call\mat3.h" />
+    <ClInclude Include="src\vendor\cglm\call\mat4.h" />
+    <ClInclude Include="src\vendor\cglm\call\plane.h" />
+    <ClInclude Include="src\vendor\cglm\call\project.h" />
+    <ClInclude Include="src\vendor\cglm\call\quat.h" />
+    <ClInclude Include="src\vendor\cglm\call\ray.h" />
+    <ClInclude Include="src\vendor\cglm\call\sphere.h" />
+    <ClInclude Include="src\vendor\cglm\call\vec2.h" />
+    <ClInclude Include="src\vendor\cglm\call\vec3.h" />
+    <ClInclude Include="src\vendor\cglm\call\vec4.h" />
+    <ClInclude Include="src\vendor\cglm\cam.h" />
+    <ClInclude Include="src\vendor\cglm\cglm.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\ortho_lh_no.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\ortho_lh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\ortho_rh_no.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\ortho_rh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\persp.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\persp_lh_no.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\persp_lh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\persp_rh_no.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\persp_rh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\project_no.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\project_zo.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\view_lh.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\view_lh_no.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\view_lh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\view_rh.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\view_rh_no.h" />
+    <ClInclude Include="src\vendor\cglm\clipspace\view_rh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\color.h" />
+    <ClInclude Include="src\vendor\cglm\common.h" />
+    <ClInclude Include="src\vendor\cglm\curve.h" />
+    <ClInclude Include="src\vendor\cglm\ease.h" />
+    <ClInclude Include="src\vendor\cglm\euler.h" />
+    <ClInclude Include="src\vendor\cglm\frustum.h" />
+    <ClInclude Include="src\vendor\cglm\io.h" />
+    <ClInclude Include="src\vendor\cglm\ivec2.h" />
+    <ClInclude Include="src\vendor\cglm\ivec3.h" />
+    <ClInclude Include="src\vendor\cglm\ivec4.h" />
+    <ClInclude Include="src\vendor\cglm\mat2.h" />
+    <ClInclude Include="src\vendor\cglm\mat3.h" />
+    <ClInclude Include="src\vendor\cglm\mat4.h" />
+    <ClInclude Include="src\vendor\cglm\plane.h" />
+    <ClInclude Include="src\vendor\cglm\project.h" />
+    <ClInclude Include="src\vendor\cglm\quat.h" />
+    <ClInclude Include="src\vendor\cglm\ray.h" />
+    <ClInclude Include="src\vendor\cglm\simd\arm.h" />
+    <ClInclude Include="src\vendor\cglm\simd\avx\affine.h" />
+    <ClInclude Include="src\vendor\cglm\simd\avx\mat4.h" />
+    <ClInclude Include="src\vendor\cglm\simd\intrin.h" />
+    <ClInclude Include="src\vendor\cglm\simd\neon\affine.h" />
+    <ClInclude Include="src\vendor\cglm\simd\neon\mat2.h" />
+    <ClInclude Include="src\vendor\cglm\simd\neon\mat4.h" />
+    <ClInclude Include="src\vendor\cglm\simd\neon\quat.h" />
+    <ClInclude Include="src\vendor\cglm\simd\sse2\affine.h" />
+    <ClInclude Include="src\vendor\cglm\simd\sse2\mat2.h" />
+    <ClInclude Include="src\vendor\cglm\simd\sse2\mat3.h" />
+    <ClInclude Include="src\vendor\cglm\simd\sse2\mat4.h" />
+    <ClInclude Include="src\vendor\cglm\simd\sse2\quat.h" />
+    <ClInclude Include="src\vendor\cglm\simd\x86.h" />
+    <ClInclude Include="src\vendor\cglm\sphere.h" />
+    <ClInclude Include="src\vendor\cglm\struct.h" />
+    <ClInclude Include="src\vendor\cglm\struct\affine-post.h" />
+    <ClInclude Include="src\vendor\cglm\struct\affine-pre.h" />
+    <ClInclude Include="src\vendor\cglm\struct\affine.h" />
+    <ClInclude Include="src\vendor\cglm\struct\affine2d.h" />
+    <ClInclude Include="src\vendor\cglm\struct\box.h" />
+    <ClInclude Include="src\vendor\cglm\struct\cam.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\ortho_lh_no.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\ortho_lh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\ortho_rh_no.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\ortho_rh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\persp_lh_no.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\persp_lh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\persp_rh_no.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\persp_rh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\project_no.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\project_zo.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\view_lh_no.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\view_lh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\view_rh_no.h" />
+    <ClInclude Include="src\vendor\cglm\struct\clipspace\view_rh_zo.h" />
+    <ClInclude Include="src\vendor\cglm\struct\color.h" />
+    <ClInclude Include="src\vendor\cglm\struct\curve.h" />
+    <ClInclude Include="src\vendor\cglm\struct\euler.h" />
+    <ClInclude Include="src\vendor\cglm\struct\frustum.h" />
+    <ClInclude Include="src\vendor\cglm\struct\io.h" />
+    <ClInclude Include="src\vendor\cglm\struct\mat2.h" />
+    <ClInclude Include="src\vendor\cglm\struct\mat3.h" />
+    <ClInclude Include="src\vendor\cglm\struct\mat4.h" />
+    <ClInclude Include="src\vendor\cglm\struct\plane.h" />
+    <ClInclude Include="src\vendor\cglm\struct\project.h" />
+    <ClInclude Include="src\vendor\cglm\struct\quat.h" />
+    <ClInclude Include="src\vendor\cglm\struct\sphere.h" />
+    <ClInclude Include="src\vendor\cglm\struct\vec2-ext.h" />
+    <ClInclude Include="src\vendor\cglm\struct\vec2.h" />
+    <ClInclude Include="src\vendor\cglm\struct\vec3-ext.h" />
+    <ClInclude Include="src\vendor\cglm\struct\vec3.h" />
+    <ClInclude Include="src\vendor\cglm\struct\vec4-ext.h" />
+    <ClInclude Include="src\vendor\cglm\struct\vec4.h" />
+    <ClInclude Include="src\vendor\cglm\types-struct.h" />
+    <ClInclude Include="src\vendor\cglm\types.h" />
+    <ClInclude Include="src\vendor\cglm\util.h" />
+    <ClInclude Include="src\vendor\cglm\vec2-ext.h" />
+    <ClInclude Include="src\vendor\cglm\vec2.h" />
+    <ClInclude Include="src\vendor\cglm\vec3-ext.h" />
+    <ClInclude Include="src\vendor\cglm\vec3.h" />
+    <ClInclude Include="src\vendor\cglm\vec4-ext.h" />
+    <ClInclude Include="src\vendor\cglm\vec4.h" />
+    <ClInclude Include="src\vendor\cglm\version.h" />
+    <ClInclude Include="src\vendor\stbi\stbi_image_write.h" />
+    <ClInclude Include="src\vendor\stbi\stb_image.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerEnvironment>PATH=$(VULKAN_SDK)\Third-Party\Bin
+$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerEnvironment>PATH=$(VULKAN_SDK)\Third-Party\Bin
+$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LocalDebuggerEnvironment>PATH=$(VULKAN_SDK)\Third-Party\Bin32
+$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LocalDebuggerEnvironment>PATH=$(VULKAN_SDK)\Third-Party\Bin32
+$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+</Project>
