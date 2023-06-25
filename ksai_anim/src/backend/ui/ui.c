@@ -105,8 +105,8 @@ void lu_int(int sz_fctr, vk_rsrs *_rsrs)
 			&base_.ppln,
 			1,
 			bindings,
-			"res/shaders/button/vshader.spv",
-			"res/shaders/button/fshader.spv",
+			"res/shaders/ui/button/vshader.spv",
+			"res/shaders/ui/button/fshader.spv",
 			&binding_desp,
 			1,
 			attr_desp,
@@ -124,7 +124,7 @@ void lu_int(int sz_fctr, vk_rsrs *_rsrs)
 		);
 
 
-		strcpy(base_.fnt.fnt_img_pth, "res/font/fnt.png");
+		strcpy(base_.fnt.fnt_img_pth, "res/font/font.png");
 		char *d[1 << 8] = { base_.fnt.fnt_img_pth };
 		gn_txt(label.text, strlen(label.text), &base_.fnt);
 		extui_create_vulkan_pipeline(
@@ -132,8 +132,8 @@ void lu_int(int sz_fctr, vk_rsrs *_rsrs)
 			&base_.fnt.ppln,
 			2,
 			bindings,
-			"res/shaders/text/vshader.spv",
-			"res/shaders/text/fshader.spv",
+			"res/shaders/ui/text/vshader.spv",
+			"res/shaders/ui/text/fshader.spv",
 			&binding_desp,
 			1,
 			attr_desp,
@@ -199,8 +199,7 @@ void lu_gt(lu_lbl lbl, lu_lbl_bs *_bttn, VkDeviceSize *_sz, VkDeviceSize *_nsz, 
 		glm_mat4_identity(model);
 		glm_translate(model, (vec3) { lbl.ps[0], lbl.ps[1], 0 });
 		glm_scale(model, lbl.scale);
-		glm_scale(model, (vec3) { _bttn->fnt.max_w / 2, _bttn->fnt.max_h, 0 });
-		glm_scale(model, (vec3) { 2.5, 2, 0 });
+		glm_scale(model, (vec3) { _bttn->fnt.max_w * 1.4, _bttn->fnt.max_h * 1.6, 0 });
 		glm_mat4_copy(model, _bttn->ppln.pconstant.mvp);
 	}
 }
@@ -278,7 +277,6 @@ void lu_bttn_uvbffr(lu_lbl lbl, lu_lbl_bs *_bttn, int i, int _crrnt_frm, bool ma
 	vkUnmapMemory(vk_logical_device_, _bttn->fnt.ppln.vk_index_buffer_memory_);
 	first_time = false;
 }
-
 
 void lu_vlkn_drw(int _crrnt_frm, struct l_vlkn_ppln *_ppln, bool frst_tm, VkDeviceSize vbffr_ffst, VkDeviceSize ibffr_ffst, vk_rsrs *_rsrs)
 {
@@ -441,6 +439,7 @@ void lu_rndr(int *_crrnt_frm, vk_rsrs *_rsrs)
 				default:
 					break;
 				}
+				glm_vec3_copy(lbls_ll_[i].txt_clr, base_.fnt.ppln.pconstant.v1);
 				lu_gt(lbls_ll_[i], &base_, &size, &nsize, i);
 				lu_vlkn_drw(*_crrnt_frm, &base_.ppln, true, 0, 0, _rsrs);
 				lu_vlkn_drw(*_crrnt_frm, &base_.fnt.ppln, true, size, nsize, _rsrs);

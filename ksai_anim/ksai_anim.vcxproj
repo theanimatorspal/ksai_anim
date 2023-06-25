@@ -158,6 +158,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\application\application.c" />
+    <ClCompile Include="src\application\frontend\filemenu.c" />
     <ClCompile Include="src\backend\ui\font.c" />
     <ClCompile Include="src\backend\ui\ui.c" />
     <ClCompile Include="src\backend\vulkan\backend.c" />
@@ -174,6 +175,8 @@
     <ClCompile Include="src\vendor\stbi\stbi.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\frontend\app_ui.h" />
+    <ClInclude Include="src\backend\ui\latex_colors.h" />
     <ClInclude Include="src\backend\ui\font.h" />
     <ClInclude Include="src\backend\ui\ui.h" />
     <ClInclude Include="src\backend\vulkan\backend.h" />

@@ -61,6 +61,9 @@
     <ClCompile Include="src\backend\ui\font.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\application\frontend\filemenu.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\backend\vulkan\backend.h">
@@ -553,6 +556,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\backend\ui\ui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\backend\ui\latex_colors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\application\frontend\app_ui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -36,6 +36,7 @@ typedef struct lu_lbl
 	vec3			slctd_clr;
 	vec3			hvrd_clr;
 	vec3			nrml_clr;
+	vec3			txt_clr;
 	vec2			ps;
 	vec3			scale;
 	char			text[100];

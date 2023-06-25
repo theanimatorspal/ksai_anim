@@ -53,7 +53,6 @@ int draw_backend_start(vk_rsrs *_rsrs)
 
 	/* Recording the command buffer */
 
-	vkDeviceWaitIdle(vk_logical_device_);
 	vkResetCommandBuffer(vk_command_buffer_[_rsrs->current_frame], 0);
 	VkCommandBufferBeginInfo begin_info = { 0 };
 	begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;

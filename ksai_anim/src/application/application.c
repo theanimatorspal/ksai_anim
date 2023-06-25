@@ -5,7 +5,6 @@
 #elif defined(_WIN32)
 #define VK_USE_PLATFORM_WIN32_KHR
 #endif
-// Tell SDL not to mess with main()
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
@@ -16,6 +15,8 @@
 #include <ksai/ksai_primitives.h>
 #include <backend/vulkan/backend.h>
 #include <backend/ui/ui.h>
+#include <backend/ui/latex_colors.h>
+#include "frontend/app_ui.h"
 
 
 int main(int argc, char *argv[])
@@ -38,11 +39,20 @@ int main(int argc, char *argv[])
 
 
 	bool running = true;
-	int cf = 0;
+	int i = 1;
+	int width, height;
 	while (running)
 	{
-
+		SDL_GetWindowSize(resources.window, &width, &height);
 		SDL_Event windowEvent;
+
+
+		char m[6][10]= {0};
+		int c[6] = {0};
+		draw_file_menu(m, 4,  c, (float)width/height, &resources, &windowEvent);
+
+
+
 		while (SDL_PollEvent(&windowEvent))
 		{
 			if (windowEvent.type == SDL_QUIT)
@@ -54,9 +64,10 @@ int main(int argc, char *argv[])
 
 		if(draw_backend_start(&resources)!=-1)
 		{ 
+			lu_updt(&resources.current_frame);
 			draw_backend_begin(&resources);
 
-
+			lu_rndr(&resources.current_frame, &resources);
 
 			draw_backend_end(&resources);
 			draw_backend_finish(&resources);
@@ -67,6 +78,7 @@ int main(int argc, char *argv[])
 		}
 
 	}
+
 	SDL_DestroyWindow(resources.window);
 	SDL_Quit();
 	return 0;
