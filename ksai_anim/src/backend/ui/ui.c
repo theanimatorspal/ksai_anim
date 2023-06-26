@@ -122,6 +122,7 @@ void ui_init(int sz_fctr, vk_rsrs *_rsrs)
 		strcpy(base_.fnt.fnt_img_pth, "res/font/font.png");
 		char *d[1 << 8] = { base_.fnt.fnt_img_pth };
 		gn_txt(label.text, strlen(label.text), &base_.fnt);
+		gn_txt(label.text, strlen(label.text), &global_base_font);
 		create_vulkan_pipeline(
 			_rsrs,
 			&base_.fnt.ppln,
@@ -194,7 +195,7 @@ void ui_get(ui_label lbl, global_ui_base_pipeline *_bttn, VkDeviceSize *_sz, VkD
 		glm_mat4_identity(model);
 		glm_translate(model, (vec3) { lbl.ps[0], lbl.ps[1], 0 });
 		glm_scale(model, lbl.scale);
-		glm_scale(model, (vec3) { _bttn->fnt.max_w * 1.4, _bttn->fnt.max_h * 1.6, 0 });
+		glm_scale(model, (vec3) { _bttn->fnt.max_w * 1.4, _bttn->fnt.max_h * 1.7, 0 });
 		glm_mat4_copy(model, _bttn->ppln.pconstant.mvp);
 	}
 }
@@ -376,7 +377,7 @@ void ui_events(SDL_Window *_wndw, SDL_Event *event)
 		glm_mat4_identity(model);
 		glm_translate(model, (vec3) { global_all_labels[i].ps[0], -global_all_labels[i].ps[1], 0 }); /* Negative the position for a workaround*/
 		glm_scale(model, global_all_labels[i].scale);
-		glm_scale(model, (vec3) { global_base_font.max_w * 1.6, global_base_font.max_h * 1.6, 0 });
+		glm_scale(model, (vec3) { global_base_font.max_w * 1.6, global_base_font.max_h * 1.7, 0 });
 
 		float size = 0.5;
 		vec4 b_l = { -1 * size, -1 * size, 0, 1 };

@@ -7,7 +7,7 @@
 #include "font.h"
 
 static ksai_Arena global_arena;
-int get_n_pair(int n, char* string_in)
+int get_n_pair(int n, char *string_in)
 {
 	int equal_to_sign_index = 0;
 	int count_eq = 0;
@@ -35,11 +35,11 @@ int get_n_pair(int n, char* string_in)
 	}
 }
 
-void prs_bm_fnt(const char* path, fnt_d *font_desp)
+void prs_bm_fnt(const char *path, fnt_d *font_desp)
 {
 	static char file_buffer[1 << 25];
 
-	FILE* file = fopen(path, "r");
+	FILE *file = fopen(path, "r");
 	fgets(file_buffer, 1 << 25, file);
 	fgets(file_buffer, 1 << 25, file);
 	/* fnt features extract */
@@ -72,18 +72,25 @@ void prs_bm_fnt(const char* path, fnt_d *font_desp)
 	fclose(file);
 }
 
-void gn_txt(const char* text, const int size, fnt_d* font_desp)
+void gn_txt(const char *text, const int size, fnt_d *font_desp)
 {
 	static bool first_time = true;
-	if(first_time == true)
+	if (first_time == true)
 		ksai_Arena_init(sizeof(l_vbs_vrtx) * 4 * size * KSAI_STRING_ARENA_MEMORY, &global_arena);
 	first_time = false;
 
+	int old_vcoutn = font_desp->ppln.vertices_count;
+	int old_icoutn = font_desp->ppln.indices_count;
+
 	if (font_desp->ppln.vertices_count < 4 * size || font_desp->ppln.indices_count < 6 * size)
 	{
-		font_desp->ppln.vertices = (l_vbs_vrtx*)ksai_Arena_allocate(sizeof(l_vbs_vrtx) * 4 * size, &global_arena);
-		font_desp->ppln.indcs = (uint32_t*)ksai_Arena_allocate(sizeof(uint32_t) * 6 * size, &global_arena);
+		font_desp->ppln.vertices = (l_vbs_vrtx *) ksai_Arena_allocate(sizeof(l_vbs_vrtx) * 4 * size, &global_arena);
+		font_desp->ppln.indcs = (uint32_t *) ksai_Arena_allocate(sizeof(uint32_t) * 6 * size, &global_arena);
+		old_vcoutn = 4 * size;
+		old_icoutn = 6 * size;
 	}
+	memset(font_desp->ppln.vertices, 0, sizeof(l_vbs_vrtx) * font_desp->ppln.vertices_count);
+	memset(font_desp->ppln.vertices, 0, sizeof(uint32_t) * 6 * size * font_desp->ppln.indices_count);
 	font_desp->ppln.vertices_count = 4 * size;
 	font_desp->ppln.indices_count = 6 * size;
 	font_desp->max_h = 0;
@@ -100,7 +107,7 @@ void gn_txt(const char* text, const int size, fnt_d* font_desp)
 
 	for (uint32_t i = 0; i < size; i++)
 	{
-		bmchar char_info = font_desp->fchars[(int)text[i]];
+		bmchar char_info = font_desp->fchars[(int) text[i]];
 
 		for (int j = 0; j < 255; j++)
 		{
@@ -168,7 +175,7 @@ void gn_txt(const char* text, const int size, fnt_d* font_desp)
 			font_desp->max_h = charh;
 		}
 
-		float advance = ((float)(char_info.xadvance) / 36.0f);
+		float advance = ((float) (char_info.xadvance) / 36.0f);
 		posx += advance;
 	}
 
@@ -178,6 +185,8 @@ void gn_txt(const char* text, const int size, fnt_d* font_desp)
 		font_desp->ppln.vertices[i].pos[0] -= posx / 2.0f;
 		font_desp->ppln.vertices[i].pos[1] -= 0.5f;
 	}
+	font_desp->ppln.vertices_count = old_vcoutn;
+	font_desp->ppln.indices_count = old_icoutn; 
 }
 
 void fnt_free()
