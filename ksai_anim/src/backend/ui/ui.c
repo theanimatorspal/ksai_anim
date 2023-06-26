@@ -7,25 +7,20 @@
 #include "font.h"
 
 
-static lu_lbl_bs base_;
-static lu_lbl lbls_ll_[MAX_BUFFER_SIZE];
-static uint32_t lbls_ll_cnt_ = 0;
-static fnt_d bs_fnt_;
-
-void lu_null_lbls_cnt()
-{
-	lbls_ll_cnt_ = 0;
-}
+static global_ui_base_pipeline base_;
+static ui_label global_all_labels[MAX_BUFFER_SIZE];
+static uint32_t global_all_labels_count = 0;
+static fnt_d global_base_font;
 
 
-void lu_int(int sz_fctr, vk_rsrs *_rsrs)
+void ui_init(int sz_fctr, vk_rsrs *_rsrs)
 {
 
 	static bool first_time = true;
 	if (first_time == true)
 	{
 
-		lu_lbl label;
+		ui_label label;
 		strcpy(label.text, "Everything in this world is fucking different");
 		base_.ppln.vertices = label.vrtcs;
 		base_.ppln.vertices_count = 4;
@@ -98,9 +93,9 @@ void lu_int(int sz_fctr, vk_rsrs *_rsrs)
 		pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
 		prs_bm_fnt("res/font/font.fnt", &base_.fnt);
-		prs_bm_fnt("res/font/font.fnt", &bs_fnt_);
+		prs_bm_fnt("res/font/font.fnt", &global_base_font);
 
-		extui_create_vulkan_pipeline(
+		create_vulkan_pipeline(
 			_rsrs,
 			&base_.ppln,
 			1,
@@ -127,7 +122,7 @@ void lu_int(int sz_fctr, vk_rsrs *_rsrs)
 		strcpy(base_.fnt.fnt_img_pth, "res/font/font.png");
 		char *d[1 << 8] = { base_.fnt.fnt_img_pth };
 		gn_txt(label.text, strlen(label.text), &base_.fnt);
-		extui_create_vulkan_pipeline(
+		create_vulkan_pipeline(
 			_rsrs,
 			&base_.fnt.ppln,
 			2,
@@ -153,7 +148,7 @@ void lu_int(int sz_fctr, vk_rsrs *_rsrs)
 	}
 }
 
-void lu_gt(lu_lbl lbl, lu_lbl_bs *_bttn, VkDeviceSize *_sz, VkDeviceSize *_nsz, int i)
+void ui_get(ui_label lbl, global_ui_base_pipeline *_bttn, VkDeviceSize *_sz, VkDeviceSize *_nsz, int i)
 {
 	gn_txt(lbl.text, strlen(lbl.text), &_bttn->fnt);
 	VkDeviceSize size = _bttn->fnt.ppln.vertices_count * sizeof(l_vbs_vrtx);
@@ -204,7 +199,7 @@ void lu_gt(lu_lbl lbl, lu_lbl_bs *_bttn, VkDeviceSize *_sz, VkDeviceSize *_nsz, 
 	}
 }
 
-void lu_bttn_uvbffr(lu_lbl lbl, lu_lbl_bs *_bttn, int i, int _crrnt_frm, bool map_it, VkDeviceSize *_sz, VkDeviceSize *_nsz
+void ui_update_vbuffers(ui_label lbl, global_ui_base_pipeline *_bttn, int i, int _crrnt_frm, bool map_it, VkDeviceSize *_sz, VkDeviceSize *_nsz
 )
 {
 	void *data;
@@ -278,7 +273,7 @@ void lu_bttn_uvbffr(lu_lbl lbl, lu_lbl_bs *_bttn, int i, int _crrnt_frm, bool ma
 	first_time = false;
 }
 
-void lu_vlkn_drw(int _crrnt_frm, struct l_vlkn_ppln *_ppln, bool frst_tm, VkDeviceSize vbffr_ffst, VkDeviceSize ibffr_ffst, vk_rsrs *_rsrs)
+void ui_vk_draw(int _crrnt_frm, struct pipeline_vk *_ppln, bool frst_tm, VkDeviceSize vbffr_ffst, VkDeviceSize ibffr_ffst, vk_rsrs *_rsrs)
 {
 	vkCmdBindPipeline(vk_command_buffer_[_crrnt_frm], VK_PIPELINE_BIND_POINT_GRAPHICS, _ppln->vk_pipeline_);
 	if (frst_tm)
@@ -349,123 +344,150 @@ void lu_vlkn_drw(int _crrnt_frm, struct l_vlkn_ppln *_ppln, bool frst_tm, VkDevi
 
 
 /* For Plugins */
-bool lu_drw_lbl(lu_lbl lbl, SDL_Window *_wndw, SDL_Event *event)
+bool ui_draw_button(ui_label lbl, SDL_Window *_wndw, SDL_Event *event)
+{
+	ui_label lb = {0};
+	lb.st_typ = global_all_labels[global_all_labels_count].st_typ;
+	global_all_labels[global_all_labels_count] = lbl;
+	global_all_labels[global_all_labels_count].st_typ = lb.st_typ;
+	global_all_labels_count++;
+	switch (global_all_labels[global_all_labels_count-1].st_typ)
+	{
+	case lbl_st_UNSELECTED:
+		return false;
+	case lbl_st_SELECTED:
+		return true;
+	case lbl_st_HOVERING:
+		return false;
+	}
+}
+
+void ui_events(SDL_Window *_wndw, SDL_Event *event)
 {
 	int xpos, ypos;
 	int width, height;
 	SDL_GetMouseState(&xpos, &ypos);
 	SDL_GetWindowSize(_wndw, &width, &height);
 
-	gn_txt(lbl.text, strlen(lbl.text), &bs_fnt_);
-	mat4 model;
-	glm_mat4_identity(model);
-	glm_translate(model, (vec3) { lbl.ps[0], -lbl.ps[1], 0 }); /* Negative the position for a workaround*/
-	glm_scale(model, lbl.scale);
-	glm_scale(model, (vec3) { bs_fnt_.max_w / 2, bs_fnt_.max_h, 0 });
-	glm_scale(model, (vec3) { 2.5, 2, 0 });
-	float size = 0.5;
-	vec4 b_l = { -1 * size, -1 * size, 0, 1 };
-	vec4 t_l = { -1 * size, 1 * size, 0, 1 };
-	vec4 t_r = { 1 * size, 1 * size, 0, 1 };
-	vec4 b_r = { 1 * size, -1 * size, 0, 1 };
-	glm_mat4_mulv(model, b_l, b_l);
-	glm_mat4_mulv(model, t_r, t_r);
-
-	float ms_x = 2 * (float) xpos / width - 1;
-	float ms_y = -(2 * (float) ypos / height - 1);
-
-	if ((ms_x > b_l[0]) && (ms_x < t_r[0]) && (ms_y > b_l[1]) && (ms_y < t_r[1]))
+	for (int i = 0; i < global_all_labels_count; i++)
 	{
-		
-		if (event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT)
+		gn_txt(global_all_labels[i].text, strlen(global_all_labels[i].text), &global_base_font);
+		mat4 model;
+		glm_mat4_identity(model);
+		glm_translate(model, (vec3) { global_all_labels[i].ps[0], -global_all_labels[i].ps[1], 0 }); /* Negative the position for a workaround*/
+		glm_scale(model, global_all_labels[i].scale);
+		glm_scale(model, (vec3) { global_base_font.max_w * 1.6, global_base_font.max_h * 1.6, 0 });
+
+		float size = 0.5;
+		vec4 b_l = { -1 * size, -1 * size, 0, 1 };
+		vec4 t_l = { -1 * size, 1 * size, 0, 1 };
+		vec4 t_r = { 1 * size, 1 * size, 0, 1 };
+		vec4 b_r = { 1 * size, -1 * size, 0, 1 };
+		glm_mat4_mulv(model, b_l, b_l);
+		glm_mat4_mulv(model, t_r, t_r);
+
+		float ms_x = 2 * (float) xpos / width - 1;
+		float ms_y = -(2 * (float) ypos / height - 1);
+
+		if ((ms_x > b_l[0]) && (ms_x < t_r[0]) && (ms_y > b_l[1]) && (ms_y < t_r[1]))
 		{
-			lbls_ll_[lbls_ll_cnt_] = lbl;
-			lbls_ll_[lbls_ll_cnt_].st_typ = lbl_st_SELECTED;
-			lbls_ll_cnt_++;
-			return true;
+			if (event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT)
+			{
+				global_all_labels[i].st_typ = lbl_st_SELECTED;
+				continue;
+			}
+			global_all_labels[i].st_typ = lbl_st_HOVERING;
+			continue;
 		}
-		lbls_ll_[lbls_ll_cnt_] = lbl;
-		lbls_ll_[lbls_ll_cnt_].st_typ = lbl_st_HOVERING;
-		lbls_ll_cnt_++;
-		return false;
+		global_all_labels[i].st_typ = lbl_st_UNSELECTED;
 	}
-	lbls_ll_[lbls_ll_cnt_] = lbl;
-	lbls_ll_[lbls_ll_cnt_].st_typ = lbl_st_UNSELECTED;
-	lbls_ll_cnt_++;
-	return false;
 }
 
-void lu_updt(int *_crrnt_frm)
+void ui_update(int *_crrnt_frm)
 {
 	VkDeviceSize size;
 	VkDeviceSize nsize;
 	bool stt[2] = { true, false };
-	for (int i = 0; i < lbls_ll_cnt_; i++)
+	for (int i = 0; i < global_all_labels_count; i++)
 	{
-		switch (lbls_ll_[i].typ)
+		switch (global_all_labels[i].typ)
 		{
 		case BUTTON:
-			lu_bttn_uvbffr(lbls_ll_[i], &base_, i, *_crrnt_frm, true, &size, &nsize);
+			ui_update_vbuffers(global_all_labels[i], &base_, i, *_crrnt_frm, true, &size, &nsize);
 			break;
 		}
 	}
 }
 
-void lu_rndr(int *_crrnt_frm, vk_rsrs *_rsrs)
+void ui_render(int *_crrnt_frm, vk_rsrs *_rsrs)
 {
 	VkDeviceSize size;
 	VkDeviceSize nsize;
 	bool stt[2] = { true, false };
-	for (int i = 0; i < lbls_ll_cnt_; i++)
+	for (int i = 0; i < global_all_labels_count; i++)
 	{
 		// यो कस्तो दामी देखिएको
-		switch (lbls_ll_[i].typ)
+		switch (global_all_labels[i].typ)
 		{
 		case BUTTON:
 			switch (i)
 			{
 			case 0:
-				switch (lbls_ll_[i].st_typ)
+				switch (global_all_labels[i].st_typ)
 				{
 				case lbl_st_HOVERING:
-					glm_vec3_copy(lbls_ll_[i].hvrd_clr, base_.ppln.pconstant.v1);
+					glm_vec3_copy(global_all_labels[i].hvrd_clr, base_.ppln.pconstant.v1);
 					break;
 				case lbl_st_UNSELECTED:
-					glm_vec3_copy(lbls_ll_[i].nrml_clr, base_.ppln.pconstant.v1);
+					glm_vec3_copy(global_all_labels[i].nrml_clr, base_.ppln.pconstant.v1);
 					break;
 				case lbl_st_SELECTED:
-					glm_vec3_copy(lbls_ll_[i].slctd_clr, base_.ppln.pconstant.v1);
+					glm_vec3_copy(global_all_labels[i].slctd_clr, base_.ppln.pconstant.v1);
 					break;
 				default:
 					break;
 				}
-				glm_vec3_copy(lbls_ll_[i].txt_clr, base_.fnt.ppln.pconstant.v1);
-				lu_gt(lbls_ll_[i], &base_, &size, &nsize, i);
-				lu_vlkn_drw(*_crrnt_frm, &base_.ppln, true, 0, 0, _rsrs);
-				lu_vlkn_drw(*_crrnt_frm, &base_.fnt.ppln, true, size, nsize, _rsrs);
+				glm_vec3_copy(global_all_labels[i].txt_clr, base_.fnt.ppln.pconstant.v1);
+				ui_get(global_all_labels[i], &base_, &size, &nsize, i);
+				ui_vk_draw(*_crrnt_frm, &base_.ppln, true, 0, 0, _rsrs);
+				ui_vk_draw(*_crrnt_frm, &base_.fnt.ppln, true, size, nsize, _rsrs);
 				break;
 			default:
-				switch (lbls_ll_[i].st_typ)
+				switch (global_all_labels[i].st_typ)
 				{
 				case lbl_st_HOVERING:
-					glm_vec3_copy(lbls_ll_[i].hvrd_clr, base_.ppln.pconstant.v1);
+					glm_vec3_copy(global_all_labels[i].hvrd_clr, base_.ppln.pconstant.v1);
 					break;
 				case lbl_st_UNSELECTED:
-					glm_vec3_copy(lbls_ll_[i].nrml_clr, base_.ppln.pconstant.v1);
+					glm_vec3_copy(global_all_labels[i].nrml_clr, base_.ppln.pconstant.v1);
 					break;
 				case lbl_st_SELECTED:
-					glm_vec3_copy(lbls_ll_[i].slctd_clr, base_.ppln.pconstant.v1);
+					glm_vec3_copy(global_all_labels[i].slctd_clr, base_.ppln.pconstant.v1);
 					break;
 				default:
 					break;
 				}
-				lu_gt(lbls_ll_[i], &base_, &size, &nsize, i);
-				lu_vlkn_drw(*_crrnt_frm, &base_.ppln, false, 0, 0, _rsrs);
-				lu_vlkn_drw(*_crrnt_frm, &base_.fnt.ppln, false, size, nsize, _rsrs);
+				glm_vec3_copy(global_all_labels[i].txt_clr, base_.fnt.ppln.pconstant.v1);
+				ui_get(global_all_labels[i], &base_, &size, &nsize, i);
+				ui_vk_draw(*_crrnt_frm, &base_.ppln, false, 0, 0, _rsrs);
+				ui_vk_draw(*_crrnt_frm, &base_.fnt.ppln, false, size, nsize, _rsrs);
 				break;
 			}
 		}
 	}
-	lbls_ll_cnt_ = 0;
+	global_all_labels_count = 0;
+}
+
+void ui_destroy(vk_rsrs *_rsrs)
+{
+	global_all_labels_count = 0;
+	vkDestroyImageView(vk_logical_device_, base_.fnt.fnt_img_vw, NULL);
+	vkDestroySampler(vk_logical_device_, base_.fnt.fnt_img_smplr, NULL);
+	vkDestroyImage(vk_logical_device_, base_.fnt.fnt_img, NULL);
+	vkFreeMemory(vk_logical_device_, base_.fnt.fnt_img_mmry, NULL);
+
+	pipeline_vk_destroy(&base_.ppln);
+	pipeline_vk_destroy(&base_.fnt.ppln);
+	fnt_free();
 }
 

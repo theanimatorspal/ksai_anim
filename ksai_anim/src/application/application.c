@@ -29,13 +29,13 @@ int main(int argc, char *argv[])
 		"NAME",
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
-		640,
-		360,
+		1920*0.7,
+		1080 * 0.7,
 		SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE
 	);
 
 	initialize_backend(&resources, &instance);
-	lu_int(10, &resources);
+	ui_init(10, &resources);
 
 
 	bool running = true;
@@ -46,28 +46,34 @@ int main(int argc, char *argv[])
 		SDL_GetWindowSize(resources.window, &width, &height);
 		SDL_Event windowEvent;
 
-
-		char m[6][10]= {0};
+		char m[6][10][100] = {0};
 		int c[6] = {0};
+		strcpy_s(m[0][0], sizeof(char) * 100, "File");
+		strcpy_s(m[1][0], sizeof(char) * 100, "Create");
+		strcpy_s(m[2][0], sizeof(char) * 100, "Window");
+		strcpy_s(m[3][0], sizeof(char) * 100, "Mesh");
 		draw_file_menu(m, 4,  c, (float)width/height, &resources, &windowEvent);
 
 
 
-		while (SDL_PollEvent(&windowEvent))
+		SDL_WaitEvent(&windowEvent);
+		ui_events(resources.window, &windowEvent);
+		if (windowEvent.type == SDL_QUIT)
 		{
-			if (windowEvent.type == SDL_QUIT)
-			{
-				running = false;
-				break;
-			}
+			running = false;
+			break;
 		}
+
+
+
+
 
 		if(draw_backend_start(&resources)!=-1)
 		{ 
-			lu_updt(&resources.current_frame);
+			ui_update(&resources.current_frame);
 			draw_backend_begin(&resources);
 
-			lu_rndr(&resources.current_frame, &resources);
+			ui_render(&resources.current_frame, &resources);
 
 			draw_backend_end(&resources);
 			draw_backend_finish(&resources);
@@ -78,6 +84,9 @@ int main(int argc, char *argv[])
 		}
 
 	}
+	
+	ui_destroy(&resources);
+	destroy_backend(&resources);
 
 	SDL_DestroyWindow(resources.window);
 	SDL_Quit();

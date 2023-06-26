@@ -1,13 +1,12 @@
 #pragma once
-
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ksai/ksai_memory.h>
 #include "font.h"
 
-
+static ksai_Arena global_arena;
 int get_n_pair(int n, char* string_in)
 {
 	int equal_to_sign_index = 0;
@@ -75,10 +74,15 @@ void prs_bm_fnt(const char* path, fnt_d *font_desp)
 
 void gn_txt(const char* text, const int size, fnt_d* font_desp)
 {
+	static bool first_time = true;
+	if(first_time == true)
+		ksai_Arena_init(sizeof(l_vbs_vrtx) * 4 * size * KSAI_STRING_ARENA_MEMORY, &global_arena);
+	first_time = false;
+
 	if (font_desp->ppln.vertices_count < 4 * size || font_desp->ppln.indices_count < 6 * size)
 	{
-		font_desp->ppln.vertices = (l_vbs_vrtx*)malloc(sizeof(l_vbs_vrtx) * 4 * size);
-		font_desp->ppln.indcs = (uint32_t*)malloc(sizeof(uint32_t) * 6 * size);
+		font_desp->ppln.vertices = (l_vbs_vrtx*)ksai_Arena_allocate(sizeof(l_vbs_vrtx) * 4 * size, &global_arena);
+		font_desp->ppln.indcs = (uint32_t*)ksai_Arena_allocate(sizeof(uint32_t) * 6 * size, &global_arena);
 	}
 	font_desp->ppln.vertices_count = 4 * size;
 	font_desp->ppln.indices_count = 6 * size;
@@ -176,3 +180,7 @@ void gn_txt(const char* text, const int size, fnt_d* font_desp)
 	}
 }
 
+void fnt_free()
+{
+	ksai_Area_free(&global_arena);
+}

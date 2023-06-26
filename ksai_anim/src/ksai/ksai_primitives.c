@@ -6,9 +6,6 @@
 static ksai_Arena global_ksai_string_arena;
 static bool first_call = true;
 
-KSAI_API void ksai_String_create(ksai_String *out_str) {
-}
-
 KSAI_API void ksai_String_create_from_carry(const char *in_str, ksai_String *out_str) {
 	size_t length = strnlen(in_str, KSAI_MAX_STRING_POSSIBLE_LENGTH_COUNT);
 	if (first_call == true)

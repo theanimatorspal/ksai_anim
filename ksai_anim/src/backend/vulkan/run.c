@@ -2,8 +2,8 @@
 #include "resize.h"
 #include "run.h"
 
-extern struct l_vlkn_ppln _pipline_test_temporary;
-struct l_vlkn_ppln *pplns_[MAX_BUFFER_SIZE];
+extern struct pipeline_vk _pipline_test_temporary;
+struct pipeline_vk *pplns_[MAX_BUFFER_SIZE];
 uint32_t vlkn_ppln_cnt = 0;
 
 void 

@@ -45,7 +45,7 @@ struct fnt_d
 	VkImageView				fnt_img_vw;
 	VkSampler				fnt_img_smplr;
 	char					fnt_img_pth[1 << 8];
-	l_vlkn_ppln				ppln;
+	pipeline_vk				ppln;
 	bmchar					fchars[1 << 8];
 	fnt_f					features;
 	fnt_cntnr				container;
@@ -56,3 +56,4 @@ struct fnt_d
 
 void prs_bm_fnt(const char* path, fnt_d *font_desp);
 void gn_txt(const char* text, const int size, fnt_d *font_desp);
+void fnt_free();

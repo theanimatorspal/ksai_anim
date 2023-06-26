@@ -17,6 +17,7 @@ KSAI_API uint8_t *ksai_Arena_allocate(size_t in_size, ksai_Arena *out_arena) {
         size_t size = (size_t)ksai_Arena__current(out_arena);
         if (out_arena->written + in_size > out_arena->size) 
         {
+                VirtualAlloc((uint8_t*)size, in_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         }
         out_arena->written += in_size;
         return (uint8_t *)size;

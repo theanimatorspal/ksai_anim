@@ -122,3 +122,8 @@ void draw_backend_wait(vk_rsrs *_rsrs)
 {
 	vkQueueWaitIdle(_rsrs->vk_graphics_queue_);
 }
+
+void destroy_backend(vk_rsrs *_rsrs)
+{
+	vulkan_cleanup(_rsrs);
+}

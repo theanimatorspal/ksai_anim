@@ -3,9 +3,9 @@
 #include <ksai/ksai.h>
 #include <vendor/stbi/stb_image.h>
 
-void extui_create_vulkan_pipeline(
+void create_vulkan_pipeline(
 	vk_rsrs *_rsrs,
-	struct l_vlkn_ppln* ppln,
+	struct pipeline_vk* ppln,
 	int _descriptor_set_layout_binding_count,
 	VkDescriptorSetLayoutBinding *_descriptor_layout_binding,
 	const char* _vshader_path,
@@ -833,9 +833,9 @@ void extui_create_vulkan_pipeline(
 
 }
 
-void extui_create_vulkan_pipeline2(
+void create_vulkan_pipeline2(
 	vk_rsrs *_rsrs,
-	struct l_vlkn_ppln* ppln,
+	struct pipeline_vk* ppln,
 	int _descriptor_set_layout_binding_count,
 	VkDescriptorSetLayoutBinding *_descriptor_layout_binding,
 	const char* _vshader_path,
@@ -1292,9 +1292,9 @@ void extui_create_vulkan_pipeline2(
 
 
 
-void extui_create_vulkan_pipeline2_compute(
+void create_vulkan_pipeline2_compute(
 	vk_rsrs *_rsrs,
-	struct l_vlkn_ppln* ppln,
+	struct pipeline_vk* ppln,
 	int _descriptor_set_layout_binding_count,
 	VkDescriptorSetLayoutBinding *_descriptor_layout_binding,
 	const char* _vshader_path,
@@ -1774,7 +1774,36 @@ void extui_create_vulkan_pipeline2_compute(
 
 }
 
-void l_ppln_cln(l_vlkn_ppln *_ppln)
+void pipeline_vk_destroy(pipeline_vk *_ppln)
 {
+	if(_ppln->vk_vertex_buffer_ != 0)
+	{ 
+		vkDestroyBuffer(vk_logical_device_, _ppln->vk_vertex_buffer_, NULL);
+		vkFreeMemory(vk_logical_device_, _ppln->vk_vertex_buffer_memory_, NULL);
+	}
+
+	if(_ppln->vk_index_buffer_ != 0)
+	{ 
+		vkDestroyBuffer(vk_logical_device_, _ppln->vk_index_buffer_, NULL);
+		vkFreeMemory(vk_logical_device_, _ppln->vk_index_buffer_memory_, NULL);
+	}
+	if (_ppln->vk_texture_image_ != 0)
+	{
+		vkDestroyImage(vk_logical_device_, _ppln->vk_texture_image_, NULL);
+		vkDestroyImageView(vk_logical_device_, _ppln->vk_texture_image_view_, NULL);
+		vkDestroySampler(vk_logical_device_, _ppln->vk_texture_image_sampler_, NULL);
+		vkFreeMemory(vk_logical_device_, _ppln->vk_texture_image_memory_, NULL);
+	}
+	for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{ 
+		vkUnmapMemory(vk_logical_device_, _ppln->vk_uniform_buffer_memory_[i]);
+		vkDestroyBuffer(vk_logical_device_, _ppln->vk_uniform_buffer_[i], NULL);
+		vkFreeMemory(vk_logical_device_, _ppln->vk_uniform_buffer_memory_[i], NULL);
+	}
+	vkDestroyDescriptorSetLayout(vk_logical_device_, _ppln->vk_descriptor_set_layout_, NULL);
+	vkDestroyDescriptorPool(vk_logical_device_, _ppln->vk_descriptor_pool_, NULL);
+	vkDestroyPipelineLayout(vk_logical_device_, _ppln->vk_pipeline_layout_, NULL);
+	vkDestroyPipeline(vk_logical_device_, _ppln->vk_pipeline_, NULL);
+
 }
 
