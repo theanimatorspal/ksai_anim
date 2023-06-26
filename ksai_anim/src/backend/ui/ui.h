@@ -45,7 +45,7 @@ typedef struct ui_label
 
 
 void ui_init(int size_factor, vk_rsrs *_rsrs);
-bool ui_draw_button(ui_label lbl, SDL_Window *_wndw, SDL_Event *event);
+bool ui_draw_button(ui_label lbl, SDL_Window *_wndw);
 void ui_events(SDL_Window *_wndw, SDL_Event *event);
 void ui_update(int *_current_frame);
 void ui_render(int *_crrnt_frm, vk_rsrs *_rsrs);

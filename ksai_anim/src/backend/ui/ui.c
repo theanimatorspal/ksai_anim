@@ -344,7 +344,7 @@ void ui_vk_draw(int _crrnt_frm, struct pipeline_vk *_ppln, bool frst_tm, VkDevic
 
 
 /* For Plugins */
-bool ui_draw_button(ui_label lbl, SDL_Window *_wndw, SDL_Event *event)
+bool ui_draw_button(ui_label lbl, SDL_Window *_wndw)
 {
 	ui_label lb = {0};
 	lb.st_typ = global_all_labels[global_all_labels_count].st_typ;

@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 	);
 
 	initialize_backend(&resources, &instance);
-	ui_init(10, &resources);
+	ui_init(100, &resources);
 
 
 	bool running = true;
@@ -45,18 +45,30 @@ int main(int argc, char *argv[])
 	{
 		SDL_GetWindowSize(resources.window, &width, &height);
 		SDL_Event windowEvent;
+		SDL_WaitEvent(&windowEvent);
 
 		char m[6][10][100] = {0};
-		int c[6] = {0};
+		int c[6] = {3, 6, 0, 0};
 		strcpy_s(m[0][0], sizeof(char) * 100, "File");
 		strcpy_s(m[1][0], sizeof(char) * 100, "Create");
 		strcpy_s(m[2][0], sizeof(char) * 100, "Window");
-		strcpy_s(m[3][0], sizeof(char) * 100, "Mesh");
-		draw_file_menu(m, 4,  c, (float)width/height, &resources, &windowEvent);
+		strcpy_s(m[3][0], sizeof(char) * 100, "Mesh ");
+		strcpy_s(m[4][0], sizeof(char) * 100, "Render");
+
+		strcpy_s(m[0][1], sizeof(char) * 100, "New");
+		strcpy_s(m[0][2], sizeof(char) * 100, "Open");
+		strcpy_s(m[0][3], sizeof(char) * 100, "Close");
+
+		strcpy_s(m[1][1], sizeof(char) * 100, "Circle");
+		strcpy_s(m[1][2], sizeof(char) * 100, "Plane");
+		strcpy_s(m[1][3], sizeof(char) * 100, "Annulus");
+		strcpy_s(m[1][4], sizeof(char) * 100, "Add_Mesh");
+		strcpy_s(m[1][5], sizeof(char) * 100, "Add_Par");
+		strcpy_s(m[1][6], sizeof(char) * 100, "Add_CUR");
+		draw_file_menu(m, 5,  c, (float)width/height, &resources);
 
 
 
-		SDL_WaitEvent(&windowEvent);
 		ui_events(resources.window, &windowEvent);
 		if (windowEvent.type == SDL_QUIT)
 		{
