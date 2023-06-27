@@ -45,13 +45,16 @@ int main(int argc, char *argv[])
 	initialize_renderer_backend(&resources, &checker_renderer);
 
 	kie_Scene scene1;
-	kie_Object obj1;
+	kie_Object obj1, obj2;
 	kie_Object_init(&obj1);
+	kie_Object_init(&obj2);
 
 	read_obj_to_kie_Object("res/objs/sphere.obj", &obj1);
+	read_obj_to_kie_Object("res/objs/plane.obj", &obj2);
 
 	kie_Scene_init(&scene1);
 	kie_Scene_add_object(&scene1, &obj1);
+	kie_Scene_add_object(&scene1, &obj2);
 
 
 	bool running = true;
