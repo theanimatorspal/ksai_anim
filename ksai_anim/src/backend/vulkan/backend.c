@@ -52,7 +52,7 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 		.stride = sizeof(kie_Vertex),
 		.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
 	};
-	VkVertexInputAttributeDescription attr_desp[5];
+	VkVertexInputAttributeDescription attr_desp[6];
 
 	attr_desp[0] = (VkVertexInputAttributeDescription){
 		.binding = 0,
@@ -71,20 +71,27 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 	attr_desp[2] = (VkVertexInputAttributeDescription){
 		.binding = 0,
 		.location = 2,
-		.format = VK_FORMAT_R32G32_SFLOAT,
+		.format = VK_FORMAT_R32G32B32_SFLOAT,
 		.offset = offsetof(kie_Vertex, color)
 	};
 
 	attr_desp[3] = (VkVertexInputAttributeDescription){
 		.binding = 0,
 		.location = 3,
-		.format = VK_FORMAT_R32G32_SFLOAT,
+		.format = VK_FORMAT_R32G32B32_SFLOAT,
 		.offset = offsetof(kie_Vertex, tangent)
 	};
 
 	attr_desp[4] = (VkVertexInputAttributeDescription){
 		.binding = 0,
 		.location = 4,
+		.format = VK_FORMAT_R32G32B32_SFLOAT,
+		.offset = offsetof(kie_Vertex, bit_tangent)
+	};
+
+	attr_desp[5] = (VkVertexInputAttributeDescription){
+		.binding = 0,
+		.location = 5,
 		.format = VK_FORMAT_R32G32_SFLOAT,
 		.offset = offsetof(kie_Vertex, tex_coord)
 	};
@@ -95,6 +102,12 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 	pool_sizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
 	pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+	backend->pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	backend->pool_sizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+	backend->pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	backend->pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
 
 	char *p = { "res/textures/checker.png" };
 	create_vulkan_pipeline2(
@@ -107,7 +120,7 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 		&binding_desp,
 		1,
 		attr_desp,
-		5,
+		6,
 		1,
 		&backend->checker_pipeline.vk_texture_image_,
 		&backend->checker_pipeline.vk_texture_image_memory_,
@@ -136,13 +149,27 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 		&backend->ibuffer_memory,
 		vk_logical_device_
 	);
+	size = sizeof(uniforms) * KSAI_MESH_UNIFORM_MEM;
+	create_buffer_util(
+		size,
+		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+		&backend->ubuffer,
+		&backend->ubuffer_memory,
+		vk_logical_device_
+	);
 
 	kie_Object_Arena_init();
-	backend->voffsets = (VkDeviceSize*) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
-	backend->ioffsets = (VkDeviceSize*) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+	backend->voffsets = (VkDeviceSize *) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+	backend->ioffsets = (VkDeviceSize *) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+	backend->uoffsets = (VkDeviceSize *) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+
+	backend->descriptor_sets = (VkDescriptorSet(*)[2]) ksai_Arena_allocate(sizeof(vk_dsset_pair) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+	backend->descriptor_pools = (VkDescriptorPool*) ksai_Arena_allocate(sizeof(VkDescriptorPool) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
 	backend->offset_count = 0;
 	backend->voffset = 0;
 	backend->ioffset = 0;
+	backend->uoffset = 0;
 }
 
 KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_backend *backend)
@@ -209,7 +236,7 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 					0,
 					NULL
 				);
-				
+
 				end_single_time_commands_util(&buff, rsrs->vk_graphics_queue_);
 
 
@@ -247,7 +274,7 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 				backend->ioffsets[i] = backend->ioffset;
 				backend->ioffset += size;
 				vkCmdCopyBuffer(buff, staging_buffer, backend->ibuffer, 1, &regions);
-				
+
 				VkBufferMemoryBarrier barr = (VkBufferMemoryBarrier)
 				{
 					.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
@@ -278,6 +305,78 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 
 				vkDestroyCommandPool(vk_logical_device_, pool, NULL);
 			}
+
+			/* Descriptor Sets */
+			{
+				{
+					VkDescriptorPoolCreateInfo pool_info = { 0 };
+					pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+					pool_info.poolSizeCount = 2;
+					pool_info.pPoolSizes = backend->pool_sizes;
+					// we should also specify the max no of descriptro set that might be get allocated
+					pool_info.maxSets = MAX_FRAMES_IN_FLIGHT;
+
+					if (vkCreateDescriptorPool(vk_logical_device_, &pool_info, NULL, &backend->descriptor_pools[i]) != VK_SUCCESS)
+					{
+						printf("Failed to create descriptor pool\n");
+					}
+				}
+
+				VkDescriptorSetLayout layouts[MAX_FRAMES_IN_FLIGHT] = { backend->checker_pipeline.vk_descriptor_set_layout_, backend->checker_pipeline.vk_descriptor_set_layout_ };
+				VkDescriptorSetAllocateInfo alloc_info = { 0 };
+				alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+				alloc_info.descriptorPool = backend->descriptor_pools[i];
+				alloc_info.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
+				alloc_info.pSetLayouts = layouts;
+
+				VkResult res;
+				if ((res = vkAllocateDescriptorSets(vk_logical_device_, &alloc_info, backend->descriptor_sets[i])) != VK_SUCCESS)
+				{
+					printf("Failed to allocate descriptor sets\n");
+				}
+
+				static VkWriteDescriptorSet descriptor_writes[MAX_BUFFER_SIZE] = { 0 };
+				for (size_t ii = 0; ii < MAX_FRAMES_IN_FLIGHT; ii++)
+				{
+
+					VkDeviceSize size = sizeof(uniforms);
+					VkDescriptorBufferInfo buffer_info = { 0 };
+					buffer_info.buffer = backend->ubuffer;
+					buffer_info.offset = backend->uoffset;
+					buffer_info.range = size;
+					backend->uoffsets[i] = backend->uoffset;
+					backend->uoffset += size;
+
+					descriptor_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descriptor_writes[0].dstSet = backend->descriptor_sets[i][ii];
+					descriptor_writes[0].dstBinding = 0;
+					descriptor_writes[0].dstArrayElement = 0;
+					descriptor_writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					descriptor_writes[0].descriptorCount = 1;
+					descriptor_writes[0].pBufferInfo = &buffer_info;
+					descriptor_writes[0].pImageInfo = NULL;
+					descriptor_writes[0].pTexelBufferView = NULL;
+
+					VkDescriptorImageInfo image_info = { 0 };
+					image_info = (VkDescriptorImageInfo){
+						.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						.imageView = backend->checker_pipeline.vk_texture_image_view_, // Yo euta matra hudaina
+						.sampler = backend->checker_pipeline.vk_texture_image_sampler_ // Yo euta matra hudaina
+					};
+					descriptor_writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descriptor_writes[1].dstSet = backend->descriptor_sets[i][ii];
+					descriptor_writes[1].dstBinding = 1;
+					descriptor_writes[1].dstArrayElement = 0;
+					descriptor_writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					descriptor_writes[1].descriptorCount = 1;
+					descriptor_writes[1].pBufferInfo = NULL;
+					descriptor_writes[1].pImageInfo = &image_info;
+					descriptor_writes[1].pTexelBufferView = NULL;
+					vkUpdateDescriptorSets(vk_logical_device_, 2, descriptor_writes, 0, NULL);
+
+				}
+			}
+
 		}
 		backend->offset_count = scene->objects_count;
 	}
@@ -289,6 +388,12 @@ KSAI_API void destroy_renderer_backend(vk_rsrs *rsrs, renderer_backend *backend)
 	vkFreeMemory(vk_logical_device_, backend->vbuffer_memory, NULL);
 	vkDestroyBuffer(vk_logical_device_, backend->ibuffer, NULL);
 	vkFreeMemory(vk_logical_device_, backend->ibuffer_memory, NULL);
+	vkDestroyBuffer(vk_logical_device_, backend->ubuffer, NULL);
+	vkFreeMemory(vk_logical_device_, backend->ubuffer_memory, NULL);
+	for (int i = 0; i < backend->offset_count; i++)
+	{
+		vkDestroyDescriptorPool(vk_logical_device_, backend->descriptor_pools[i], NULL);
+	}
 	pipeline_vk_destroy2(&backend->checker_pipeline);
 	kie_Object_Arena_destroy();
 }
@@ -366,6 +471,7 @@ KSAI_API int draw_backend_begin(vk_rsrs *_rsrs, vec3 color)
 	vkCmdBeginRenderPass(vk_command_buffer_[_rsrs->current_frame], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 	return _rsrs->current_frame;
 }
+
 
 KSAI_API void draw_backend_end(vk_rsrs *_rsrs)
 {

@@ -17,6 +17,7 @@
 #include <backend/ui/ui.h>
 #include <backend/ui/latex_colors.h>
 #include <engine/renderer/scene.h>
+#include "loaders/obj_loader.h"
 #include "frontend/app_ui.h"
 #include "frontend/3d_viewport.h"
 
@@ -46,7 +47,9 @@ int main(int argc, char *argv[])
 	kie_Scene scene1;
 	kie_Object obj1;
 	kie_Object_init(&obj1);
-	kie_Object_create_circle(&obj1, 3, 8, (vec3) {0, 0, 0}, (vec3) {0, 1, 0}, true, 0, 0);
+
+	read_obj_to_kie_Object("res/objs/sphere.obj", &obj1);
+
 	kie_Scene_init(&scene1);
 	kie_Scene_add_object(&scene1, &obj1);
 
@@ -55,7 +58,7 @@ int main(int argc, char *argv[])
 	while (running)
 	{
 		SDL_Event windowEvent;
-		SDL_WaitEventTimeout(&windowEvent, 100);
+		SDL_WaitEventTimeout(&windowEvent, 400);
 
 		copy_scene_to_backend(&resources, &scene1, &checker_renderer);
 		static int width, height;
@@ -84,7 +87,7 @@ int main(int argc, char *argv[])
 		strcpy_s(m[1][6], sizeof(char) * 100, "Curv");
 		draw_file_menu(m, 5, c, aspect, &resources, (int *) &running);
 
-		static vec2 debug_window_pos = { 0, 0 }; static bool move_debug_window = false;
+		static vec2 debug_window_pos = { 0.75, -0.7 }; static bool move_debug_window = false;
 		draw_window("Debug    ", 7, debug_window_pos, aspect,  &resources, &windowEvent, &move_debug_window);
 		char log[100];
 		sprintf_s(log, sizeof(char) * 100, "cp:(%.2f,%.2f,%.2f)", viewport_camera.position[0], viewport_camera.position[1], viewport_camera.position[2]);
@@ -94,7 +97,7 @@ int main(int argc, char *argv[])
 		sprintf_s(log, sizeof(char) * 100, "Object Count:%d", scene1.objects_count);
 		draw_label_window(log, debug_window_pos, &resources, aspect, 3);
 
-		static vec2 demo_window_pos = { -0.25, 0.25 }; static bool move_demo_window = false;
+		static vec2 demo_window_pos = { 0.75, -0.05 }; static bool move_demo_window = false;
 		draw_window("Demo    ", 4, demo_window_pos, aspect,  &resources, &windowEvent, &move_demo_window);
 		draw_label_window("Start", demo_window_pos, &resources, aspect, 1);
 		draw_label_window("Clear Color", demo_window_pos, &resources, aspect, 1.5);

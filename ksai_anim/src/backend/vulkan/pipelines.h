@@ -5,7 +5,7 @@
 #include "init.h"
 
 
-struct lua_vbase_push_constant_stuffs
+struct push_constants
 {
 	alignas(16) mat4		mvp;
 	alignas(16) vec3		v1;
@@ -18,12 +18,15 @@ typedef struct l_vbs_vrtx
 	 vec2		tex_coords;
 } l_vbs_vrtx;
 
-typedef struct lua_vbase_uniform
+typedef struct uniforms
 {
 	alignas(16) vec3			v1;
 	alignas(16) vec3			v2;
 	alignas(16) vec3			v3;
-} lua_vbase_uniform;
+	alignas(16) mat4			model;
+	alignas(16) mat4			view;
+	alignas(16) mat4			proj;
+} uniforms;
 
 typedef enum mem_operations
 {
@@ -55,10 +58,10 @@ struct pipeline_vk
 	VkDescriptorPool vk_descriptor_pool_;
 	VkDescriptorSet vk_descriptor_sets_[MAX_FRAMES_IN_FLIGHT];
 	VkCommandBuffer vk_command_buffer_[MAX_FRAMES_IN_FLIGHT];
-	struct lua_vbase_uniform ubo;
+	struct uniforms ubo;
 	struct l_vbs_vrtx *vertices;
 	int vertices_count;
-	struct lua_vbase_push_constant_stuffs pconstant;
+	struct push_constants pconstant;
 	uint32_t* indcs;
 	int indices_count;
 } pipeline_vk;

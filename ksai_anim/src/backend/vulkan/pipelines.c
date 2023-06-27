@@ -183,7 +183,7 @@ void create_vulkan_pipeline(
 		VkPushConstantRange push_constant = { 0 };
 		push_constant = (VkPushConstantRange){
 			.offset = 0,
-			.size = sizeof(struct lua_vbase_push_constant_stuffs),
+			.size = sizeof(struct push_constants),
 			.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
 		};
 
@@ -856,7 +856,6 @@ void create_vulkan_pipeline2(
 {
 	/* Create Descriptor Set layout*/
 	{
-
 		VkDescriptorSetLayoutCreateInfo layout_info = { 0 };
 		layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		layout_info.bindingCount = _descriptor_set_layout_binding_count;
@@ -1012,7 +1011,7 @@ void create_vulkan_pipeline2(
 		VkPushConstantRange push_constant = { 0 };
 		push_constant = (VkPushConstantRange){
 			.offset = 0,
-			.size = sizeof(struct lua_vbase_push_constant_stuffs),
+			.size = sizeof(struct push_constants),
 			.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
 		};
 
@@ -1265,7 +1264,7 @@ void create_vulkan_pipeline2(
 			descriptor_writes[0].pImageInfo = NULL;
 			descriptor_writes[0].pTexelBufferView = NULL;
 
-	for (int j = 1; j <= _no_of_texture_images; j++)
+		for (int j = 1; j <= _no_of_texture_images; j++)
 			{
 				VkDescriptorImageInfo image_info = { 0 };
 				image_info = (VkDescriptorImageInfo){
@@ -1485,7 +1484,7 @@ void create_vulkan_pipeline2_compute(
 		VkPushConstantRange push_constant = { 0 };
 		push_constant = (VkPushConstantRange){
 			.offset = 0,
-			.size = sizeof(struct lua_vbase_push_constant_stuffs),
+			.size = sizeof(struct push_constants),
 			.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
 		};
 

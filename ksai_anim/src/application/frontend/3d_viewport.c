@@ -90,8 +90,10 @@ void threeD_viewport_draw(kie_Camera *camera, kie_Scene *scene, renderer_backend
 {
 	for (int i = 0; i < scene->objects_count; i++)
 	{
+		vkCmdSetDepthTestEnable(vk_command_buffer_[rsrs->current_frame], VK_TRUE);
 		kie_Object *the_mesh = &scene->objects[i];
 		vkCmdBindPipeline(vk_command_buffer_[rsrs->current_frame], VK_PIPELINE_BIND_POINT_GRAPHICS, backend->checker_pipeline.vk_pipeline_);
+
 		vkCmdBindDescriptorSets(vk_command_buffer_[rsrs->current_frame], VK_PIPELINE_BIND_POINT_GRAPHICS, backend->checker_pipeline.vk_pipeline_layout_, 0, 1, &backend->checker_pipeline.vk_descriptor_sets_[rsrs->current_frame], 0, NULL);
 		VkViewport viewport = { 0 };
 		viewport.x = 0.0f;
@@ -131,6 +133,7 @@ void threeD_viewport_draw(kie_Camera *camera, kie_Scene *scene, renderer_backend
 		glm_mat4_copy(mvp, backend->checker_pipeline.pconstant.mvp);
 		vkCmdPushConstants(vk_command_buffer_[rsrs->current_frame], backend->checker_pipeline.vk_pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(backend->checker_pipeline.pconstant), &backend->checker_pipeline.pconstant);
 		vkCmdDrawIndexed(vk_command_buffer_[rsrs->current_frame], the_mesh->indices_count, 1, 0, 0, 0);
+		vkCmdSetDepthTestEnable(vk_command_buffer_[rsrs->current_frame], VK_FALSE);
 
 	}
 }

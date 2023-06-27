@@ -11,7 +11,8 @@ typedef struct kie_Vertex
 	alignas(16) vec3 normal;
 	alignas(16) vec3 color;
 	alignas(16) vec3 tangent;
-	alignas(16) vec2 tex_coord;
+	alignas(16) vec3 bit_tangent;
+	alignas(8) vec2 tex_coord;
 } kie_Vertex;
 
 

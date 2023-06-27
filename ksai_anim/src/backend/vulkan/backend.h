@@ -3,20 +3,34 @@
 #include <engine/renderer/scene.h>
 #include "pipelines.h"
 
+typedef VkDescriptorSet vk_dsset_pair[2];
+
 typedef struct renderer_backend
 {
 	pipeline_vk checker_pipeline;
 	pipeline_vk ksai_render_pipeline;
+
 	VkBuffer vbuffer;
 	VkDeviceMemory vbuffer_memory;
 	VkDeviceSize voffset;
+
 	VkBuffer ibuffer;
 	VkDeviceMemory ibuffer_memory;
 	VkDeviceSize ioffset;
 
+	VkBuffer ubuffer;
+	VkDeviceMemory ubuffer_memory;
+	VkDeviceSize uoffset;
+
 	VkDeviceSize *voffsets;
 	VkDeviceSize *ioffsets;
+	VkDeviceSize *uoffsets;
 	uint32_t offset_count;
+
+	//vk_dsset_pair *descriptor_sets;
+	VkDescriptorSet (*descriptor_sets)[2];
+	VkDescriptorPool *descriptor_pools;
+	VkDescriptorPoolSize pool_sizes[2];
 
 } renderer_backend;
 
