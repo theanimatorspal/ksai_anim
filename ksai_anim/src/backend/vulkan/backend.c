@@ -149,27 +149,34 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 		&backend->ibuffer_memory,
 		vk_logical_device_
 	);
-	size = sizeof(uniforms) * KSAI_MESH_UNIFORM_MEM;
-	create_buffer_util(
-		size,
-		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-		&backend->ubuffer,
-		&backend->ubuffer_memory,
-		vk_logical_device_
-	);
+
+	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		size = sizeof(uniforms) * KSAI_MESH_UNIFORM_MEM;
+		create_buffer_util(
+			size,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+			&backend->ubuffer[i],
+			&backend->ubuffer_memory[i],
+			vk_logical_device_
+		);
+		vkMapMemory(vk_logical_device_, backend->ubuffer_memory[i], 0, size, 0, &backend->udata[i]);
+		memset(backend->udata[i], 0, size);
+	}
 
 	kie_Object_Arena_init();
 	backend->voffsets = (VkDeviceSize *) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
 	backend->ioffsets = (VkDeviceSize *) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
-	backend->uoffsets = (VkDeviceSize *) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+	backend->uoffsets = (VkDeviceSize(*)[MAX_FRAMES_IN_FLIGHT]) ksai_Arena_allocate(sizeof(VkDeviceSize) * MAX_FRAMES_IN_FLIGHT * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
 
 	backend->descriptor_sets = (VkDescriptorSet(*)[2]) ksai_Arena_allocate(sizeof(vk_dsset_pair) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
-	backend->descriptor_pools = (VkDescriptorPool*) ksai_Arena_allocate(sizeof(VkDescriptorPool) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+	backend->descriptor_pools = (VkDescriptorPool *) ksai_Arena_allocate(sizeof(VkDescriptorPool) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
 	backend->offset_count = 0;
 	backend->voffset = 0;
 	backend->ioffset = 0;
-	backend->uoffset = 0;
+	backend->uoffset[0] = 0;
+	backend->uoffset[1] = 0;
 }
 
 KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_backend *backend)
@@ -341,11 +348,11 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 
 					VkDeviceSize size = sizeof(uniforms);
 					VkDescriptorBufferInfo buffer_info = { 0 };
-					buffer_info.buffer = backend->ubuffer;
-					buffer_info.offset = backend->uoffset;
-					buffer_info.range = size;
-					backend->uoffsets[i] = backend->uoffset;
-					backend->uoffset += size;
+					buffer_info.buffer = backend->ubuffer[ii];
+					buffer_info.offset = backend->uoffset[ii];
+					buffer_info.range = size; // to be changed to size
+					backend->uoffsets[i][ii] = backend->uoffset[ii];
+					backend->uoffset[ii] += size;
 
 					descriptor_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 					descriptor_writes[0].dstSet = backend->descriptor_sets[i][ii];
@@ -388,8 +395,11 @@ KSAI_API void destroy_renderer_backend(vk_rsrs *rsrs, renderer_backend *backend)
 	vkFreeMemory(vk_logical_device_, backend->vbuffer_memory, NULL);
 	vkDestroyBuffer(vk_logical_device_, backend->ibuffer, NULL);
 	vkFreeMemory(vk_logical_device_, backend->ibuffer_memory, NULL);
-	vkDestroyBuffer(vk_logical_device_, backend->ubuffer, NULL);
-	vkFreeMemory(vk_logical_device_, backend->ubuffer_memory, NULL);
+	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		vkDestroyBuffer(vk_logical_device_, backend->ubuffer[i], NULL);
+		vkFreeMemory(vk_logical_device_, backend->ubuffer_memory[i], NULL);
+	}
 	for (int i = 0; i < backend->offset_count; i++)
 	{
 		vkDestroyDescriptorPool(vk_logical_device_, backend->descriptor_pools[i], NULL);

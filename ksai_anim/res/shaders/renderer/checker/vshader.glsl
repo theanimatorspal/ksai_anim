@@ -34,12 +34,14 @@ layout(push_constant, std430) uniform pc {
 
 
 void main() {
-    gl_Position = push.mvp * vec4(inPosition, 1.0);
+    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
     gl_Position.y = - gl_Position.y;
     vert_position = inPosition;
     fragColor = inColor;
     vert_texcoord = inTexCoord;
     vert_normal = inNormal;
     vert_color = max(0.0, dot(vert_normal, vec3(0.58, 0.58, 0.58))) + 0.1;
-   // debugPrintfEXT("inPos(%f, %f, %f):\n", inPosition[0], inPosition[1], inPosition[2]);
+    debugPrintfEXT("mvp(%f, %f, %f):\n", ubo.model[0][0], ubo.model[1][0], ubo.model[2][0]);
+    debugPrintfEXT("view(%f, %f, %f):\n", ubo.model[0][0], ubo.model[1][1], ubo.model[2][2]);
+    debugPrintfEXT("proj(%f, %f, %f):\n", ubo.model[0][1], ubo.model[1][0], ubo.model[2][1]);
 }

@@ -18,17 +18,18 @@ typedef struct renderer_backend
 	VkDeviceMemory ibuffer_memory;
 	VkDeviceSize ioffset;
 
-	VkBuffer ubuffer;
-	VkDeviceMemory ubuffer_memory;
-	VkDeviceSize uoffset;
+	VkBuffer ubuffer[MAX_FRAMES_IN_FLIGHT];
+	VkDeviceMemory ubuffer_memory[MAX_FRAMES_IN_FLIGHT];
+	VkDeviceSize uoffset[MAX_FRAMES_IN_FLIGHT];
+	void *udata[MAX_FRAMES_IN_FLIGHT];
 
 	VkDeviceSize *voffsets;
 	VkDeviceSize *ioffsets;
-	VkDeviceSize *uoffsets;
+	VkDeviceSize (*uoffsets)[2];
 	uint32_t offset_count;
 
 	//vk_dsset_pair *descriptor_sets;
-	VkDescriptorSet (*descriptor_sets)[2];
+	VkDescriptorSet (*descriptor_sets)[MAX_FRAMES_IN_FLIGHT];
 	VkDescriptorPool *descriptor_pools;
 	VkDescriptorPoolSize pool_sizes[2];
 

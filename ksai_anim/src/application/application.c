@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 		SDL_GetWindowSize(resources.window, &width, &height);
 		float aspect = (float)width/height;
 
-		threeD_viewport_events(&viewport_camera, resources.window, &windowEvent);
+		threeD_viewport_events(&viewport_camera, &scene1, &checker_renderer, resources.window, &windowEvent);
 
 		char m[6][10][100] = { 0 };
 		int c[6] = { 3, 6, 0, 0 };
@@ -125,6 +125,7 @@ int main(int argc, char *argv[])
 
 		if (draw_backend_start(&resources) != -1 && running)
 		{
+			threeD_viewport_update(&viewport_camera, &scene1, &checker_renderer, resources.window, &windowEvent, &resources);
 			ui_update(&resources.current_frame);
 			draw_backend_begin(&resources, colors[selection]);
 			

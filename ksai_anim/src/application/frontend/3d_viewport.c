@@ -26,9 +26,8 @@ void threeD_viewport_init(kie_Camera *camera)
 	camera->h = 1080;
 }
 
-void threeD_viewport_events(kie_Camera *camera, SDL_Window *window, SDL_Event *event)
+void threeD_viewport_events(kie_Camera *camera, kie_Scene *scene, renderer_backend *backend, SDL_Window *window, SDL_Event *event)
 {
-
 	static float old_y = 0;
 	static float old_z = 0;
 	static float old_x = 0;
@@ -84,6 +83,35 @@ void threeD_viewport_events(kie_Camera *camera, SDL_Window *window, SDL_Event *e
 	glm_rotate_at(camera->view, camera->pivot, camera->rotation[0], (vec3) { 1, 0, 0 });
 	glm_rotate_at(camera->view, camera->pivot, camera->rotation[1], (vec3) { 0, 1, 0 });
 	glm_rotate_at(camera->view, camera->pivot, camera->rotation[2], (vec3) { 0, 0, 1 });
+
+
+}
+
+void threeD_viewport_update(kie_Camera *camera, kie_Scene *scene, renderer_backend *backend, SDL_Window *window, SDL_Event *event, vk_rsrs *rsrs)
+{
+	for(int i = 0; i < scene->objects_count; i++)
+	{ 
+		mat4 mvp;
+		mat4 projection;
+		mat4 model;
+		glm_mat4_identity(model);
+		glm_mat4_identity(projection);
+		glm_mat4_identity(mvp);
+		glm_perspective(camera->fov, camera->w / camera->h, 0.1, 100, projection);
+		glm_translate(model, scene->objects[i].position);
+		glm_rotate(model, scene->objects[i].rotation[0], (vec3) { 1, 0, 0 });
+		glm_rotate(model, scene->objects[i].rotation[1], (vec3) { 0, 1, 0 });
+		glm_rotate(model, scene->objects[i].rotation[2], (vec3) { 0, 0, 1 });
+		glm_scale(model, scene->objects[i].scale);
+		kie_generate_mvp(projection, camera, model, mvp);
+		glm_mat4_copy(mvp, backend->checker_pipeline.pconstant.mvp);
+		uniforms uni;
+		glm_mat4_copy(model, uni.model);
+		glm_mat4_copy(camera->view, uni.view);
+		glm_mat4_copy(projection, uni.proj);
+		memcpy(backend->udata[rsrs->current_frame] + i * sizeof(uniforms), &uni, sizeof(uniforms));
+	}
+
 }
 
 void threeD_viewport_draw(kie_Camera *camera, kie_Scene *scene, renderer_backend *backend, vk_rsrs *rsrs)
@@ -94,7 +122,16 @@ void threeD_viewport_draw(kie_Camera *camera, kie_Scene *scene, renderer_backend
 		kie_Object *the_mesh = &scene->objects[i];
 		vkCmdBindPipeline(vk_command_buffer_[rsrs->current_frame], VK_PIPELINE_BIND_POINT_GRAPHICS, backend->checker_pipeline.vk_pipeline_);
 
-		vkCmdBindDescriptorSets(vk_command_buffer_[rsrs->current_frame], VK_PIPELINE_BIND_POINT_GRAPHICS, backend->checker_pipeline.vk_pipeline_layout_, 0, 1, &backend->checker_pipeline.vk_descriptor_sets_[rsrs->current_frame], 0, NULL);
+		vkCmdBindDescriptorSets(
+			vk_command_buffer_[rsrs->current_frame],
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			backend->checker_pipeline.vk_pipeline_layout_,
+			0,
+			1,
+			&backend->descriptor_sets[i][rsrs->current_frame],
+			0,
+			NULL
+		);
 		VkViewport viewport = { 0 };
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
