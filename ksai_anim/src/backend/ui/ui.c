@@ -367,7 +367,7 @@ void ui_events(SDL_Window *_wndw, SDL_Event *event)
 {
 	int xpos, ypos;
 	int width, height;
-	SDL_GetMouseState(&xpos, &ypos);
+	uint32_t buttons = SDL_GetMouseState(&xpos, &ypos);
 	SDL_GetWindowSize(_wndw, &width, &height);
 
 	for (int i = 0; i < global_all_labels_count; i++)
@@ -392,7 +392,7 @@ void ui_events(SDL_Window *_wndw, SDL_Event *event)
 
 		if ((ms_x > b_l[0]) && (ms_x < t_r[0]) && (ms_y > b_l[1]) && (ms_y < t_r[1]))
 		{
-			if (event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT)
+			if (buttons & SDL_BUTTON_LMASK)
 			{
 				global_all_labels[i].st_typ = lbl_st_SELECTED;
 				continue;

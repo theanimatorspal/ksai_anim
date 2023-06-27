@@ -4,11 +4,14 @@
 #include "resize.h"
 #include "cleanup.h"
 #include <ksai/ksai_memory.h>
+#include <engine/objects/object.h>
+#include <engine/renderer/scene.h>
 #include "backend.h"
+#include "pipelines.h"
 
 static bool first_call = true;
 
-void initialize_backend(vk_rsrs *rsrs, VkInstance *instance)
+KSAI_API void initialize_backend(vk_rsrs *rsrs, VkInstance *instance)
 {
 	rsrs->current_frame = 0;
 	if (first_call == true)
@@ -22,8 +25,275 @@ void initialize_backend(vk_rsrs *rsrs, VkInstance *instance)
 	vulkan_sync_init(rsrs);
 }
 
+KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backend)
+{
+	VkDescriptorSetLayoutBinding ubo_layout_binding = { 0 };
+	ubo_layout_binding = (VkDescriptorSetLayoutBinding){
+		.binding = 0,
+		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		.descriptorCount = 1,
+		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+		.pImmutableSamplers = NULL
+	};
 
-int draw_backend_start(vk_rsrs *_rsrs)
+	VkDescriptorSetLayoutBinding sampler_layout_binding = { 0 };
+	sampler_layout_binding = (VkDescriptorSetLayoutBinding){
+		.binding = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+		.descriptorCount = 1,
+		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+		.pImmutableSamplers = NULL
+	};
+
+	VkDescriptorSetLayoutBinding bindings[2] = { ubo_layout_binding, sampler_layout_binding };
+
+	VkVertexInputBindingDescription binding_desp = (VkVertexInputBindingDescription){
+		.binding = 0,
+		.stride = sizeof(kie_Vertex),
+		.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+	};
+	VkVertexInputAttributeDescription attr_desp[5];
+
+	attr_desp[0] = (VkVertexInputAttributeDescription){
+		.binding = 0,
+		.location = 0,
+		.format = VK_FORMAT_R32G32B32_SFLOAT,
+		.offset = offsetof(kie_Vertex, position)
+	};
+
+	attr_desp[1] = (VkVertexInputAttributeDescription){
+		.binding = 0,
+		.location = 1,
+		.format = VK_FORMAT_R32G32B32_SFLOAT,
+		.offset = offsetof(kie_Vertex, normal)
+	};
+
+	attr_desp[2] = (VkVertexInputAttributeDescription){
+		.binding = 0,
+		.location = 2,
+		.format = VK_FORMAT_R32G32_SFLOAT,
+		.offset = offsetof(kie_Vertex, color)
+	};
+
+	attr_desp[3] = (VkVertexInputAttributeDescription){
+		.binding = 0,
+		.location = 3,
+		.format = VK_FORMAT_R32G32_SFLOAT,
+		.offset = offsetof(kie_Vertex, tangent)
+	};
+
+	attr_desp[4] = (VkVertexInputAttributeDescription){
+		.binding = 0,
+		.location = 4,
+		.format = VK_FORMAT_R32G32_SFLOAT,
+		.offset = offsetof(kie_Vertex, tex_coord)
+	};
+
+
+	VkDescriptorPoolSize pool_sizes[2] = { 0 };
+	pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	pool_sizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+	pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+	char *p = { "res/textures/checker.png" };
+	create_vulkan_pipeline2(
+		rsrs,
+		&backend->checker_pipeline,
+		2,
+		bindings,
+		"res/shaders/renderer/checker/vshader.spv",
+		"res/shaders/renderer/checker/fshader.spv",
+		&binding_desp,
+		1,
+		attr_desp,
+		5,
+		1,
+		&backend->checker_pipeline.vk_texture_image_,
+		&backend->checker_pipeline.vk_texture_image_memory_,
+		&backend->checker_pipeline.vk_texture_image_sampler_,
+		&backend->checker_pipeline.vk_texture_image_view_,
+		&p,
+		2,
+		pool_sizes
+	);
+
+	VkDeviceSize size = sizeof(kie_Vertex) * KSAI_MESH_VERTEX_MEM;
+	create_buffer_util(
+		size,
+		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		&backend->vbuffer,
+		&backend->vbuffer_memory,
+		vk_logical_device_
+	);
+	size = sizeof(uint32_t) * KSAI_MESH_INDEX_MEM;
+	create_buffer_util(
+		size,
+		VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		&backend->ibuffer,
+		&backend->ibuffer_memory,
+		vk_logical_device_
+	);
+
+	kie_Object_Arena_init();
+	backend->voffsets = (VkDeviceSize*) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+	backend->ioffsets = (VkDeviceSize*) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+	backend->offset_count = 0;
+	backend->voffset = 0;
+	backend->ioffset = 0;
+}
+
+KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_backend *backend)
+{
+	if (scene->objects_count > backend->offset_count)
+	{
+		for (int i = backend->offset_count; i < scene->objects_count; i++)
+		{
+			VkCommandPool pool;
+			VkCommandPoolCreateInfo inf = (VkCommandPoolCreateInfo){
+				.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+				.queueFamilyIndex = 0,
+				.pNext = NULL,
+				.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
+			};
+			vkCreateCommandPool(vk_logical_device_, &inf, NULL, &pool);
+
+			/* Vertex Buffer */
+			{
+				VkBuffer staging_buffer;
+				VkDeviceMemory staging_buffer_memory;
+				VkDeviceSize size = sizeof(kie_Vertex) * scene->objects[i].vertices_count;
+				create_buffer_util(
+					size,
+					VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+					&staging_buffer,
+					&staging_buffer_memory,
+					vk_logical_device_
+				);
+				void *data;
+				vkMapMemory(vk_logical_device_, staging_buffer_memory, 0, size, 0, &data);
+				memcpy(data, scene->objects[i].vertices, size);
+				vkUnmapMemory(vk_logical_device_, staging_buffer_memory);
+
+				VkCommandBuffer buff = begin_single_time_commands_util(pool);
+
+				VkBufferCopy regions = (VkBufferCopy){
+					.srcOffset = 0,
+					.dstOffset = backend->voffset,
+					.size = size
+				};
+				backend->voffsets[i] = backend->voffset;
+				backend->voffset += size;
+				vkCmdCopyBuffer(buff, staging_buffer, backend->vbuffer, 1, &regions);
+				VkBufferMemoryBarrier barr = (VkBufferMemoryBarrier)
+				{
+					.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+					.buffer = staging_buffer,
+					.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+					.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+					.pNext = NULL,
+					.size = size,
+				};
+				vkCmdPipelineBarrier(
+					buff,
+					VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+					VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+					VK_DEPENDENCY_BY_REGION_BIT,
+					0,
+					NULL,
+					1,
+					&barr,
+					0,
+					NULL
+				);
+				
+				end_single_time_commands_util(&buff, rsrs->vk_graphics_queue_);
+
+
+
+				vkDeviceWaitIdle(vk_logical_device_);
+				vkDestroyBuffer(vk_logical_device_, staging_buffer, NULL);
+				vkFreeMemory(vk_logical_device_, staging_buffer_memory, NULL);
+			}
+
+			/* Index Buffer */
+			{
+				VkBuffer staging_buffer;
+				VkDeviceMemory staging_buffer_memory;
+				VkDeviceSize size = sizeof(uint32_t) * scene->objects[i].indices_count;
+				create_buffer_util(
+					size,
+					VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+					&staging_buffer,
+					&staging_buffer_memory,
+					vk_logical_device_
+				);
+				void *data;
+				vkMapMemory(vk_logical_device_, staging_buffer_memory, 0, size, 0, &data);
+				memcpy(data, scene->objects[i].indices, size);
+				vkUnmapMemory(vk_logical_device_, staging_buffer_memory);
+
+				VkCommandBuffer buff = begin_single_time_commands_util(pool);
+
+				VkBufferCopy regions = (VkBufferCopy){
+					.srcOffset = 0,
+					.dstOffset = backend->ioffset,
+					.size = size
+				};
+				backend->ioffsets[i] = backend->ioffset;
+				backend->ioffset += size;
+				vkCmdCopyBuffer(buff, staging_buffer, backend->ibuffer, 1, &regions);
+				
+				VkBufferMemoryBarrier barr = (VkBufferMemoryBarrier)
+				{
+					.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+					.buffer = staging_buffer,
+					.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+					.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+					.pNext = NULL,
+					.size = size,
+				};
+				vkCmdPipelineBarrier(
+					buff,
+					VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+					VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+					VK_DEPENDENCY_BY_REGION_BIT,
+					0,
+					NULL,
+					1,
+					&barr,
+					0,
+					NULL
+				);
+				end_single_time_commands_util(&buff, rsrs->vk_graphics_queue_);
+
+				vkDeviceWaitIdle(vk_logical_device_);
+				vkDestroyBuffer(vk_logical_device_, staging_buffer, NULL);
+				vkFreeMemory(vk_logical_device_, staging_buffer_memory, NULL);
+
+
+				vkDestroyCommandPool(vk_logical_device_, pool, NULL);
+			}
+		}
+		backend->offset_count = scene->objects_count;
+	}
+}
+
+KSAI_API void destroy_renderer_backend(vk_rsrs *rsrs, renderer_backend *backend)
+{
+	vkDestroyBuffer(vk_logical_device_, backend->vbuffer, NULL);
+	vkFreeMemory(vk_logical_device_, backend->vbuffer_memory, NULL);
+	vkDestroyBuffer(vk_logical_device_, backend->ibuffer, NULL);
+	vkFreeMemory(vk_logical_device_, backend->ibuffer_memory, NULL);
+	pipeline_vk_destroy2(&backend->checker_pipeline);
+	kie_Object_Arena_destroy();
+}
+
+KSAI_API int draw_backend_start(vk_rsrs *_rsrs)
 {
 	vkWaitForFences(vk_logical_device_, 1, &_rsrs->vk_inflight_fences_[_rsrs->current_frame], VK_TRUE, KSAI_U64_MAX);
 
@@ -65,7 +335,7 @@ int draw_backend_start(vk_rsrs *_rsrs)
 	}
 }
 
-int draw_backend_begin(vk_rsrs *_rsrs)
+KSAI_API int draw_backend_begin(vk_rsrs *_rsrs, vec3 color)
 {
 
 	VkRenderPassBeginInfo render_pass_info = { 0 };
@@ -80,9 +350,9 @@ int draw_backend_begin(vk_rsrs *_rsrs)
 	VkClearValue clear_color[2] = {
 		(VkClearValue)
 		 {
-		.color.float32[0] = 0,
-		.color.float32[1] = 1,
-		.color.float32[2] = 0,
+		.color.float32[0] = color[0],
+		.color.float32[1] = color[1],
+		.color.float32[2] = color[2],
 		},
 
 		(VkClearValue)
@@ -97,7 +367,7 @@ int draw_backend_begin(vk_rsrs *_rsrs)
 	return _rsrs->current_frame;
 }
 
-void draw_backend_end(vk_rsrs *_rsrs)
+KSAI_API void draw_backend_end(vk_rsrs *_rsrs)
 {
 	vkCmdEndRenderPass(vk_command_buffer_[_rsrs->current_frame]);
 
@@ -108,7 +378,7 @@ void draw_backend_end(vk_rsrs *_rsrs)
 
 }
 
-void draw_backend_finish(vk_rsrs *_rsrs)
+KSAI_API void draw_backend_finish(vk_rsrs *_rsrs)
 {
 	VkSemaphore signal_semaphores[] = { _rsrs->vk_render_finished_semaphore_[_rsrs->current_frame] };
 	submit_the_command_buffer(&_rsrs->current_frame, (int *) &_rsrs->image_index, &_rsrs->result_next_image, _rsrs);
@@ -118,12 +388,14 @@ void draw_backend_finish(vk_rsrs *_rsrs)
 	vkQueueWaitIdle(_rsrs->vk_graphics_queue_);
 }
 
-void draw_backend_wait(vk_rsrs *_rsrs)
+KSAI_API void draw_backend_wait(vk_rsrs *_rsrs)
 {
 	vkQueueWaitIdle(_rsrs->vk_graphics_queue_);
 }
 
-void destroy_backend(vk_rsrs *_rsrs)
+KSAI_API void destroy_backend(vk_rsrs *_rsrs)
 {
 	vulkan_cleanup(_rsrs);
 }
+
+

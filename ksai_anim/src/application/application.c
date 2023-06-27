@@ -16,7 +16,9 @@
 #include <backend/vulkan/backend.h>
 #include <backend/ui/ui.h>
 #include <backend/ui/latex_colors.h>
+#include <engine/renderer/scene.h>
 #include "frontend/app_ui.h"
+#include "frontend/3d_viewport.h"
 
 
 int main(int argc, char *argv[])
@@ -24,7 +26,7 @@ int main(int argc, char *argv[])
 	vk_rsrs resources;
 	VkInstance instance;
 
-	SDL_Init(SDL_INIT_VIDEO);
+	SDL_Init(SDL_INIT_EVERYTHING);
 	resources.window = SDL_CreateWindow(
 		"NAME",
 		SDL_WINDOWPOS_UNDEFINED,
@@ -36,16 +38,31 @@ int main(int argc, char *argv[])
 
 	initialize_backend(&resources, &instance);
 	ui_init(100, &resources);
+	kie_Camera viewport_camera;
+	threeD_viewport_init(&viewport_camera);
+	renderer_backend checker_renderer;
+	initialize_renderer_backend(&resources, &checker_renderer);
+
+	kie_Scene scene1;
+	kie_Object obj1;
+	kie_Object_init(&obj1);
+	kie_Object_create_circle(&obj1, 3, 8, (vec3) {0, 0, 0}, (vec3) {0, 1, 0}, true, 0, 0);
+	kie_Scene_init(&scene1);
+	kie_Scene_add_object(&scene1, &obj1);
 
 
 	bool running = true;
 	while (running)
 	{
+		SDL_Event windowEvent;
+		SDL_WaitEventTimeout(&windowEvent, 100);
+
+		copy_scene_to_backend(&resources, &scene1, &checker_renderer);
 		static int width, height;
 		SDL_GetWindowSize(resources.window, &width, &height);
 		float aspect = (float)width/height;
-		SDL_Event windowEvent;
-		//SDL_WaitEvent(&windowEvent);
+
+		threeD_viewport_events(&viewport_camera, resources.window, &windowEvent);
 
 		char m[6][10][100] = { 0 };
 		int c[6] = { 3, 6, 0, 0 };
@@ -68,35 +85,47 @@ int main(int argc, char *argv[])
 		draw_file_menu(m, 5, c, aspect, &resources, (int *) &running);
 
 		static vec2 debug_window_pos = { 0, 0 }; static bool move_debug_window = false;
-		draw_window("Debug    ", 4, debug_window_pos, aspect,  &resources, &windowEvent, &move_debug_window);
-		draw_label_window("Start", debug_window_pos, &resources, aspect, 1);
-		draw_label_window("Fuck You", debug_window_pos, &resources, aspect, 1.5);
+		draw_window("Debug    ", 7, debug_window_pos, aspect,  &resources, &windowEvent, &move_debug_window);
+		char log[100];
+		sprintf_s(log, sizeof(char) * 100, "cp:(%.2f,%.2f,%.2f)", viewport_camera.position[0], viewport_camera.position[1], viewport_camera.position[2]);
+		draw_label_window(log, debug_window_pos, &resources, aspect, 1);
+		sprintf_s(log, sizeof(char) * 100, "cr:(%.2f,%.2f,%.2f)", viewport_camera.rotation[0], viewport_camera.rotation[1], viewport_camera.rotation[2]);
+		draw_label_window(log, debug_window_pos, &resources, aspect, 2);
+		sprintf_s(log, sizeof(char) * 100, "Object Count:%d", scene1.objects_count);
+		draw_label_window(log, debug_window_pos, &resources, aspect, 3);
 
 		static vec2 demo_window_pos = { -0.25, 0.25 }; static bool move_demo_window = false;
 		draw_window("Demo    ", 4, demo_window_pos, aspect,  &resources, &windowEvent, &move_demo_window);
 		draw_label_window("Start", demo_window_pos, &resources, aspect, 1);
-		draw_label_window("Fuck You", demo_window_pos, &resources, aspect, 1.5);
-		char select[100][100] = {"Hello", "Hi", "Therefore", "Fuck_You"};
+		draw_label_window("Clear Color", demo_window_pos, &resources, aspect, 1.5);
+		char select[100][100] = {"blue", "lemon", "grey", "sprbud"};
+		static vec3 colors[100];
+		glm_vec3_copy(color_ALICEBLUE, colors[0]);
+		glm_vec3_copy(color_LEMONCHIFFON, colors[1]);
+		glm_vec3_copy(color_BATTLESHIPGREY, colors[2]);
+		glm_vec3_copy(color_MEDIUMSPRINGBUD, colors[3]);
 		static int selection = 0;
 		draw_selector_window(select, 4, aspect, demo_window_pos, &resources, 2.5, &selection);
 
+		if (windowEvent.type == SDL_QUIT)
+		{
+			running = false;
+			break;
+		}
 
-		SDL_WaitEvent(&windowEvent);
 		{
 			ui_events(resources.window, &windowEvent);
-			if (windowEvent.type == SDL_QUIT)
-			{
-				running = false;
-				break;
-			}
 		}
 
 
-		if (draw_backend_start(&resources) != -1)
+
+
+		if (draw_backend_start(&resources) != -1 && running)
 		{
 			ui_update(&resources.current_frame);
-			draw_backend_begin(&resources);
-
+			draw_backend_begin(&resources, colors[selection]);
+			
+			threeD_viewport_draw(&viewport_camera, &scene1, &checker_renderer, &resources);
 			ui_render(&resources.current_frame, &resources);
 
 			draw_backend_end(&resources);
@@ -109,6 +138,7 @@ int main(int argc, char *argv[])
 
 	}
 
+	destroy_renderer_backend(&resources, &checker_renderer);
 	ui_destroy(&resources);
 	destroy_backend(&resources);
 

@@ -115,7 +115,7 @@ int draw_selector_window(char select[MAX_SELECTOR_SIZE][KSAI_SMALL_STRING_LENGTH
 
 	ui_label lbl = (ui_label){
 		.typ = BUTTON,
-		.scale = {MENU_TEXT_SCALEX * 1, BACK_SCALEY * MENU_TEXT_SCALEY * 0.7 * 0.8 * aspect},
+		.scale = {MENU_TEXT_SCALEX * 1.2, BACK_SCALEY * MENU_TEXT_SCALEY * 0.7 * 0.8 * aspect},
 		.st_typ = lbl_st_UNSELECTED,
 	};
 	glm_vec2_copy((vec2) { pos[0], pos[1] + row * 0.08 }, lbl.ps);

@@ -1807,3 +1807,25 @@ void pipeline_vk_destroy(pipeline_vk *_ppln)
 
 }
 
+void pipeline_vk_destroy2(pipeline_vk *_ppln)
+{
+	if (_ppln->vk_texture_image_ != 0)
+	{
+		vkDestroyImage(vk_logical_device_, _ppln->vk_texture_image_, NULL);
+		vkDestroyImageView(vk_logical_device_, _ppln->vk_texture_image_view_, NULL);
+		vkDestroySampler(vk_logical_device_, _ppln->vk_texture_image_sampler_, NULL);
+		vkFreeMemory(vk_logical_device_, _ppln->vk_texture_image_memory_, NULL);
+	}
+	for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{ 
+		vkUnmapMemory(vk_logical_device_, _ppln->vk_uniform_buffer_memory_[i]);
+		vkDestroyBuffer(vk_logical_device_, _ppln->vk_uniform_buffer_[i], NULL);
+		vkFreeMemory(vk_logical_device_, _ppln->vk_uniform_buffer_memory_[i], NULL);
+	}
+	vkDestroyDescriptorSetLayout(vk_logical_device_, _ppln->vk_descriptor_set_layout_, NULL);
+	vkDestroyDescriptorPool(vk_logical_device_, _ppln->vk_descriptor_pool_, NULL);
+	vkDestroyPipelineLayout(vk_logical_device_, _ppln->vk_pipeline_layout_, NULL);
+	vkDestroyPipeline(vk_logical_device_, _ppln->vk_pipeline_, NULL);
+
+}
+

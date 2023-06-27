@@ -15,6 +15,10 @@
 #define MAX_BUFFER_SIZE 512
 #define MAX_SELECTOR_SIZE 100
 
+#define KSAI_OBJECT_ARENA 1 << 24
+#define KSAI_MAX_NO_OF_OBJECTS 1024
+#define KSAI_MESH_VERTEX_MEM 1 << 17
+#define KSAI_MESH_INDEX_MEM 1 << 17
 
 #define KSAI_VK_ASSERT(STATEMENT) if(STATEMENT != VK_SUCCESS) { printf("VKerror"); __debugbreak(); }
 #define KSAI_SDL_ASSERT(STATEMENT) if(STATEMENT != SDL_TRUE) { printf("SDLerror"); __debugbreak(); }
