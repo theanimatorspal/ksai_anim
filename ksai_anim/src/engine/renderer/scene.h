@@ -8,4 +8,4 @@ typedef struct kie_Scene
 } kie_Scene;
 
 KSAI_API void kie_Scene_init(kie_Scene *scene);
-KSAI_API void kie_Scene_add_object(kie_Scene *scene, kie_Object *obj);
+KSAI_API void kie_Scene_add_object(kie_Scene *scene, int args, ...);

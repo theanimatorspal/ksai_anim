@@ -9,6 +9,7 @@ typedef struct renderer_backend
 {
 	pipeline_vk checker_pipeline;
 	pipeline_vk ksai_render_pipeline;
+	pipeline_vk constant_color;
 
 	VkBuffer vbuffer;
 	VkDeviceMemory vbuffer_memory;
@@ -25,13 +26,41 @@ typedef struct renderer_backend
 
 	VkDeviceSize *voffsets;
 	VkDeviceSize *ioffsets;
-	VkDeviceSize (*uoffsets)[2];
+	VkDeviceSize(*uoffsets)[2];
 	uint32_t offset_count;
 
 	//vk_dsset_pair *descriptor_sets;
-	VkDescriptorSet (*descriptor_sets)[MAX_FRAMES_IN_FLIGHT];
+	VkDescriptorSet(*descriptor_sets)[MAX_FRAMES_IN_FLIGHT];
 	VkDescriptorPool *descriptor_pools;
 	VkDescriptorPoolSize pool_sizes[2];
+
+	/* Advanced */
+	pipeline_vk skybox;
+	VkImage skybox_image;
+	VkImageView skybox_image_view;
+	VkDeviceMemory skybox_image_memory;
+	VkSampler skybox_sampler;
+
+	/* Mouse Pick OffScreen */
+	struct mspk
+	{
+		VkBuffer bfr_;  /* MOUSEPICK BUFFER*/
+		VkDeviceMemory bfr_mmry_;
+		void *data_;
+
+		VkImage img_clr_att_; /* COLOR ATTACHMENT */
+		VkDeviceMemory img_mmry_clr_att_;
+		VkImageView img_vw_clr_att_;
+
+		VkImage img_dpth_att_; /* DEPTH ATTACHMENT */
+		VkDeviceMemory img_mmry_dpth_att_;
+		VkImageView img_vw_dpth_att_;
+
+		VkFramebuffer frm_bfr_;
+		VkRenderPass rndr_pss_;
+		VkSampler smplr_;
+		VkDescriptorImageInfo dscrptr_;
+	} mspk;
 
 } renderer_backend;
 
@@ -44,7 +73,7 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 KSAI_API void destroy_renderer_backend(vk_rsrs *rsrs, renderer_backend *backend);
 
 
-KSAI_API int draw_backend_start(vk_rsrs *_rsrs);
+KSAI_API int draw_backend_start(vk_rsrs *_rsrs, renderer_backend *backend);
 KSAI_API int draw_backend_begin(vk_rsrs *_rsrs, vec3 color);
 KSAI_API void draw_backend_end(vk_rsrs *_rsrs);
 KSAI_API void draw_backend_finish(vk_rsrs *_rsrs);

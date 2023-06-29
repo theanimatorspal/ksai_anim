@@ -18,10 +18,22 @@ void kie_Object_init(kie_Object *out_obj)
 {
 	glm_vec3_copy((vec3) {0, 0, 0}, out_obj->position);
 	glm_vec3_copy((vec3) {0, 0, 0}, out_obj->rotation);
+	glm_vec3_copy((vec3) {0, 0, 0}, out_obj->color);
 	glm_vec3_copy((vec3) {1, 1, 1}, out_obj->scale);
 	out_obj->vertices_count = 0;
 	out_obj->indices_count = 0;
+}
 
+void kie_Object_copy(kie_Object *out_obj, kie_Object *in_obj)
+{
+	glm_vec3_copy(in_obj->position, out_obj->position);
+	glm_vec3_copy(in_obj->rotation, out_obj->rotation);
+	glm_vec3_copy(in_obj->color, out_obj->color);
+	glm_vec3_copy(in_obj->scale, out_obj->scale);
+	out_obj->vertices_count = in_obj->vertices_count;
+	out_obj->indices_count = in_obj->indices_count;
+	out_obj->vertices = in_obj->vertices;
+	out_obj->indices = in_obj->indices;
 }
 
 void kie_Object_create_circle(
@@ -73,6 +85,84 @@ void kie_Object_create_circle(
 	out_obj->indices[out_obj->indices_count - 2] = vert_start;
 	out_obj->indices[out_obj->indices_count - 1] = vert_start + 1;
 }
+
+
+void kie_Object_create_cylinder(kie_Object* out_obj, float _radius, uint32_t _p_cnt, float _h)
+{
+	//float r = _radius;
+	uint32_t cnt = _p_cnt;
+	//int tot_indcs_before_middle_faces = 2 * cnt * 3;
+	out_obj->vertices_count = 2 * (cnt + 1);
+	out_obj->indices_count = 2 * cnt * 3 + 6 * cnt;
+	out_obj->vertices = (kie_Vertex*)ksai_Arena_allocate(out_obj->vertices_count * sizeof(kie_Vertex), &global_object_arena);
+	out_obj->indices = (uint32_t*)ksai_Arena_allocate(out_obj->indices_count * sizeof(uint32_t), &global_object_arena);
+	memset(out_obj->vertices, 0, out_obj->vertices_count * sizeof(kie_Vertex));
+	memset(out_obj->indices, 0, out_obj->indices_count * sizeof(uint32_t));
+
+	out_obj->vertices_count = cnt + 1;
+	out_obj->indices_count = cnt * 3;
+	int lower_vstart = 0;
+	kie_Object_create_circle(out_obj, _radius, _p_cnt, (vec3) { 0, 0, 0 }, (vec3) { 0, 0, 0 }, false, 0, 0);
+
+	out_obj->vertices_count = 2 * (cnt + 1);
+	out_obj->indices_count = 2 * cnt * 3;
+	int upper_vstart = (cnt + 1);
+	kie_Object_create_circle(out_obj, _radius, _p_cnt, (vec3) { 0, _h, 0 }, (vec3) {0, _h, 0}, false, cnt * 3, cnt + 1);
+
+	out_obj->indices_count = 2 * cnt * 3 + 6 * cnt;
+
+	int v1_index = lower_vstart + 1;
+	int v2_index = lower_vstart + 2;
+	int v3_index = upper_vstart + 1;
+	int v4_index = upper_vstart + 2;
+	int i = 0;
+	for (i = 2 * cnt * 3; i < out_obj->indices_count - 6; i+=6)
+	{
+		out_obj->indices[i] = v1_index;
+		out_obj->indices[i + 1] = v2_index;
+		out_obj->indices[i + 2] = v3_index;
+		out_obj->indices[i + 3] = v3_index;
+		out_obj->indices[i + 4] = v4_index;
+		out_obj->indices[i + 5] = v2_index;
+
+		v1_index++;
+		v2_index++;
+		v3_index++;
+		v4_index++;
+	}
+
+	out_obj->indices[i] = v1_index;
+	out_obj->indices[i + 1] = lower_vstart + 1;
+	out_obj->indices[i + 2] = v3_index;
+	out_obj->indices[i + 3] = v3_index;
+	out_obj->indices[i + 4] = upper_vstart + 1;
+	out_obj->indices[i + 5] = lower_vstart + 1;
+}
+
+
+void kie_Object_join(kie_Object* mesh1, kie_Object* mesh2)
+{
+	kie_Vertex* vertices = (kie_Vertex*)ksai_Arena_allocate( ((size_t)mesh1->vertices_count + mesh2->vertices_count) * sizeof(kie_Vertex), &global_object_arena);
+	uint32_t* indices = (uint32_t*)ksai_Arena_allocate( ((size_t)mesh1->indices_count + mesh2->indices_count) * sizeof(uint32_t), &global_object_arena);
+	memcpy(vertices, mesh1->vertices, mesh1->vertices_count * sizeof(kie_Vertex));
+	memcpy(indices, mesh1->indices, mesh1->indices_count * sizeof(uint32_t));
+
+	memcpy(vertices + mesh1->vertices_count, mesh2->vertices, mesh2->vertices_count * sizeof(kie_Vertex));
+
+	int j = 0;
+	for(int i = mesh1->indices_count; i < mesh1->indices_count + mesh2->indices_count; i++)
+	{ 
+		indices[mesh1->indices_count + j] = mesh2->indices[j] + mesh1->vertices_count;
+		j++;
+	}
+
+	mesh1->vertices = vertices;
+	mesh1->indices = indices;
+	mesh1->indices_count += mesh2->indices_count;
+	mesh1->vertices_count += mesh2->vertices_count;
+}
+
+
 
 void kie_Object_Arena_destroy()
 {

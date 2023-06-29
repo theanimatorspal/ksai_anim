@@ -281,7 +281,8 @@ void pick_physical_and_logical_devices(vk_rsrs *_rsrs, VkInstance instance)
 			{
 				.samplerAnisotropy = VK_TRUE,
 				.geometryShader = VK_TRUE,
-				.fillModeNonSolid = VK_TRUE
+				.fillModeNonSolid = VK_TRUE,
+				.imageCubeArray = VK_TRUE
 			};
 
 			VkDeviceCreateInfo create_info = { 0 };

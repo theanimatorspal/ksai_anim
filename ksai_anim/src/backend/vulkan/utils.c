@@ -56,6 +56,114 @@ void create_image_util(
 	vkBindImageMemory(_vk_logical_device, *image, *image_memory, 0);
 }
 
+
+void create_image_util_array(
+	uint32_t width,
+	uint32_t height,
+	VkFormat format,
+	VkImageTiling tiling,
+	VkImageUsageFlags usage,
+	VkMemoryPropertyFlags properties,
+	VkImage *image,
+	VkDeviceMemory *image_memory,
+	VkDevice _vk_logical_device,
+	uint32_t array_layers
+)
+{
+	VkImageCreateInfo image_info = { 0 };
+	image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	image_info.imageType = VK_IMAGE_TYPE_2D;
+	image_info.extent.width = (uint32_t) width;
+	image_info.extent.height = (uint32_t) height;
+	image_info.extent.depth = 1;
+	image_info.mipLevels = 1;
+	image_info.arrayLayers = array_layers;
+	// No mipmapping and no array
+	image_info.format = format;
+	image_info.tiling = tiling;
+	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	image_info.usage = usage;
+	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
+	// related to multisamplinga
+	image_info.flags = 0;
+
+	if (vkCreateImage(_vk_logical_device, &image_info, NULL, image) != VK_SUCCESS)
+	{
+		printf("Failed to create an image \n");
+	}
+
+	VkMemoryRequirements mem_requirements;
+	vkGetImageMemoryRequirements(_vk_logical_device, *image, &mem_requirements);
+
+	VkMemoryAllocateInfo alloc_info = { 0 };
+	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	alloc_info.allocationSize = mem_requirements.size;
+	alloc_info.memoryTypeIndex = find_memory_type_util(mem_requirements.memoryTypeBits, properties);
+
+	if (vkAllocateMemory(_vk_logical_device, &alloc_info, NULL, image_memory) != VK_SUCCESS)
+	{
+		printf("Failed to allocate image memory");
+	}
+
+	vkBindImageMemory(_vk_logical_device, *image, *image_memory, 0);
+}
+
+void create_image_util_array_cube(
+	VkImageType image_type,
+	uint32_t width,
+	uint32_t height,
+	VkFormat format,
+	VkImageTiling tiling,
+	VkImageUsageFlags usage,
+	VkMemoryPropertyFlags properties,
+	VkImage *image,
+	VkDeviceMemory *image_memory,
+	VkDevice _vk_logical_device,
+	uint32_t array_layers
+)
+{
+	VkImageCreateInfo image_info = { 0 };
+	image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	image_info.imageType = image_type;
+	image_info.extent.width = (uint32_t) width;
+	image_info.extent.height = (uint32_t) height;
+	image_info.extent.depth = 1;
+	image_info.mipLevels = 1;
+	image_info.arrayLayers = array_layers;
+	// No mipmapping and no array
+	image_info.format = format;
+	image_info.tiling = tiling;
+	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	image_info.usage = usage;
+	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
+	// related to multisamplinga
+	image_info.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+
+	if (vkCreateImage(_vk_logical_device, &image_info, NULL, image) != VK_SUCCESS)
+	{
+		printf("Failed to create an image \n");
+	}
+
+	VkMemoryRequirements mem_requirements;
+	vkGetImageMemoryRequirements(_vk_logical_device, *image, &mem_requirements);
+
+	VkMemoryAllocateInfo alloc_info = { 0 };
+	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	alloc_info.allocationSize = mem_requirements.size;
+	alloc_info.memoryTypeIndex = find_memory_type_util(mem_requirements.memoryTypeBits, properties);
+
+	if (vkAllocateMemory(_vk_logical_device, &alloc_info, NULL, image_memory) != VK_SUCCESS)
+	{
+		printf("Failed to allocate image memory");
+	}
+
+	vkBindImageMemory(_vk_logical_device, *image, *image_memory, 0);
+}
+
+
+
 VkCommandBuffer begin_single_time_commands_util(
 	VkCommandPool _vk_command_pool
 )
@@ -177,6 +285,94 @@ void transition_image_layout_util(
 	end_single_time_commands_util(&command_buffer, _vk_graphics_queue);
 }
 
+
+void transition_image_layout_util_layered(
+	uint32_t layer_count,
+	VkImage image,
+	VkFormat format,
+	VkImageLayout old_layout,
+	VkImageLayout new_layout,
+	VkCommandPool _vk_command_pool,
+	VkQueue _vk_graphics_queue
+)
+{
+	VkCommandBuffer command_buffer = begin_single_time_commands_util(_vk_command_pool);
+	// for ensuring write to buffer completes before reading from it
+	VkImageMemoryBarrier barrirer = { 0 };
+	barrirer.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrirer.oldLayout = old_layout;
+	barrirer.newLayout = new_layout;
+	barrirer.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrirer.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	// qeueu family ownership transfer gara ko laagi used hune ho
+	barrirer.image = image;
+	barrirer.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	barrirer.subresourceRange.baseMipLevel = 0;
+	barrirer.subresourceRange.levelCount = 1;
+	barrirer.subresourceRange.baseArrayLayer = 0;
+	barrirer.subresourceRange.layerCount = layer_count;
+	barrirer.srcAccessMask = 0;
+	barrirer.dstAccessMask = 0;
+
+	VkPipelineStageFlags source_stage;
+	VkPipelineStageFlags destination_stage;
+
+	if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	{
+		barrirer.srcAccessMask = 0;
+		barrirer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+		source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
+		barrirer.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrirer.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		destination_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	else if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+	{
+		barrirer.srcAccessMask = 0;
+		barrirer.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+		source_stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+		destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	else if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+	{
+		barrirer.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+		barrirer.srcAccessMask = 0;
+		barrirer.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destination_stage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	}
+	else {
+		old_layout = 0;
+		new_layout = 0;
+		source_stage = 0;
+		destination_stage = 0;
+		printf("Invalid argument");
+		__debugbreak();
+	}
+
+	vkCmdPipelineBarrier(command_buffer, source_stage, destination_stage,
+		0,
+		0,
+		NULL,
+		0,
+		NULL,
+		1,
+		&barrirer
+	);
+
+	end_single_time_commands_util(&command_buffer, _vk_graphics_queue);
+}
+
+
+
 void copy_buffer_to_image_util(
 	VkBuffer buffer,
 	VkImage image,
@@ -213,6 +409,47 @@ void copy_buffer_to_image_util(
 
 	end_single_time_commands_util(&command_buffer, _vk_graphics_queue);
 }
+
+void copy_buffer_to_image_util_layered(
+	uint32_t layer_count,
+	VkBuffer buffer,
+	VkImage image,
+	uint32_t width,
+	uint32_t height,
+	VkCommandPool _vk_command_pool,
+	VkQueue _vk_graphics_queue
+)
+{
+	VkCommandBuffer command_buffer = begin_single_time_commands_util(_vk_command_pool);
+	VkBufferImageCopy region = { 0 };
+	region = (VkBufferImageCopy){
+		.bufferOffset = 0,
+		.bufferRowLength = 0, // how the pixels are laid out in memory
+		.bufferImageHeight = 0,
+		.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+		.imageSubresource.mipLevel = 0,
+		.imageSubresource.layerCount = layer_count,
+		.imageOffset = {0, 0, 0},
+		.imageExtent = {
+			width, height, 1
+		}
+	};
+
+	vkCmdCopyBufferToImage(
+		command_buffer,
+		buffer,
+		image,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		1,
+		&region
+	);
+
+
+	end_single_time_commands_util(&command_buffer, _vk_graphics_queue);
+}
+
+
+
 
 VkImageView create_image_view_util(
 	VkImage image,
@@ -271,6 +508,35 @@ VkImageView create_image_view_util2(
 	return image_view;
 }
 
+VkImageView create_image_view_util2_skybox(
+	VkImage image,
+	VkFormat format,
+	VkImageAspectFlags aspect_flags
+)
+{
+	VkImageViewCreateInfo create_info = { 0 };
+	create_info = (VkImageViewCreateInfo)
+	{
+		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+		.image = image,
+		.viewType = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY,
+		.format = format,
+		.subresourceRange.aspectMask = aspect_flags,
+		.subresourceRange.baseMipLevel = 0,
+		.subresourceRange.levelCount = 1,
+		.subresourceRange.baseArrayLayer = 0,
+		.subresourceRange.layerCount = 6,
+		.components = {VK_COMPONENT_SWIZZLE_IDENTITY}
+	};
+
+	VkImageView image_view;
+	if (vkCreateImageView(vk_logical_device_, &create_info, NULL, &image_view) != VK_SUCCESS)
+	{
+		printf("Failed to create image views \n");
+	}
+	return image_view;
+}
+
 // Not to be used
 void create_texture_sampler(
 	VkSampler *_sampler,
@@ -294,6 +560,43 @@ void create_texture_sampler(
 		.maxAnisotropy = properties.limits.maxSamplerAnisotropy,
 		// for maximum quality
 		.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+		.unnormalizedCoordinates = VK_FALSE,
+		.compareEnable = VK_FALSE,
+		.compareOp = VK_COMPARE_OP_ALWAYS,
+		.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+		.mipLodBias = 0.0f,
+		.minLod = 0.0f,
+		.maxLod = 0.0f
+	};
+
+	if (vkCreateSampler(vk_logical_device_, &sampler_info, NULL, _sampler) != VK_SUCCESS)
+	{
+		printf("Failed ot create texture sampler \n");
+	}
+}
+
+void create_texture_sampler_skybox(
+	VkSampler *_sampler,
+	VkDevice _vk_logical_device,
+	VkPhysicalDevice _vk_physical_device
+)
+{
+	VkPhysicalDeviceProperties properties = { 0 };
+	vkGetPhysicalDeviceProperties(_vk_physical_device, &properties);
+
+	VkSamplerCreateInfo sampler_info = { 0 };
+	sampler_info = (VkSamplerCreateInfo)
+	{
+		.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+		.magFilter = VK_FILTER_LINEAR,
+		.minFilter = VK_FILTER_LINEAR,
+		.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+		.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+		.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+		.anisotropyEnable = VK_TRUE,
+		.maxAnisotropy = properties.limits.maxSamplerAnisotropy,
+		// for maximum quality
+		.borderColor = VK_BORDER_COLOR_INT_OPAQUE_WHITE,
 		.unnormalizedCoordinates = VK_FALSE,
 		.compareEnable = VK_FALSE,
 		.compareOp = VK_COMPARE_OP_ALWAYS,

@@ -79,6 +79,12 @@
     <ClCompile Include="src\application\loaders\obj_loader.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\backend\vulkan\advanced.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\backend\vulkan\offscreen.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\backend\vulkan\backend.h">
@@ -589,6 +595,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\application\loaders\obj_loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\backend\vulkan\advanced.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\backend\vulkan\offscreen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

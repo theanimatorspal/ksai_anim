@@ -74,8 +74,8 @@ int draw_window(char title[100], int rows, vec2 pos, float aspect, vk_rsrs *rsrs
 	glm_vec3_copy(MENU_BAR_COLOR, back.hvrd_clr);
 	glm_vec3_copy(MENU_BAR_COLOR, back.slctd_clr);
 
-	glm_vec2_copy((vec2) { pos[0], pos[1] - 0.01}, back.ps);
-	glm_vec2_copy((vec2) { MENU_TEXT_SCALEX,  MENU_TEXT_SCALEY * aspect * 0.9 }, back.scale);
+	glm_vec2_copy((vec2) { pos[0], pos[1] - 0.01 }, back.ps);
+	glm_vec2_copy((vec2) { MENU_TEXT_SCALEX, MENU_TEXT_SCALEY *aspect * 0.9 }, back.scale);
 	strcpy_s(back.text, sizeof(char) * 100, title);
 	ui_draw_button(back, rsrs->window);
 
@@ -86,7 +86,7 @@ int draw_label_window(char text[100], vec2 pos, vk_rsrs *rsrs, float aspect, flo
 {
 	ui_label lbl = (ui_label){
 		.typ = BUTTON,
-		.scale = {MENU_TEXT_SCALEX * 0.7, MENU_TEXT_SCALEY * 0.7 * 0.8 * aspect},
+		.scale = {MENU_TEXT_SCALEX * 0.8, MENU_TEXT_SCALEY * 0.8 * 0.8 * aspect},
 		.st_typ = lbl_st_UNSELECTED,
 	};
 	glm_vec2_copy((vec2) { pos[0], pos[1] + row * 0.08 }, lbl.ps);
@@ -101,7 +101,7 @@ int draw_label_window(char text[100], vec2 pos, vk_rsrs *rsrs, float aspect, flo
 
 int draw_selector_window(char select[MAX_SELECTOR_SIZE][KSAI_SMALL_STRING_LENGTH], int count, float aspect, vec2 pos, vk_rsrs *rsrs, float row, int *selection)
 {
-
+	int clicked = 0;
 	int strlengh = strlen(select[0]);
 	int largest = 0;
 	for (int i = 0; i < count; i++)
@@ -126,12 +126,12 @@ int draw_selector_window(char select[MAX_SELECTOR_SIZE][KSAI_SMALL_STRING_LENGTH
 	strcpy_s(lbl.text, sizeof(char) * 100, select[largest]);
 	ui_draw_button(lbl, rsrs->window);
 
-	glm_vec2_copy((vec2) {MENU_TEXT_SCALEX * 0.7,  MENU_TEXT_SCALEY}, lbl.scale);
+	glm_vec2_copy((vec2) { MENU_TEXT_SCALEX * 0.7, MENU_TEXT_SCALEY }, lbl.scale);
 	glm_vec3_copy(MENU_TEXT_COLOR, lbl.txt_clr);
 	strcpy_s(lbl.text, sizeof(char) * 100, select[*selection]);
 	ui_draw_button(lbl, rsrs->window);
 
-	glm_vec2_copy((vec2) {MENU_TEXT_SCALEX * 0.7,  MENU_TEXT_SCALEY * 1.2}, lbl.scale);
+	glm_vec2_copy((vec2) { MENU_TEXT_SCALEX * 0.7, MENU_TEXT_SCALEY * 1.2 }, lbl.scale);
 	glm_vec3_copy(MENU_HOVER_COLOR, lbl.hvrd_clr);
 	glm_vec3_copy(MENU_BAR_COLOR, lbl.nrml_clr);
 	glm_vec3_copy(MENU_SELECTED_COLOR, lbl.slctd_clr);
@@ -142,6 +142,7 @@ int draw_selector_window(char select[MAX_SELECTOR_SIZE][KSAI_SMALL_STRING_LENGTH
 	if (ui_draw_button(lbl, rsrs->window) && (*selection) < count - 1)
 	{
 		(*selection)++;
+		clicked = 1;
 	}
 
 	glm_vec2_copy((vec2) { pos[0] - strlen(select[largest]) * 0.01, pos[1] + row * 0.08 }, lbl.ps);
@@ -149,8 +150,37 @@ int draw_selector_window(char select[MAX_SELECTOR_SIZE][KSAI_SMALL_STRING_LENGTH
 	if (ui_draw_button(lbl, rsrs->window) && (*selection) > 0)
 	{
 		(*selection)--;
+		clicked = 1;
+	}
+	return clicked;
+}
+
+
+int draw_selector_integer(int smallest, int highest, float aspect, vec2 pos, vk_rsrs *rsrs, float row, int *selection)
+{
+	char select[100][100];
+	int j = 0;
+	for (int i = smallest; i <= highest; i++)
+	{
+		sprintf_s(select[j], sizeof(char) * 100, "count_%d_", i);
+		j++;
+	}
+	int selection_for_selector = *selection - (highest - smallest);
+
+	draw_selector_window(
+		select,
+		highest - smallest,
+		aspect,
+		pos,
+		rsrs,
+		row,
+		&selection_for_selector
+	);
+	{ 
+		*selection = selection_for_selector + highest - smallest;
 	}
 }
+
 
 
 int draw_popup_menu(ui_label lbl, char ch[NO_OF_POPUP_MENUS][KSAI_SMALL_STRING_LENGTH], int count, float aspect, vec2 pos, vk_rsrs *rsrs)
@@ -271,24 +301,24 @@ ivec2s draw_file_menu(char ch[NO_OF_TOP_MENUS][NO_OF_POPUP_MENUS][KSAI_SMALL_STR
 		{
 			selected_menu = -1;
 		}
-		ret = (ivec2s) {.x = selected_menu, .y = choice};
+		ret = (ivec2s){ .x = selected_menu, .y = choice };
 	}
 	else
 	{
-		ret = (ivec2s) {.x = 0, .y = 0};
+		ret = (ivec2s){ .x = 0, .y = 0 };
 	}
 
-	glm_vec3_copy(MENU_TEXT_COLOR, lbl.txt_clr);
-	glm_vec3_copy(MENU_HOVER_COLOR, lbl.hvrd_clr);
-	glm_vec3_copy(MENU_CLOSE_COLOR, lbl.slctd_clr);
-	glm_vec3_copy(MENU_CLOSE_COLOR, lbl.nrml_clr);
-	glm_vec2_copy((vec2) { -TOP_MENU_LEFT_PADDING, TOP_MENU_POSY }, lbl.ps);
-	glm_vec2_copy((vec2) { MENU_TEXT_SCALEX, MENU_TEXT_SCALEY *scale_factor *aspect * 1.45 }, lbl.scale);
-	strcpy_s(lbl.text, sizeof(char) * 100, "close");
-	if (ui_draw_button(lbl, rsrs->window))
-	{
-		*running = 0;
-	}
+	//glm_vec3_copy(MENU_TEXT_COLOR, lbl.txt_clr);
+	//glm_vec3_copy(MENU_HOVER_COLOR, lbl.hvrd_clr);
+	//glm_vec3_copy(MENU_CLOSE_COLOR, lbl.slctd_clr);
+	//glm_vec3_copy(MENU_CLOSE_COLOR, lbl.nrml_clr);
+	//glm_vec2_copy((vec2) { -TOP_MENU_LEFT_PADDING, TOP_MENU_POSY }, lbl.ps);
+	//glm_vec2_copy((vec2) { MENU_TEXT_SCALEX, MENU_TEXT_SCALEY *scale_factor *aspect * 1.45 }, lbl.scale);
+	//strcpy_s(lbl.text, sizeof(char) * 100, "close");
+	//if (ui_draw_button(lbl, rsrs->window))
+	//{
+	//	*running = 0;
+	//}
 
 
 	return ret;

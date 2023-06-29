@@ -31,21 +31,26 @@ void main()
 
 	/* Diffuse */
 	vec3 light_pos = vec3(5, 5, 5);
-	vec3 cam_pos = vec3(5, 5, 5);
 
 	float diffuse = vert_color;
 	vec3 normal_vector = normalize(vert_normal);
 	vec3 light_dir = normalize(light_pos - vert_position);
 	diffuse = max(0.0, dot(normal_vector, light_dir)) + 0.1;
 	out_color = texture(texSampler, vert_texcoord) * diffuse;
-	out_color -= vec4(0.5, 0.5, 0.5, 1.0);
 
+	/* Normal Maps */
+	/*
+	vec3 normal = 2 * texture(texSampler, vert_texcoord).rgb - 1.0;
+	vec3 normal_vector = normalize(mat3(vert_tangent, vert_bitangent, vert_normal) * normal);
 	vec3 light_vector = normalize(light_pos - vert_position);
+	float diffuse_term = max(0.0, dot(normal_vector, light_vector)) * max(0.0, dot(vert_normal, light_vector));
+	out_color = vec4(diffuse_term + 0.1);
+	*/
 
 	if(diffuse > 0.0)
 	{
 		vec3 half_vector = normalize(normalize(-vert_position.xyz) + light_dir);
-		float specular_term = pow(dot(half_vector, normal_vector), 0.5);
+		float specular_term = pow(dot(half_vector, normal_vector), 60.0);
 		out_color += vec4(specular_term);
 	}
 

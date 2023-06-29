@@ -8,6 +8,8 @@
 #include <engine/renderer/scene.h>
 #include "backend.h"
 #include "pipelines.h"
+#include "advanced.h"
+#include "offscreen.h"
 
 static bool first_call = true;
 
@@ -27,156 +29,161 @@ KSAI_API void initialize_backend(vk_rsrs *rsrs, VkInstance *instance)
 
 KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backend)
 {
-	VkDescriptorSetLayoutBinding ubo_layout_binding = { 0 };
-	ubo_layout_binding = (VkDescriptorSetLayoutBinding){
-		.binding = 0,
-		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		.descriptorCount = 1,
-		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-		.pImmutableSamplers = NULL
-	};
+	/* CONSTANT RENDERING ENGINE */
 
-	VkDescriptorSetLayoutBinding sampler_layout_binding = { 0 };
-	sampler_layout_binding = (VkDescriptorSetLayoutBinding){
-		.binding = 1,
-		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-		.descriptorCount = 1,
-		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-		.pImmutableSamplers = NULL
-	};
-
-	VkDescriptorSetLayoutBinding bindings[2] = { ubo_layout_binding, sampler_layout_binding };
-
-	VkVertexInputBindingDescription binding_desp = (VkVertexInputBindingDescription){
-		.binding = 0,
-		.stride = sizeof(kie_Vertex),
-		.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
-	};
-	VkVertexInputAttributeDescription attr_desp[6];
-
-	attr_desp[0] = (VkVertexInputAttributeDescription){
-		.binding = 0,
-		.location = 0,
-		.format = VK_FORMAT_R32G32B32_SFLOAT,
-		.offset = offsetof(kie_Vertex, position)
-	};
-
-	attr_desp[1] = (VkVertexInputAttributeDescription){
-		.binding = 0,
-		.location = 1,
-		.format = VK_FORMAT_R32G32B32_SFLOAT,
-		.offset = offsetof(kie_Vertex, normal)
-	};
-
-	attr_desp[2] = (VkVertexInputAttributeDescription){
-		.binding = 0,
-		.location = 2,
-		.format = VK_FORMAT_R32G32B32_SFLOAT,
-		.offset = offsetof(kie_Vertex, color)
-	};
-
-	attr_desp[3] = (VkVertexInputAttributeDescription){
-		.binding = 0,
-		.location = 3,
-		.format = VK_FORMAT_R32G32B32_SFLOAT,
-		.offset = offsetof(kie_Vertex, tangent)
-	};
-
-	attr_desp[4] = (VkVertexInputAttributeDescription){
-		.binding = 0,
-		.location = 4,
-		.format = VK_FORMAT_R32G32B32_SFLOAT,
-		.offset = offsetof(kie_Vertex, bit_tangent)
-	};
-
-	attr_desp[5] = (VkVertexInputAttributeDescription){
-		.binding = 0,
-		.location = 5,
-		.format = VK_FORMAT_R32G32_SFLOAT,
-		.offset = offsetof(kie_Vertex, tex_coord)
-	};
-
-
-	VkDescriptorPoolSize pool_sizes[2] = { 0 };
-	pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	pool_sizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
-	pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
-
-	backend->pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	backend->pool_sizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
-	backend->pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	backend->pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
-
-
-	char *p = { "res/textures/checker.png" };
-	create_vulkan_pipeline2(
-		rsrs,
-		&backend->checker_pipeline,
-		2,
-		bindings,
-		"res/shaders/renderer/checker/vshader.spv",
-		"res/shaders/renderer/checker/fshader.spv",
-		&binding_desp,
-		1,
-		attr_desp,
-		6,
-		1,
-		&backend->checker_pipeline.vk_texture_image_,
-		&backend->checker_pipeline.vk_texture_image_memory_,
-		&backend->checker_pipeline.vk_texture_image_sampler_,
-		&backend->checker_pipeline.vk_texture_image_view_,
-		&p,
-		2,
-		pool_sizes
-	);
-
-	VkDeviceSize size = sizeof(kie_Vertex) * KSAI_MESH_VERTEX_MEM;
-	create_buffer_util(
-		size,
-		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		&backend->vbuffer,
-		&backend->vbuffer_memory,
-		vk_logical_device_
-	);
-	size = sizeof(uint32_t) * KSAI_MESH_INDEX_MEM;
-	create_buffer_util(
-		size,
-		VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		&backend->ibuffer,
-		&backend->ibuffer_memory,
-		vk_logical_device_
-	);
-
-	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	/* CHECKER RENDERING ENGINE */
 	{
-		size = sizeof(uniforms) * KSAI_MESH_UNIFORM_MEM;
+		VkDescriptorSetLayoutBinding ubo_layout_binding = { 0 };
+		ubo_layout_binding = (VkDescriptorSetLayoutBinding){
+			.binding = 0,
+			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.descriptorCount = 1,
+			.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+			.pImmutableSamplers = NULL
+		};
+
+		VkDescriptorSetLayoutBinding sampler_layout_binding = { 0 };
+		sampler_layout_binding = (VkDescriptorSetLayoutBinding){
+			.binding = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.descriptorCount = 1,
+			.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+			.pImmutableSamplers = NULL
+		};
+
+		VkDescriptorSetLayoutBinding bindings[2] = { ubo_layout_binding, sampler_layout_binding };
+
+		VkVertexInputBindingDescription binding_desp = (VkVertexInputBindingDescription){
+			.binding = 0,
+			.stride = sizeof(kie_Vertex),
+			.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+		};
+		VkVertexInputAttributeDescription attr_desp[6];
+
+		attr_desp[0] = (VkVertexInputAttributeDescription){
+			.binding = 0,
+			.location = 0,
+			.format = VK_FORMAT_R32G32B32_SFLOAT,
+			.offset = offsetof(kie_Vertex, position)
+		};
+
+		attr_desp[1] = (VkVertexInputAttributeDescription){
+			.binding = 0,
+			.location = 1,
+			.format = VK_FORMAT_R32G32B32_SFLOAT,
+			.offset = offsetof(kie_Vertex, normal)
+		};
+
+		attr_desp[2] = (VkVertexInputAttributeDescription){
+			.binding = 0,
+			.location = 2,
+			.format = VK_FORMAT_R32G32B32_SFLOAT,
+			.offset = offsetof(kie_Vertex, color)
+		};
+
+		attr_desp[3] = (VkVertexInputAttributeDescription){
+			.binding = 0,
+			.location = 3,
+			.format = VK_FORMAT_R32G32B32_SFLOAT,
+			.offset = offsetof(kie_Vertex, tangent)
+		};
+
+		attr_desp[4] = (VkVertexInputAttributeDescription){
+			.binding = 0,
+			.location = 4,
+			.format = VK_FORMAT_R32G32B32_SFLOAT,
+			.offset = offsetof(kie_Vertex, bit_tangent)
+		};
+
+		attr_desp[5] = (VkVertexInputAttributeDescription){
+			.binding = 0,
+			.location = 5,
+			.format = VK_FORMAT_R32G32_SFLOAT,
+			.offset = offsetof(kie_Vertex, tex_coord)
+		};
+
+
+		VkDescriptorPoolSize pool_sizes[2] = { 0 };
+		pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		pool_sizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+		pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+		backend->pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		backend->pool_sizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+		backend->pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		backend->pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+
+		char *p = { "res/textures/checker.png" };
+		create_vulkan_pipeline2(
+			rsrs,
+			&backend->checker_pipeline,
+			2,
+			bindings,
+			"res/shaders/renderer/checker/vshader.spv",
+			"res/shaders/renderer/checker/fshader.spv",
+			&binding_desp,
+			1,
+			attr_desp,
+			6,
+			1,
+			&backend->checker_pipeline.vk_texture_image_,
+			&backend->checker_pipeline.vk_texture_image_memory_,
+			&backend->checker_pipeline.vk_texture_image_sampler_,
+			&backend->checker_pipeline.vk_texture_image_view_,
+			&p,
+			2,
+			pool_sizes
+		);
+
+		VkDeviceSize size = sizeof(kie_Vertex) * KSAI_MESH_VERTEX_MEM;
 		create_buffer_util(
 			size,
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-			&backend->ubuffer[i],
-			&backend->ubuffer_memory[i],
+			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			&backend->vbuffer,
+			&backend->vbuffer_memory,
 			vk_logical_device_
 		);
-		vkMapMemory(vk_logical_device_, backend->ubuffer_memory[i], 0, size, 0, &backend->udata[i]);
-		memset(backend->udata[i], 0, size);
+		size = sizeof(uint32_t) * KSAI_MESH_INDEX_MEM;
+		create_buffer_util(
+			size,
+			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			&backend->ibuffer,
+			&backend->ibuffer_memory,
+			vk_logical_device_
+		);
+
+		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			size = sizeof(uniforms) * KSAI_MESH_UNIFORM_MEM;
+			create_buffer_util(
+				size,
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+				&backend->ubuffer[i],
+				&backend->ubuffer_memory[i],
+				vk_logical_device_
+			);
+			vkMapMemory(vk_logical_device_, backend->ubuffer_memory[i], 0, size, 0, &backend->udata[i]);
+			memset(backend->udata[i], 0, size);
+		}
+
+		kie_Object_Arena_init();
+		backend->voffsets = (VkDeviceSize *) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+		backend->ioffsets = (VkDeviceSize *) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+		backend->uoffsets = (VkDeviceSize(*)[MAX_FRAMES_IN_FLIGHT]) ksai_Arena_allocate(sizeof(VkDeviceSize) * MAX_FRAMES_IN_FLIGHT * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+
+		backend->descriptor_sets = (VkDescriptorSet(*)[2]) ksai_Arena_allocate(sizeof(vk_dsset_pair) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+		backend->descriptor_pools = (VkDescriptorPool *) ksai_Arena_allocate(sizeof(VkDescriptorPool) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+		backend->offset_count = 0;
+		backend->voffset = 0;
+		backend->ioffset = 0;
+		backend->uoffset[0] = 0;
+		backend->uoffset[1] = 0;
 	}
-
-	kie_Object_Arena_init();
-	backend->voffsets = (VkDeviceSize *) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
-	backend->ioffsets = (VkDeviceSize *) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
-	backend->uoffsets = (VkDeviceSize(*)[MAX_FRAMES_IN_FLIGHT]) ksai_Arena_allocate(sizeof(VkDeviceSize) * MAX_FRAMES_IN_FLIGHT * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
-
-	backend->descriptor_sets = (VkDescriptorSet(*)[2]) ksai_Arena_allocate(sizeof(vk_dsset_pair) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
-	backend->descriptor_pools = (VkDescriptorPool *) ksai_Arena_allocate(sizeof(VkDescriptorPool) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
-	backend->offset_count = 0;
-	backend->voffset = 0;
-	backend->ioffset = 0;
-	backend->uoffset[0] = 0;
-	backend->uoffset[1] = 0;
 }
 
 KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_backend *backend)
@@ -225,7 +232,7 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 				VkBufferMemoryBarrier barr = (VkBufferMemoryBarrier)
 				{
 					.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
-					.buffer = staging_buffer,
+					.buffer = backend->vbuffer,
 					.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 					.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 					.pNext = NULL,
@@ -243,6 +250,7 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 					0,
 					NULL
 				);
+
 
 				end_single_time_commands_util(&buff, rsrs->vk_graphics_queue_);
 
@@ -285,7 +293,7 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 				VkBufferMemoryBarrier barr = (VkBufferMemoryBarrier)
 				{
 					.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
-					.buffer = staging_buffer,
+					.buffer = backend->ibuffer,
 					.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 					.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 					.pNext = NULL,
@@ -408,7 +416,7 @@ KSAI_API void destroy_renderer_backend(vk_rsrs *rsrs, renderer_backend *backend)
 	kie_Object_Arena_destroy();
 }
 
-KSAI_API int draw_backend_start(vk_rsrs *_rsrs)
+KSAI_API int draw_backend_start(vk_rsrs *_rsrs, renderer_backend *backend)
 {
 	vkWaitForFences(vk_logical_device_, 1, &_rsrs->vk_inflight_fences_[_rsrs->current_frame], VK_TRUE, KSAI_U64_MAX);
 
@@ -421,6 +429,7 @@ KSAI_API int draw_backend_start(vk_rsrs *_rsrs)
 		{
 			frame_buffer_resized_ = 0;
 			recreate_swap_chain(_rsrs);
+			recreate_offscreen(_rsrs, backend);
 			return -1;
 		}
 		else if (_rsrs->result_next_image != VK_SUCCESS && _rsrs->result_next_image != VK_SUBOPTIMAL_KHR)

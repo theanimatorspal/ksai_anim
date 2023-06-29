@@ -72,3 +72,7 @@ void create_vulkan_pipeline2_compute(vk_rsrs *_rsrs, pipeline_vk *ppln, int _des
 
 void pipeline_vk_destroy(pipeline_vk* _ppln);
 void pipeline_vk_destroy2(pipeline_vk *_ppln);
+
+void create_vulkan_pipeline3(vk_rsrs *_rsrs, pipeline_vk *ppln, int _descriptor_set_layout_binding_count, VkDescriptorSetLayoutBinding *_descriptor_layout_binding, const char *_vshader_path, const char *_fshader_path, VkVertexInputBindingDescription *_vertex_input_binding_description, int _vertex_input_binding_description_count, VkVertexInputAttributeDescription *_vertex_input_attribute_description, int _vertex_input_attribute_description_count, int _no_of_pool_sizes, VkDescriptorPoolSize *_pool_sizes);
+
+void pipeline_vk_destroy3(pipeline_vk *_ppln);

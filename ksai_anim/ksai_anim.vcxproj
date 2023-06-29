@@ -163,9 +163,11 @@
     <ClCompile Include="src\application\loaders\obj_loader.c" />
     <ClCompile Include="src\backend\ui\font.c" />
     <ClCompile Include="src\backend\ui\ui.c" />
+    <ClCompile Include="src\backend\vulkan\advanced.c" />
     <ClCompile Include="src\backend\vulkan\backend.c" />
     <ClCompile Include="src\backend\vulkan\cleanup.c" />
     <ClCompile Include="src\backend\vulkan\init.c" />
+    <ClCompile Include="src\backend\vulkan\offscreen.c" />
     <ClCompile Include="src\backend\vulkan\pipelines.c" />
     <ClCompile Include="src\backend\vulkan\resize.c" />
     <ClCompile Include="src\backend\vulkan\run.c" />
@@ -186,9 +188,11 @@
     <ClInclude Include="src\backend\ui\latex_colors.h" />
     <ClInclude Include="src\backend\ui\font.h" />
     <ClInclude Include="src\backend\ui\ui.h" />
+    <ClInclude Include="src\backend\vulkan\advanced.h" />
     <ClInclude Include="src\backend\vulkan\backend.h" />
     <ClInclude Include="src\backend\vulkan\cleanup.h" />
     <ClInclude Include="src\backend\vulkan\init.h" />
+    <ClInclude Include="src\backend\vulkan\offscreen.h" />
     <ClInclude Include="src\backend\vulkan\pipelines.h" />
     <ClInclude Include="src\backend\vulkan\resize.h" />
     <ClInclude Include="src\backend\vulkan\run.h" />
