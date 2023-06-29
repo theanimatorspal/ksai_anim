@@ -61,7 +61,7 @@
     <ClCompile Include="src\backend\ui\font.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\application\frontend\app_ui.c">
+    <ClCompile Include="src\application\frontend\app_ui_view.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\objects\object.c">
@@ -83,6 +83,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\backend\vulkan\offscreen.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\application\frontend\app_ui_control.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

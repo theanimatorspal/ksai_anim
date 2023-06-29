@@ -158,7 +158,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\application\application.c" />
-    <ClCompile Include="src\application\frontend\app_ui.c" />
+    <ClCompile Include="src\application\frontend\app_ui_control.c" />
+    <ClCompile Include="src\application\frontend\app_ui_view.c" />
     <ClCompile Include="src\application\frontend\3d_viewport.c" />
     <ClCompile Include="src\application\loaders\obj_loader.c" />
     <ClCompile Include="src\backend\ui\font.c" />

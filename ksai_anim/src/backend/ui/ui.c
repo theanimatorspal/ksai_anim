@@ -368,6 +368,8 @@ void ui_events(SDL_Window *_wndw, SDL_Event *event)
 	int width, height;
 	uint32_t buttons = SDL_GetMouseState(&xpos, &ypos);
 	SDL_GetWindowSize(_wndw, &width, &height);
+	int Length;
+	const Uint8 *KeyboardState = SDL_GetKeyboardState(&Length);
 
 	for (int i = 0; i < global_all_labels_count; i++)
 	{
@@ -391,7 +393,7 @@ void ui_events(SDL_Window *_wndw, SDL_Event *event)
 
 		if ((ms_x > b_l[0]) && (ms_x < t_r[0]) && (ms_y > b_l[1]) && (ms_y < t_r[1]))
 		{
-			if (buttons & SDL_BUTTON_LMASK)
+			if ((buttons & SDL_BUTTON_LMASK) && !KeyboardState[SDL_SCANCODE_LALT])
 			{
 				global_all_labels[i].st_typ = lbl_st_SELECTED;
 				continue;

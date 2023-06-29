@@ -511,7 +511,7 @@ void threeD_viewport_draw(
 )
 {
 
-	for (int i = 0; i < scene->objects_count; i++)
+	for (int i = 0; i < backend->offset_count; i++)
 	{
 		int x;
 		if(!only_viewport_objects)
