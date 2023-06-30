@@ -471,7 +471,8 @@ void threeD_viewport_update(
 	renderer_backend *backend,
 	SDL_Window *window,
 	SDL_Event *event,
-	vk_rsrs *rsrs
+	vk_rsrs *rsrs,
+	int selected_object_index
 )
 {
 
@@ -496,6 +497,11 @@ void threeD_viewport_update(
 		glm_mat4_copy(model, uni.model);
 		glm_mat4_copy(camera->view, uni.view);
 		glm_mat4_copy(projection, uni.proj);
+		if (i == selected_object_index)
+			uni.v2[0] = 1;
+		else 
+			uni.v2[0] = 0.0;
+
 		memcpy(backend->udata[rsrs->current_frame] + i * sizeof(uniforms), &uni, sizeof(uniforms));
 	}
 

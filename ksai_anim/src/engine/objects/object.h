@@ -44,6 +44,16 @@ typedef struct kie_Camera
 	float h;
 } kie_Camera;
 
+typedef struct kie_Light
+{
+	vec3 position;
+	vec3 rotation; 
+	vec3 direction;
+	float intensity;
+	float area;
+
+} kie_Light;
+
 void kie_Object_Arena_init();
 
 void kie_generate_mvp(mat4 projection, kie_Camera *camera, mat4 model, mat4 mvp);

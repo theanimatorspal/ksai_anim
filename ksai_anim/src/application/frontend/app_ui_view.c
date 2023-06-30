@@ -11,7 +11,7 @@
 #define MENU_SELECTED_COLOR color_RED
 #define MENU_CLOSE_COLOR color_RED_PIGMENT_
 #define DEBUG_TEXT_COLOR color_BLACK
-#define SELECTOR_COLOR color_SADDLEBROWN
+#define SELECTOR_COLOR color_RUSSET
 
 
 #define TOP_MENU_POSY -0.975
@@ -115,7 +115,6 @@ int draw_button_window(char text[KSAI_SMALL_STRING_LENGTH], vec2 pos, vk_rsrs *r
 	return ui_draw_button(lbl, rsrs->window);
 }
 
-
 int draw_selector_window(char select[MAX_SELECTOR_SIZE][KSAI_SMALL_STRING_LENGTH], int count, float aspect, vec2 pos, vk_rsrs *rsrs, float row, int *selection)
 {
 	int clicked = 0;
@@ -132,7 +131,7 @@ int draw_selector_window(char select[MAX_SELECTOR_SIZE][KSAI_SMALL_STRING_LENGTH
 
 	ui_label lbl = (ui_label){
 		.typ = BUTTON,
-		.scale = {MENU_TEXT_SCALEX * 1.2, BACK_SCALEY * MENU_TEXT_SCALEY * 0.7 * 0.8 * aspect},
+		.scale = {MENU_TEXT_SCALEX * 1.4, BACK_SCALEY * MENU_TEXT_SCALEY * 0.7 * 0.8 * aspect},
 		.st_typ = lbl_st_UNSELECTED,
 	};
 	glm_vec2_copy((vec2) { pos[0], pos[1] + row * 0.08 }, lbl.ps);
@@ -172,7 +171,6 @@ int draw_selector_window(char select[MAX_SELECTOR_SIZE][KSAI_SMALL_STRING_LENGTH
 	return clicked;
 }
 
-
 int draw_selector_integer(int smallest, int highest, float aspect, vec2 pos, vk_rsrs *rsrs, float row, int *selection)
 {
 	char select[KSAI_SMALL_STRING_LENGTH][KSAI_SMALL_STRING_LENGTH];
@@ -193,11 +191,82 @@ int draw_selector_integer(int smallest, int highest, float aspect, vec2 pos, vk_
 		row,
 		&selection_for_selector
 	);
-	{ 
+	{
 		*selection = selection_for_selector + smallest;
 	}
 }
 
+static uint32_t time = 0.0; 
+int draw_input_number(float aspect, vec2 pos, vk_rsrs *rsrs, float row, char out[KSAI_SMALL_STRING_LENGTH], bool *should_input, int *place_value)
+{
+	ui_label lbl = (ui_label){
+		.typ = BUTTON,
+		.scale = {MENU_TEXT_SCALEX * 1.4, BACK_SCALEY * MENU_TEXT_SCALEY * 0.7 * 0.8 * aspect},
+		.st_typ = lbl_st_UNSELECTED,
+	};
+	glm_vec2_copy((vec2) { pos[0], pos[1] + row * 0.08 }, lbl.ps);
+
+	int xx = sdl_get_button_keyboard_number();
+	if (*should_input == false)
+	{
+		glm_vec3_copy(SELECTOR_COLOR, lbl.nrml_clr);
+		glm_vec3_copy(SELECTOR_COLOR, lbl.txt_clr);
+		glm_vec3_copy(SELECTOR_COLOR, lbl.hvrd_clr);
+		glm_vec3_copy(SELECTOR_COLOR, lbl.slctd_clr);
+	}
+	else
+	{
+		glm_vec3_copy(MENU_BAR_COLOR, lbl.nrml_clr);
+		glm_vec3_copy(MENU_BAR_COLOR, lbl.txt_clr);
+		glm_vec3_copy(MENU_BAR_COLOR, lbl.hvrd_clr);
+		glm_vec3_copy(MENU_BAR_COLOR, lbl.slctd_clr);
+		if (time < SDL_GetTicks() - 10)
+		{
+			if (xx != 10 && xx != 0 && xx != 11) {
+				out[*place_value] = xx + '0';
+				(*place_value)++;
+			}
+			else if (xx == 10)
+			{
+				out[*place_value] = '\0';
+				(*place_value)--;
+			}
+			else if (xx == 11)
+			{
+				out[*place_value] = '.';
+				(*place_value)++;
+			}
+			time = SDL_GetTicks();
+		}
+	}
+
+
+	strcpy_s(lbl.text, sizeof(char) * KSAI_SMALL_STRING_LENGTH, "MMMMMMMM");
+	if (ui_draw_button(lbl, rsrs->window))
+		*should_input = !*should_input;
+
+	glm_vec2_copy((vec2) { MENU_TEXT_SCALEX * 0.7, MENU_TEXT_SCALEY }, lbl.scale);
+	char log[KSAI_SMALL_STRING_LENGTH];
+	sprintf_s(log, sizeof(char) * KSAI_SMALL_STRING_LENGTH, "%s", out);
+	strcpy_s(lbl.text, sizeof(char) * KSAI_SMALL_STRING_LENGTH, log);
+
+	glm_vec2_copy((vec2) { MENU_TEXT_SCALEX * 0.7, MENU_TEXT_SCALEY * 1.2 }, lbl.scale);
+	glm_vec3_copy(SELECTOR_COLOR, lbl.hvrd_clr);
+	glm_vec3_copy(SELECTOR_COLOR, lbl.nrml_clr);
+	glm_vec3_copy(SELECTOR_COLOR, lbl.slctd_clr);
+	glm_vec3_copy(MENU_TEXT_COLOR, lbl.txt_clr);
+	ui_draw_button(lbl, rsrs->window);
+	int Length;
+	const Uint8 *KeyboardState = SDL_GetKeyboardState(&Length);
+	if (KeyboardState[SDL_SCANCODE_RETURN])
+	{
+		*should_input = false;
+		*place_value = 0;
+		return 0;
+	}
+	if(*should_input)
+		return 1;
+}
 
 int draw_popup_menu(ui_label lbl, char ch[NO_OF_POPUP_MENUS][KSAI_SMALL_STRING_LENGTH], int count, float aspect, vec2 pos, vk_rsrs *rsrs)
 {

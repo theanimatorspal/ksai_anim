@@ -51,5 +51,7 @@ void ui_update(int *_current_frame);
 void ui_render(int *_crrnt_frm, vk_rsrs *_rsrs);
 void ui_destroy(vk_rsrs *_rsrs);
 
+int sdl_get_button_keyboard_number();
+
 extern pipeline_vk *pplns_[MAX_BUFFER_SIZE];
 extern uint32_t vlkn_ppln_cnt;

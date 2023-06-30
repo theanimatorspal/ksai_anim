@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	);
 
 	initialize_backend(&resources, &instance);
-	ui_init(100, &resources);
+	ui_init(200, &resources);
 	renderer_backend backend_renderer;
 	initialize_renderer_backend(&resources, &backend_renderer);
 
@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
 	kie_Object_init(&obj1);
 	kie_Object_init(&obj2);
 	kie_Object_init(&obj3);
-	//kie_Object_create_circle(&obj4, 3, 8, (vec3) { 0, 0, 0 }, (vec3) { 0, 1, 0 }, true, 0, 0);
 
 	read_obj_to_kie_Object("res/objs/oldmen.obj", &obj1);
 	read_obj_to_kie_Object("res/objs/plane.obj", &obj2);
@@ -90,7 +89,7 @@ int main(int argc, char *argv[])
 	kie_Scene_add_object(&scene1, 3, &obj1, &obj2, &obj3);
 
 	int current_selected = 3;
-
+	vec3 clear_color = {0, 0, 0};
 	bool running = true;
 	while (running)
 	{
@@ -104,48 +103,29 @@ int main(int argc, char *argv[])
 
 
 		char m[6][10][100] = { 0 };
-		int c[6] = { 3, 6, 0, 0 };
-		strcpy_s(m[0][0], sizeof(char) * 100, "File");
-		strcpy_s(m[1][0], sizeof(char) * 100, "Create");
-		strcpy_s(m[2][0], sizeof(char) * 100, "Window");
-		strcpy_s(m[3][0], sizeof(char) * 100, "Mesh ");
-		strcpy_s(m[4][0], sizeof(char) * 100, "Render");
+		int c[6] = { 3, 6, 3, 0 };
+		strcpy_s(m[0][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "File");
+		strcpy_s(m[1][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Create");
+		strcpy_s(m[2][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Window");
+		strcpy_s(m[3][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Mesh ");
+		strcpy_s(m[4][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Render");
 
-		strcpy_s(m[0][1], sizeof(char) * 100, "New");
-		strcpy_s(m[0][2], sizeof(char) * 100, "Open");
-		strcpy_s(m[0][3], sizeof(char) * 100, "Close");
+		strcpy_s(m[0][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "New");
+		strcpy_s(m[0][2], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Open");
+		strcpy_s(m[0][3], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Close");
 
-		strcpy_s(m[1][1], sizeof(char) * 100, "Circle");
-		strcpy_s(m[1][2], sizeof(char) * 100, "Cylinder");
-		strcpy_s(m[1][3], sizeof(char) * 100, "Annulus");
-		strcpy_s(m[1][4], sizeof(char) * 100, "OBJ");
-		strcpy_s(m[1][5], sizeof(char) * 100, "Part");
-		strcpy_s(m[1][6], sizeof(char) * 100, "Curv");
-		handle_file_menu(draw_file_menu(m, 5, c, aspect, &resources, (int *) &running), aspect, &resources, &windowEvent, &scene1, &backend_renderer);
+		strcpy_s(m[1][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Circle");
+		strcpy_s(m[1][2], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Cylinder");
+		strcpy_s(m[1][3], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Annulus");
+		strcpy_s(m[1][4], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "OBJ");
+		strcpy_s(m[1][5], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Light");
+		strcpy_s(m[1][6], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Camera");
 
-		static vec2 debug_window_pos = { 0.75, -0.7 }; static bool move_debug_window = false;
-		draw_window("Debug    ", 7, debug_window_pos, aspect, &resources, &windowEvent, &move_debug_window);
-		char log[100];
-		sprintf_s(log, sizeof(char) * 100, "cp:(%.2f,%.2f,%.2f)", viewport_camera.position[0], viewport_camera.position[1], viewport_camera.position[2]);
-		draw_label_window(log, debug_window_pos, &resources, aspect, 1);
-		sprintf_s(log, sizeof(char) * 100, "cr:(%.2f,%.2f,%.2f)", viewport_camera.rotation[0], viewport_camera.rotation[1], viewport_camera.rotation[2]);
-		draw_label_window(log, debug_window_pos, &resources, aspect, 2);
-		sprintf_s(log, sizeof(char) * 100, "Object Count:%d", scene1.objects_count);
-		draw_label_window(log, debug_window_pos, &resources, aspect, 3);
-		draw_selector_integer(3, scene1.objects_count, aspect, debug_window_pos, &resources, 4, &current_selected);
+		strcpy_s(m[2][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Properties");
+		strcpy_s(m[2][2], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Timeline");
+		strcpy_s(m[2][3], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "World");
+		handle_file_menu(draw_file_menu(m, 5, c, aspect, &resources, (int *) &running), aspect, &resources, &windowEvent, &scene1, &backend_renderer, &current_selected, clear_color, 3);
 
-		static vec2 demo_window_pos = { 0.75, -0.05 }; static bool move_demo_window = false;
-		draw_window("Demo    ", 4, demo_window_pos, aspect, &resources, &windowEvent, &move_demo_window);
-		draw_label_window("Start", demo_window_pos, &resources, aspect, 1);
-		draw_label_window("Clear Color", demo_window_pos, &resources, aspect, 1.5);
-		char select[100][100] = { "blue", "lemon", "grey", "sprbud" };
-		static vec3 colors[100];
-		glm_vec3_copy(color_ALICEBLUE, colors[0]);
-		glm_vec3_copy(color_LEMONCHIFFON, colors[1]);
-		glm_vec3_copy(color_BATTLESHIPGREY, colors[2]);
-		glm_vec3_copy(color_MEDIUMSPRINGBUD, colors[3]);
-		static int selection = 0;
-		draw_selector_window(select, 4, aspect, demo_window_pos, &resources, 2.5, &selection);
 
 		if (windowEvent.type == SDL_QUIT)
 		{
@@ -158,15 +138,17 @@ int main(int argc, char *argv[])
 		}
 
 
+		ui_update(&resources.current_frame);
 		if (draw_backend_start(&resources, &backend_renderer) != -1 && running)
 		{
 			threeD_viewport_events(&viewport_camera, &scene1, &backend_renderer, resources.window, &windowEvent, &resources, current_selected);
-			threeD_viewport_update(&viewport_camera, &scene1, &backend_renderer, resources.window, &windowEvent, &resources);
-			ui_update(&resources.current_frame);
+			threeD_viewport_update(&viewport_camera, &scene1, &backend_renderer, resources.window, &windowEvent, &resources, current_selected);
 
-			draw_backend_begin(&resources, colors[selection]);
+
+			draw_backend_begin(&resources, clear_color);
 
 			threeD_viewport_draw(&viewport_camera, &scene1, &backend_renderer, &resources, 3, false);
+
 			ui_render(&resources.current_frame, &resources);
 
 			draw_backend_end(&resources);

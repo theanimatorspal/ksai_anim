@@ -347,6 +347,7 @@ void ui_vk_draw(int _crrnt_frm, struct pipeline_vk *_ppln, bool frst_tm, VkDevic
 bool ui_draw_button(ui_label lbl, SDL_Window *_wndw)
 {
 	ui_label lb = {0};
+	lbl.scale[0] *= 0.8;
 	lb.st_typ = global_all_labels[global_all_labels_count].st_typ;
 	global_all_labels[global_all_labels_count] = lbl;
 	global_all_labels[global_all_labels_count].st_typ = lb.st_typ;
@@ -493,3 +494,35 @@ void ui_destroy(vk_rsrs *_rsrs)
 	fnt_free();
 }
 
+
+int sdl_get_button_keyboard_number()
+{
+	int Length;
+	const Uint8 *KeyboardState = SDL_GetKeyboardState(&Length);
+
+
+	int numbers[] = {
+		SDL_SCANCODE_0,
+		SDL_SCANCODE_1,
+		SDL_SCANCODE_2,
+		SDL_SCANCODE_3,
+		SDL_SCANCODE_4,
+		SDL_SCANCODE_5,
+		SDL_SCANCODE_6,
+		SDL_SCANCODE_7,
+		SDL_SCANCODE_8,
+		SDL_SCANCODE_9,
+		SDL_SCANCODE_BACKSPACE,
+		SDL_SCANCODE_PERIOD
+	};
+
+	for (int i = 0; i < 12; i++)
+	{
+		if (KeyboardState[numbers[i]])
+		{
+			return i;
+		}
+	}
+
+	return 0;
+}
