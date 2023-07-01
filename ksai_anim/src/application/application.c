@@ -75,10 +75,11 @@ int main(int argc, char *argv[])
 
 
 	kie_Scene scene1;
-	kie_Object obj1, obj2, obj3;
+	kie_Object obj1, obj2, obj3, light_object;
 	kie_Object_init(&obj1);
 	kie_Object_init(&obj2);
 	kie_Object_init(&obj3);
+	kie_Object_init(&light_object);
 
 	read_obj_to_kie_Object("res/objs/oldmen.obj", &obj1);
 	read_obj_to_kie_Object("res/objs/plane.obj", &obj2);
@@ -89,21 +90,23 @@ int main(int argc, char *argv[])
 	kie_Scene_add_object(&scene1, 3, &obj1, &obj2, &obj3);
 
 	int current_selected = 3;
+	bool should_show_viewport_objects = false;
 	vec3 clear_color = {0, 0, 0};
 	bool running = true;
+	ivec2s st;
+	copy_scene_to_backend(&resources, &scene1, &backend_renderer);
 	while (running)
 	{
 		SDL_Event windowEvent;
-		SDL_WaitEventTimeout(&windowEvent, 400);
+		SDL_WaitEvent(&windowEvent);
 
-		copy_scene_to_backend(&resources, &scene1, &backend_renderer);
 		static int width, height;
 		SDL_GetWindowSize(resources.window, &width, &height);
 		float aspect = (float) width / height;
 
 
 		char m[6][10][100] = { 0 };
-		int c[6] = { 3, 6, 3, 0 };
+		int c[6] = { 3, 6, 3, 0, 1 };
 		strcpy_s(m[0][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "File");
 		strcpy_s(m[1][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Create");
 		strcpy_s(m[2][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Window");
@@ -124,7 +127,22 @@ int main(int argc, char *argv[])
 		strcpy_s(m[2][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Properties");
 		strcpy_s(m[2][2], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Timeline");
 		strcpy_s(m[2][3], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "World");
-		handle_file_menu(draw_file_menu(m, 5, c, aspect, &resources, (int *) &running), aspect, &resources, &windowEvent, &scene1, &backend_renderer, &current_selected, clear_color, 3);
+
+
+		strcpy_s(m[4][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "RenderImg");
+		handle_file_menu(
+			st,
+			aspect,
+			&resources,
+			&windowEvent,
+			&scene1,
+			&backend_renderer,
+			&current_selected,
+			clear_color,
+			3,
+			&should_show_viewport_objects,
+			&viewport_camera
+		);
 
 
 		if (windowEvent.type == SDL_QUIT)
@@ -132,7 +150,7 @@ int main(int argc, char *argv[])
 			running = false;
 			break;
 		}
-
+		st = draw_file_menu(m, 5, c, aspect, &resources, (int *) &running);
 		{
 			ui_events(resources.window, &windowEvent);
 		}

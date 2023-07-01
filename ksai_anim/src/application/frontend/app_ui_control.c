@@ -1,5 +1,37 @@
 #include "app_ui.h"
 #include <backend/ui/latex_colors.h>
+#include <application/loaders/obj_loader.h>
+#include "3d_viewport.h"
+
+bool open_explorer(char *file, char *file_type)
+{
+	// Initialize the OPENFILENAME structure
+	OPENFILENAMEA ofn;
+	char szFile[260] = { 0 };
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.lpstrFile = szFile;
+	ofn.nMaxFile = sizeof(szFile);
+	ofn.lpstrFilter = file_type;
+	ofn.lpstrTitle = "Select a file";
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+	// Display the common file dialog to get the file path
+	if (GetOpenFileNameA(&ofn) == TRUE)
+	{
+		// The user selected a file, so print its path
+		printf("Selected file: %s\n", szFile);
+		sprintf(file, "%s", szFile);
+		return true;
+	}
+	else
+	{
+		// The user cancelled the dialog, so handle the error
+		printf("Error: %d\n", CommDlgExtendedError());
+		return false;
+	}
+}
+
 
 void handle_file_menu(
 	ivec2s file_option,
@@ -10,17 +42,27 @@ void handle_file_menu(
 	renderer_backend *backend,
 	int *current_selected,
 	vec3 clear_color,
-	int viewport_objects_count
+	int viewport_objects_count,
+	bool *should_show_viewport_objects,
+	kie_Camera *camera 
 )
 {
-	static vec2 pos = { -0.75, 0.25 };
+	static first_call = true;
+	static vec2 pos = { -0.40, 0.35 };
 	static bool move = false;
-
-
 	static bool add_circle_window = false;
 	static bool add_cylinder_window = false;
+	static bool add_light_window = false;
 	static bool world_window = true;
 	static bool properties_window = false;
+	static bool add_obj_file = false;
+	static bool render_to_img_window = false;
+	static kie_Object light_object;
+	if (first_call)
+	{
+		read_obj_to_kie_Object("res/objs/light.obj", &light_object);
+		first_call = false;
+	}
 
 
 	switch (file_option.x)
@@ -35,6 +77,12 @@ void handle_file_menu(
 			break;
 		case 1:
 			add_cylinder_window = !add_cylinder_window;
+			break;
+		case 3:
+			add_obj_file = !add_obj_file;
+			break;
+		case 4:
+			add_light_window = !add_light_window;
 			break;
 		}
 		break;
@@ -53,12 +101,20 @@ void handle_file_menu(
 	case 3:
 		break;
 	case 4:
+		switch (file_option.y)
+		{
+		case 0:
+			render_to_img_window = !render_to_img_window;
+			break;
+		}
 		break;
 	}
 
 
 	if (world_window)
 	{
+		int ii = 2;
+		float padd = 0.7;
 		static vec2 debug_window_pos = { 0.75, -0.7 }; static bool move_debug_window = false;
 		draw_window("World    ", 7, debug_window_pos, aspect, rsrs, event, &move_debug_window);
 
@@ -66,10 +122,13 @@ void handle_file_menu(
 		sprintf_s(log, sizeof(char) * 100, "Object Count:%d", scene->objects_count);
 
 
-		draw_label_window(log, debug_window_pos, rsrs, aspect, 1);
-		draw_selector_integer(3, scene->objects_count, aspect, debug_window_pos, rsrs, 2, current_selected);
+		draw_label_window(log, debug_window_pos, rsrs, aspect, ii++ * padd);
+		draw_selector_integer(3, scene->objects_count, aspect, debug_window_pos, rsrs, ii++ * padd, current_selected);
 
-		draw_label_window("Clear Color", debug_window_pos, rsrs, aspect, 3);
+		sprintf_s(log, sizeof(char) * 100, "Lights Count:%d", scene->lights_count);
+		draw_label_window(log, debug_window_pos, rsrs, aspect, ii++ * padd);
+
+		draw_label_window("Clear Color", debug_window_pos, rsrs, aspect, ii++ * padd);
 		static vec3 colors[100];
 		char select[100][100] = { "brown", "lemon", "grey", "sprbud" };
 		glm_vec3_copy(color_SMOKYBLACK, colors[0]);
@@ -78,8 +137,12 @@ void handle_file_menu(
 		glm_vec3_copy(color_MEDIUMSPRINGBUD, colors[3]);
 
 		static int selection = 0;
-		draw_selector_window(select, 4, aspect, debug_window_pos, rsrs, 4, &selection);
+		draw_selector_window(select, 4, aspect, debug_window_pos, rsrs, ii++ * padd, &selection);
 		glm_vec3_copy(colors[selection], clear_color);
+
+		draw_label_window("Show VOs:", debug_window_pos, rsrs, aspect, ii++ * padd);
+		static int selection2 = 0;
+		draw_selector_var(&selection2, aspect, debug_window_pos, rsrs, ii++ * padd, 2, "__TRUE__", "__FALSE__");
 
 		int Length;
 		const Uint8 *KeyboardState = SDL_GetKeyboardState(&Length);
@@ -174,6 +237,74 @@ void handle_file_menu(
 		}
 	}
 
+
+	if (add_light_window)
+	{
+		int ii = 1;
+		float padd = 0.7;
+		draw_window("Light", 4, pos, aspect, rsrs, event, &move);
+		glm_vec3_copy((vec3) { 0.2, 0.2, 0.2 }, light_object.scale);
+		if (draw_button_window("Create", pos, rsrs, aspect, ii++ * padd))
+		{
+			kie_Object_add_light_object(&light_object, scene);
+			*current_selected = scene->objects_count - 1;
+			copy_scene_to_backend(rsrs, scene, backend);
+			add_light_window = !add_light_window;
+		}
+		if (draw_button_window("Cancel", pos, rsrs, aspect, ii++ * padd))
+		{
+			add_light_window = !add_light_window;
+		}
+	}
+
+
+	if (add_obj_file)
+	{
+		int ii = 2;
+		float padd = 0.7;
+		draw_window("add", 4, pos, aspect, rsrs, event, &move);
+		if (draw_button_window("Add", pos, rsrs, aspect, ii++ * padd))
+		{
+			char filepath[KSAI_SMALL_STRING_LENGTH];
+			if (open_explorer(filepath, "WaveFront OBJ (*.obj)\0*.obj\0"))
+			{
+				kie_Object object;
+				kie_Object_init(&object);
+				read_obj_to_kie_Object(filepath, &object);
+				kie_Scene_add_object(scene, 1, &object);
+				copy_scene_to_backend(rsrs, scene, backend);
+			}
+			add_obj_file = !add_obj_file;
+
+		}
+		if (draw_button_window("Cancel", pos, rsrs, aspect, ii++ * padd))
+		{
+			add_obj_file = !add_obj_file;
+		}
+	}
+
+	if (render_to_img_window)
+	{
+		int ii = 2;
+		float padd = 0.7;
+		draw_window("render", 4, pos, aspect, rsrs, event, &move);
+
+		static bool stuff;
+		draw_selector_var(&stuff, aspect, pos, rsrs, ii++ * padd, 3, "checker", "ksai", "ray");
+
+		if (draw_button_window("render img", pos, rsrs, aspect, ii++ * padd))
+		{
+			threeD_viewport_render_to_image(camera, scene, backend, rsrs->window, event, rsrs, *current_selected);
+			render_to_img_window = !render_to_img_window;
+
+		}
+		if (draw_button_window("Cancel", pos, rsrs, aspect, ii++ * padd))
+		{
+			render_to_img_window = !render_to_img_window;
+		}
+
+	}
+
 	static vec2 props_pos = { -0.75, -0.75 };
 	if (properties_window)
 	{
@@ -218,6 +349,24 @@ void handle_file_menu(
 		draw_label_window("ScaleZ", props_pos, rsrs, aspect, i++ * padd);
 		static char sz[100] = ""; static int place_value_sz = 0; static bool should_input_sz = false;
 		draw_input_number(aspect, props_pos, rsrs, i++ * padd, sz, &should_input_sz, &place_value_sz);
+
+		if (scene->objects[*current_selected].is_light)
+		{
+			draw_label_window("LIGHT", props_pos, rsrs, aspect, i++ * padd);
+			draw_label_window("======", props_pos, rsrs, aspect, i++ * padd);
+			draw_label_window("Intensity", props_pos, rsrs, aspect, i++ * padd);
+			static char inte[100] = ""; static int place_value_inte = 0; static bool should_input_inte = false;
+			draw_input_number(aspect, props_pos, rsrs, i++ * padd, inte, &should_input_inte, &place_value_inte);
+
+			if (should_input_inte)
+			{
+				sscanf_s(inte, "%f", &scene->objects[*current_selected].intensity);
+			}
+			else
+			{
+				sprintf_s(inte, sizeof(char) * 100, "%.2f", scene->objects[*current_selected].intensity);
+			}
+		}
 
 		if (
 			should_input_px || should_input_py || should_input_pz ||

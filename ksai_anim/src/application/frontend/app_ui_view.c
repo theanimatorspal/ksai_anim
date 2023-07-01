@@ -196,6 +196,22 @@ int draw_selector_integer(int smallest, int highest, float aspect, vec2 pos, vk_
 	}
 }
 
+int draw_selector_var(int *selected, float aspect, vec2 pos, vk_rsrs *rsrs, float row, int args, ...)
+{
+	va_list arg;
+	va_start(arg, args);
+	char select[MAX_SELECTOR_SIZE][KSAI_SMALL_STRING_LENGTH];
+
+	for (int i = 0; i < args; i++)
+	{
+		strcpy_s(select[i], sizeof(char) * KSAI_SMALL_STRING_LENGTH, va_arg(arg, char*));
+	}
+
+	draw_selector_window(select, args, aspect, pos, rsrs, row, selected);
+
+	va_end(arg);
+}
+
 static uint32_t time = 0.0; 
 int draw_input_number(float aspect, vec2 pos, vk_rsrs *rsrs, float row, char out[KSAI_SMALL_STRING_LENGTH], bool *should_input, int *place_value)
 {
@@ -220,13 +236,11 @@ int draw_input_number(float aspect, vec2 pos, vk_rsrs *rsrs, float row, char out
 		glm_vec3_copy(MENU_BAR_COLOR, lbl.txt_clr);
 		glm_vec3_copy(MENU_BAR_COLOR, lbl.hvrd_clr);
 		glm_vec3_copy(MENU_BAR_COLOR, lbl.slctd_clr);
-		if (time < SDL_GetTicks() - 10)
+		if (time < SDL_GetTicks() - 300)
 		{
-			if (xx != 10 && xx != 0 && xx != 11) {
-				out[*place_value] = xx + '0';
-				(*place_value)++;
-			}
-			else if (xx == 10)
+			if (xx == KSAI_INT32_MAX) {
+				
+			} else if (xx == 10)
 			{
 				out[*place_value] = '\0';
 				(*place_value)--;
@@ -234,6 +248,18 @@ int draw_input_number(float aspect, vec2 pos, vk_rsrs *rsrs, float row, char out
 			else if (xx == 11)
 			{
 				out[*place_value] = '.';
+				(*place_value)++;
+			}
+			else if (xx == 0)
+			{
+				out[*place_value] = '0';
+				out[*place_value + 1] = '\0';
+				(*place_value)++;
+			}
+			else
+			{
+				out[*place_value] = xx + '0';
+				out[*place_value + 1] = '\0';
 				(*place_value)++;
 			}
 			time = SDL_GetTicks();
@@ -264,8 +290,7 @@ int draw_input_number(float aspect, vec2 pos, vk_rsrs *rsrs, float row, char out
 		*place_value = 0;
 		return 0;
 	}
-	if(*should_input)
-		return 1;
+	return 0;
 }
 
 int draw_popup_menu(ui_label lbl, char ch[NO_OF_POPUP_MENUS][KSAI_SMALL_STRING_LENGTH], int count, float aspect, vec2 pos, vk_rsrs *rsrs)

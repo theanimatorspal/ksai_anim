@@ -1222,7 +1222,7 @@ void create_vulkan_pipeline2(
 		pool_info.poolSizeCount = _no_of_pool_sizes;
 		pool_info.pPoolSizes = _pool_sizes;
 		// we should also specify the max no of descriptro set that might be get allocated
-		pool_info.maxSets = MAX_FRAMES_IN_FLIGHT;
+		pool_info.maxSets = 5;
 
 		if (vkCreateDescriptorPool(vk_logical_device_, &pool_info, NULL, &ppln->vk_descriptor_pool_) != VK_SUCCESS)
 		{

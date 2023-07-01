@@ -22,6 +22,27 @@ layout(binding = 0) uniform uniform_buffer_object
 	vec3			v1;
 	vec3			v2;
 	vec3			v3;
+
+	vec3			light0;
+	vec3			light1;
+	vec3			light2;
+	vec3			light3;
+	vec3			light4;
+	vec3			light5;
+	vec3			light6;
+	vec3			light7;
+	vec3			light8;
+
+	float			lint0;
+	float			lint1;
+	float			lint2;
+	float			lint3;
+	float			lint4;
+	float			lint5;
+	float			lint6;
+	float			lint7;
+	float			lint8;
+
 	mat4			model;
 	mat4			view;
 	mat4			proj;
@@ -36,14 +57,14 @@ layout(push_constant, std430) uniform pc {
 void main() {
     gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
     gl_Position.y = - gl_Position.y;
-    vert_position = inPosition;
     fragColor = inColor;
     vert_texcoord = inTexCoord;
     vert_color = max(0.0, dot(vert_normal, vec3(0.58, 0.58, 0.58))) + 0.1;
 
 
     mat4 model_view = ubo.view * ubo.model;
-    vert_normal = mat3( model_view ) * inNormal;
+    vert_position = mat3(ubo.model) * inPosition;
+    vert_normal = mat3( ubo.model ) * inNormal;
     vert_tangent = mat3( model_view ) * inTangent;
     vert_bitangent = mat3( model_view ) * inBitTangent;
 

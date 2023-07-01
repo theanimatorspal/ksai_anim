@@ -51,7 +51,34 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 			.pImmutableSamplers = NULL
 		};
 
-		VkDescriptorSetLayoutBinding bindings[2] = { ubo_layout_binding, sampler_layout_binding };
+		VkDescriptorSetLayoutBinding bindings[KSAI_VK_DESCRIPTOR_POOL_SIZE] = { 
+			ubo_layout_binding, 
+			sampler_layout_binding ,
+
+			(VkDescriptorSetLayoutBinding){
+				.binding = 2,
+				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+				.descriptorCount = 1,
+				.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+				.pImmutableSamplers = NULL
+			},
+
+			(VkDescriptorSetLayoutBinding){
+				.binding = 3,
+				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+				.descriptorCount = 1,
+				.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+				.pImmutableSamplers = NULL
+			},
+
+			(VkDescriptorSetLayoutBinding){
+				.binding = 4,
+				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+				.descriptorCount = 1,
+				.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+				.pImmutableSamplers = NULL
+			},
+		};
 
 		VkVertexInputBindingDescription binding_desp = (VkVertexInputBindingDescription){
 			.binding = 0,
@@ -103,23 +130,28 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 		};
 
 
-		VkDescriptorPoolSize pool_sizes[2] = { 0 };
-		pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		pool_sizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
-		pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+		VkDescriptorPoolSize pool_sizes[5] = { 0 };
 
 		backend->pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		backend->pool_sizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
 		backend->pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		backend->pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
 
+		backend->pool_sizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		backend->pool_sizes[2].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+		backend->pool_sizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		backend->pool_sizes[3].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+		backend->pool_sizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		backend->pool_sizes[4].descriptorCount = MAX_FRAMES_IN_FLIGHT;
 
 		char *p = { "res/textures/checker.png" };
 		create_vulkan_pipeline2(
 			rsrs,
 			&backend->checker_pipeline,
-			2,
+			KSAI_VK_DESCRIPTOR_POOL_SIZE,
 			bindings,
 			"res/shaders/renderer/checker/vshader.spv",
 			"res/shaders/renderer/checker/fshader.spv",
@@ -132,9 +164,9 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 			&backend->checker_pipeline.vk_texture_image_memory_,
 			&backend->checker_pipeline.vk_texture_image_sampler_,
 			&backend->checker_pipeline.vk_texture_image_view_,
-			&p,
-			2,
-			pool_sizes
+			 &p,
+			KSAI_VK_DESCRIPTOR_POOL_SIZE,
+			backend->pool_sizes
 		);
 
 		VkDeviceSize size = sizeof(kie_Vertex) * KSAI_MESH_VERTEX_MEM;
@@ -176,7 +208,7 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 		backend->ioffsets = (VkDeviceSize *) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
 		backend->uoffsets = (VkDeviceSize(*)[MAX_FRAMES_IN_FLIGHT]) ksai_Arena_allocate(sizeof(VkDeviceSize) * MAX_FRAMES_IN_FLIGHT * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
 
-		backend->descriptor_sets = (VkDescriptorSet(*)[2]) ksai_Arena_allocate(sizeof(vk_dsset_pair) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+		backend->descriptor_sets = (VkDescriptorSet(*)[KSAI_VK_DESCRIPTOR_POOL_SIZE]) ksai_Arena_allocate(sizeof(vk_dsset_pair) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
 		backend->descriptor_pools = (VkDescriptorPool *) ksai_Arena_allocate(sizeof(VkDescriptorPool) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
 		backend->offset_count = 0;
 		backend->voffset = 0;
@@ -326,7 +358,7 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 				{
 					VkDescriptorPoolCreateInfo pool_info = { 0 };
 					pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-					pool_info.poolSizeCount = 2;
+					pool_info.poolSizeCount = KSAI_VK_DESCRIPTOR_POOL_SIZE;
 					pool_info.pPoolSizes = backend->pool_sizes;
 					// we should also specify the max no of descriptro set that might be get allocated
 					pool_info.maxSets = MAX_FRAMES_IN_FLIGHT;
@@ -350,7 +382,7 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 					printf("Failed to allocate descriptor sets\n");
 				}
 
-				static VkWriteDescriptorSet descriptor_writes[MAX_BUFFER_SIZE] = { 0 };
+				VkWriteDescriptorSet descriptor_writes[MAX_BUFFER_SIZE] = { 0 };
 				for (size_t ii = 0; ii < MAX_FRAMES_IN_FLIGHT; ii++)
 				{
 
@@ -387,7 +419,58 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 					descriptor_writes[1].pBufferInfo = NULL;
 					descriptor_writes[1].pImageInfo = &image_info;
 					descriptor_writes[1].pTexelBufferView = NULL;
-					vkUpdateDescriptorSets(vk_logical_device_, 2, descriptor_writes, 0, NULL);
+
+					VkDescriptorImageInfo image_info1 = { 0 };
+					image_info1 = (VkDescriptorImageInfo){
+						.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						.imageView = backend->checker_pipeline.vk_texture_image_view_, // Yo euta matra hudaina
+						.sampler = backend->checker_pipeline.vk_texture_image_sampler_ // Yo euta matra hudaina
+					};
+					descriptor_writes[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descriptor_writes[2].dstSet = backend->descriptor_sets[i][ii];
+					descriptor_writes[2].dstBinding = 2;
+					descriptor_writes[2].dstArrayElement = 0;
+					descriptor_writes[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					descriptor_writes[2].descriptorCount = 1;
+					descriptor_writes[2].pBufferInfo = NULL;
+					descriptor_writes[2].pImageInfo = &image_info1;
+					descriptor_writes[2].pTexelBufferView = NULL;
+
+					VkDescriptorImageInfo image_info2 = { 0 };
+					image_info2 = (VkDescriptorImageInfo){
+						.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						.imageView = backend->checker_pipeline.vk_texture_image_view_, // Yo euta matra hudaina
+						.sampler = backend->checker_pipeline.vk_texture_image_sampler_ // Yo euta matra hudaina
+					};
+					descriptor_writes[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descriptor_writes[3].dstSet = backend->descriptor_sets[i][ii];
+					descriptor_writes[3].dstBinding = 3;
+					descriptor_writes[3].dstArrayElement = 0;
+					descriptor_writes[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					descriptor_writes[3].descriptorCount = 1;
+					descriptor_writes[3].pBufferInfo = NULL;
+					descriptor_writes[3].pImageInfo = &image_info2;
+					descriptor_writes[3].pTexelBufferView = NULL;
+
+
+					VkDescriptorImageInfo image_info3 = { 0 };
+					image_info3 = (VkDescriptorImageInfo){
+						.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						.imageView = backend->checker_pipeline.vk_texture_image_view_, // Yo euta matra hudaina
+						.sampler = backend->checker_pipeline.vk_texture_image_sampler_ // Yo euta matra hudaina
+					};
+					descriptor_writes[4].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descriptor_writes[4].dstSet = backend->descriptor_sets[i][ii];
+					descriptor_writes[4].dstBinding = 4;
+					descriptor_writes[4].dstArrayElement = 0;
+					descriptor_writes[4].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					descriptor_writes[4].descriptorCount = 1;
+					descriptor_writes[4].pBufferInfo = NULL;
+					descriptor_writes[4].pImageInfo = &image_info3;
+					descriptor_writes[4].pTexelBufferView = NULL;
+
+
+					vkUpdateDescriptorSets(vk_logical_device_, 5, descriptor_writes, 0, NULL);
 
 				}
 			}
@@ -457,6 +540,20 @@ KSAI_API int draw_backend_start(vk_rsrs *_rsrs, renderer_backend *backend)
 	{
 		printf("FAILED to begin recording command buffer\n");
 	}
+}
+
+KSAI_API void begin_cmd_buffer_off_dont_use(vk_rsrs *_rsrs)
+{
+	VkCommandBufferBeginInfo begin_info = { 0 };
+	begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	begin_info.flags = 0;
+	begin_info.pInheritanceInfo = NULL;
+	KSAI_VK_ASSERT(vkBeginCommandBuffer(vk_command_buffer_[_rsrs->current_frame], &begin_info) != VK_SUCCESS);
+}
+
+KSAI_API void end_cmd_buffer_off_dont_use(vk_rsrs *_rsrs)
+{
+	KSAI_VK_ASSERT(vkEndCommandBuffer(vk_command_buffer_[_rsrs->current_frame]) != VK_SUCCESS);
 }
 
 KSAI_API int draw_backend_begin(vk_rsrs *_rsrs, vec3 color)

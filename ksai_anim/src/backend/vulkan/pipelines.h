@@ -23,6 +23,29 @@ typedef struct uniforms
 	alignas(16) vec3			v1;
 	alignas(16) vec3			v2;
 	alignas(16) vec3			v3;
+
+
+	alignas(16) vec3			light0;
+	alignas(16) vec3			light1;
+	alignas(16) vec3			light2;
+	alignas(16) vec3			light3;
+	alignas(16) vec3			light4;
+	alignas(16) vec3			light5;
+	alignas(16) vec3			light6;
+	alignas(16) vec3			light7;
+	alignas(16) vec3			light8;
+
+	alignas(4) float			lint0;
+	alignas(4) float			lint1;
+	alignas(4) float			lint2;
+	alignas(4) float			lint3;
+	alignas(4) float			lint4;
+	alignas(4) float			lint5;
+	alignas(4) float			lint6;
+	alignas(4) float			lint7;
+	alignas(4) float			lint8;
+
+
 	alignas(16) mat4			model;
 	alignas(16) mat4			view;
 	alignas(16) mat4			proj;

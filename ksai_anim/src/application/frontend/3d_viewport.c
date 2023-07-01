@@ -10,14 +10,14 @@ typedef struct vk_ui
 	ivec3 arrx_nc, arrx_sc; /* Arrow X Normal and Selected Color */
 	ivec3 arry_nc, arry_sc;
 	ivec3 arrz_nc, arrz_sc;
-	ivec3 arrx_c, arry_c, arrz_c; 
+	ivec3 arrx_c, arry_c, arrz_c;
 
 } vk_ui;
 
 static vk_ui rw_ui;
 
 static void ry_cst_wrld(
-	SDL_Window* _wndw,
+	SDL_Window *_wndw,
 	float _x,
 	float _y,
 	mat4 _mvp,
@@ -180,7 +180,7 @@ void threeD_viewport_events(
 	threeD_viewport_draw(camera, scene, backend, rsrs, 3, true);
 	render_offscreen_end(rsrs, backend);
 
-	
+
 	VkBufferImageCopy regions = (VkBufferImageCopy){
 	.bufferOffset = 0,
 	.bufferRowLength = rsrs->vk_swap_chain_image_extent_2d_.width,
@@ -475,6 +475,64 @@ void threeD_viewport_update(
 	int selected_object_index
 )
 {
+	uniforms uni;
+	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light1);
+	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light2);
+	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light3);
+	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light4);
+	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light5);
+	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light6);
+	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light7);
+	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light8);
+
+	int x = 0;
+	for (int i = 0; i < scene->objects_count; i++)
+	{
+		if (scene->objects[i].is_light)
+		{
+			switch (x)
+			{
+			case 0:
+				glm_vec3_copy(scene->objects[i].position, uni.light0);
+				uni.lint0 = scene->objects[i].intensity;
+				break;
+			case 1:
+				glm_vec3_copy(scene->objects[i].position, uni.light1);
+				uni.lint1 = scene->objects[i].intensity;
+				break;
+			case 2:
+				glm_vec3_copy(scene->objects[i].position, uni.light2);
+				uni.lint2 = scene->objects[i].intensity;
+				break;
+			case 3:
+				glm_vec3_copy(scene->objects[i].position, uni.light3);
+				uni.lint3 = scene->objects[i].intensity;
+				break;
+			case 4:
+				glm_vec3_copy(scene->objects[i].position, uni.light4);
+				uni.lint4 = scene->objects[i].intensity;
+				break;
+			case 5:
+				glm_vec3_copy(scene->objects[i].position, uni.light5);
+				uni.lint5 = scene->objects[i].intensity;
+				break;
+			case 6:
+				glm_vec3_copy(scene->objects[i].position, uni.light6);
+				uni.lint6 = scene->objects[i].intensity;
+				break;
+			case 7:
+				glm_vec3_copy(scene->objects[i].position, uni.light6);
+				uni.lint7 = scene->objects[i].intensity;
+				break;
+			case 8:
+				glm_vec3_copy(scene->objects[i].position, uni.light8);
+				uni.lint8 = scene->objects[i].intensity;
+				break;
+			}
+			x++;
+		}
+
+	}
 
 	for (int i = 0; i < scene->objects_count; i++)
 	{
@@ -492,15 +550,21 @@ void threeD_viewport_update(
 		glm_scale(model, scene->objects[i].scale);
 		kie_generate_mvp(projection, camera, model, mvp);
 		glm_mat4_copy(mvp, backend->checker_pipeline.pconstant.mvp);
-		uniforms uni;
 		glm_vec3_copy(scene->objects[i].color, uni.v1);
 		glm_mat4_copy(model, uni.model);
 		glm_mat4_copy(camera->view, uni.view);
 		glm_mat4_copy(projection, uni.proj);
+
+
 		if (i == selected_object_index)
 			uni.v2[0] = 1;
-		else 
+		else
 			uni.v2[0] = 0.0;
+
+		if (scene->objects[i].is_light)
+			uni.v2[1] = 1.0;
+		else
+			uni.v2[1] = 0.0;
 
 		memcpy(backend->udata[rsrs->current_frame] + i * sizeof(uniforms), &uni, sizeof(uniforms));
 	}
@@ -516,15 +580,148 @@ void threeD_viewport_draw(
 	bool only_viewport_objects
 )
 {
+	threeD_viewport_draw_buf(camera, scene, backend, rsrs, viewport_obj_count, only_viewport_objects, vk_command_buffer_[rsrs->current_frame]);
+}
 
+
+void threeD_viewport_render_to_image(
+	kie_Camera *camera,
+	kie_Scene *scene,
+	renderer_backend *backend,
+	SDL_Window *window,
+	SDL_Event *event,
+	vk_rsrs *rsrs,
+	int selected_object_index
+)
+{
+	VkCommandBuffer cmd_buffer = begin_single_time_commands_util(vk_command_pool_);
+	render_offscreen_begin_buf(rsrs, backend, cmd_buffer, (vec3) {0, 0, 0});
+	threeD_viewport_draw_buf(camera, scene, backend, rsrs, 3, false, cmd_buffer);
+	render_offscreen_end_buf(rsrs, backend, cmd_buffer);
+
+
+	VkBufferImageCopy regions = (VkBufferImageCopy){
+	.bufferOffset = 0,
+	.bufferRowLength = rsrs->vk_swap_chain_image_extent_2d_.width,
+	.bufferImageHeight = 0,
+	.imageSubresource = (VkImageSubresourceLayers) {
+			.layerCount = 1,
+			.mipLevel = 0,
+			.baseArrayLayer = 0,
+			.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+		},
+	.imageOffset = (VkOffset3D) {.x = 0, .y = 0, .z = 0},
+	.imageExtent = (VkExtent3D){
+		rsrs->vk_swap_chain_image_extent_2d_.width,
+		rsrs->vk_swap_chain_image_extent_2d_.height,
+		1
+	},
+	};
+
+	//	transition_image_layout_util();
+	VkImageMemoryBarrier  barr = (VkImageMemoryBarrier){
+		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+		.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.image = backend->mspk.img_clr_att_,
+		.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+		.subresourceRange.baseMipLevel = 0,
+		.subresourceRange.levelCount = 1,
+		.subresourceRange.baseArrayLayer = 0,
+		.subresourceRange.layerCount = 1,
+		.srcAccessMask = 0,
+		.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT
+	};
+
+	vkCmdPipelineBarrier(
+		cmd_buffer,
+		VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		0,
+		0,
+		NULL,
+		0,
+		NULL,
+		1,
+		&barr
+	);
+
+
+	vkCmdCopyImageToBuffer(
+		cmd_buffer,
+		backend->mspk.img_clr_att_,
+		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		backend->mspk.bfr_,
+		1,
+		&regions
+	);
+
+	VkImageMemoryBarrier barrirer = (VkImageMemoryBarrier){
+		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+		.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.image = backend->mspk.img_clr_att_,
+		.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+		.subresourceRange.baseMipLevel = 0,
+		.subresourceRange.levelCount = 1,
+		.subresourceRange.baseArrayLayer = 0,
+		.subresourceRange.layerCount = 1,
+		.srcAccessMask = 0,
+		.dstAccessMask = 0
+	};
+
+	VkPipelineStageFlags source_stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+	VkPipelineStageFlags dest_stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+	vkCmdPipelineBarrier(
+		cmd_buffer,
+		source_stage,
+		dest_stage,
+		0,
+		0,
+		NULL,
+		0,
+		NULL,
+		1,
+		&barrirer
+	);
+
+	end_single_time_commands_util(&cmd_buffer, rsrs->vk_graphics_queue_);
+
+	uint8_t *arr = (uint8_t *) backend->mspk.data_;
+	stbi_write_png(
+		"render.png",
+		rsrs->vk_swap_chain_image_extent_2d_.width,
+		rsrs->vk_swap_chain_image_extent_2d_.height,
+		4,
+		arr,
+		0
+	);
+
+}
+
+void threeD_viewport_draw_buf(
+	kie_Camera *camera,
+	kie_Scene *scene,
+	renderer_backend *backend,
+	vk_rsrs *rsrs,
+	int viewport_obj_count,
+	bool only_viewport_objects,
+	VkCommandBuffer cmd_buffer
+)
+{
 	for (int i = 0; i < backend->offset_count; i++)
 	{
 		int x;
-		if(!only_viewport_objects)
+		if (!only_viewport_objects)
 			x = (i + viewport_obj_count) % (scene->objects_count);
-		else {
+		else
+		{
 			x = i;
-			if(!(i < viewport_obj_count))
+			if (!(i < viewport_obj_count))
 				break;
 		}
 
@@ -533,17 +730,17 @@ void threeD_viewport_draw(
 
 		if (x < viewport_obj_count)
 		{
-			vkCmdSetDepthTestEnable(vk_command_buffer_[rsrs->current_frame], VK_FALSE);
-			vkCmdBindPipeline(vk_command_buffer_[rsrs->current_frame], VK_PIPELINE_BIND_POINT_GRAPHICS, backend->constant_color.vk_pipeline_);
+			vkCmdSetDepthTestEnable(cmd_buffer, VK_FALSE);
+			vkCmdBindPipeline(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, backend->constant_color.vk_pipeline_);
 		}
 		else
 		{
-			vkCmdSetDepthTestEnable(vk_command_buffer_[rsrs->current_frame], VK_TRUE);
-			vkCmdBindPipeline(vk_command_buffer_[rsrs->current_frame], VK_PIPELINE_BIND_POINT_GRAPHICS, backend->checker_pipeline.vk_pipeline_);
+			vkCmdSetDepthTestEnable(cmd_buffer, VK_TRUE);
+			vkCmdBindPipeline(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, backend->checker_pipeline.vk_pipeline_);
 		}
 
 		vkCmdBindDescriptorSets(
-			vk_command_buffer_[rsrs->current_frame],
+			cmd_buffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
 			backend->checker_pipeline.vk_pipeline_layout_,
 			0,
@@ -560,18 +757,18 @@ void threeD_viewport_draw(
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 
-		vkCmdSetViewport(vk_command_buffer_[rsrs->current_frame], 0, 1, &viewport);
+		vkCmdSetViewport(cmd_buffer, 0, 1, &viewport);
 
 		VkRect2D scissor = { 0 };
 		scissor.offset = (VkOffset2D){ 0, 0 };
 		scissor.extent = rsrs->vk_swap_chain_image_extent_2d_;
-		vkCmdSetScissor(vk_command_buffer_[rsrs->current_frame], 0, 1, &scissor);
+		vkCmdSetScissor(cmd_buffer, 0, 1, &scissor);
 
 		VkBuffer vertex_buffers[] = { backend->vbuffer };
 		VkDeviceSize offsets[] = { backend->voffsets[x] };
-		vkCmdBindVertexBuffers(vk_command_buffer_[rsrs->current_frame], 0, 1, vertex_buffers, offsets);
+		vkCmdBindVertexBuffers(cmd_buffer, 0, 1, vertex_buffers, offsets);
 
-		vkCmdBindIndexBuffer(vk_command_buffer_[rsrs->current_frame], backend->ibuffer, backend->ioffsets[x], VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(cmd_buffer, backend->ibuffer, backend->ioffsets[x], VK_INDEX_TYPE_UINT32);
 
 
 		mat4 mvp;
@@ -588,11 +785,9 @@ void threeD_viewport_draw(
 		glm_scale(model, the_mesh->scale);
 		kie_generate_mvp(projection, camera, model, mvp);
 		glm_mat4_copy(mvp, backend->checker_pipeline.pconstant.mvp);
-		vkCmdPushConstants(vk_command_buffer_[rsrs->current_frame], backend->checker_pipeline.vk_pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(backend->checker_pipeline.pconstant), &backend->checker_pipeline.pconstant);
-		vkCmdDrawIndexed(vk_command_buffer_[rsrs->current_frame], the_mesh->indices_count, 1, 0, 0, 0);
-		vkCmdSetDepthTestEnable(vk_command_buffer_[rsrs->current_frame], VK_FALSE);
-
-
-
+		vkCmdPushConstants(cmd_buffer, backend->checker_pipeline.vk_pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(backend->checker_pipeline.pconstant), &backend->checker_pipeline.pconstant);
+		vkCmdDrawIndexed(cmd_buffer, the_mesh->indices_count, 1, 0, 0, 0);
+		vkCmdSetDepthTestEnable(cmd_buffer, VK_FALSE);
 	}
 }
+

@@ -27,6 +27,11 @@ typedef struct kie_Object
 	vec3 rotation;
 	vec3 scale;
 	vec3 color;
+
+	bool is_light;
+	vec3 direction;
+	float intensity;
+	float area;
 } kie_Object;
 
 typedef struct kie_Camera
@@ -44,16 +49,6 @@ typedef struct kie_Camera
 	float h;
 } kie_Camera;
 
-typedef struct kie_Light
-{
-	vec3 position;
-	vec3 rotation; 
-	vec3 direction;
-	float intensity;
-	float area;
-
-} kie_Light;
-
 void kie_Object_Arena_init();
 
 void kie_generate_mvp(mat4 projection, kie_Camera *camera, mat4 model, mat4 mvp);
@@ -69,3 +64,4 @@ void kie_Object_create_cylinder(kie_Object *out_obj, float _radius, uint32_t _p_
 void kie_Object_join(kie_Object *mesh1, kie_Object *mesh2);
 
 void kie_Object_Arena_destroy();
+

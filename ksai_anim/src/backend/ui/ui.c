@@ -346,13 +346,13 @@ void ui_vk_draw(int _crrnt_frm, struct pipeline_vk *_ppln, bool frst_tm, VkDevic
 
 bool ui_draw_button(ui_label lbl, SDL_Window *_wndw)
 {
-	ui_label lb = {0};
+	ui_label lb = { 0 };
 	lbl.scale[0] *= 0.8;
 	lb.st_typ = global_all_labels[global_all_labels_count].st_typ;
 	global_all_labels[global_all_labels_count] = lbl;
 	global_all_labels[global_all_labels_count].st_typ = lb.st_typ;
 	global_all_labels_count++;
-	switch (global_all_labels[global_all_labels_count-1].st_typ)
+	switch (global_all_labels[global_all_labels_count - 1].st_typ)
 	{
 	case lbl_st_UNSELECTED:
 		return false;
@@ -365,6 +365,7 @@ bool ui_draw_button(ui_label lbl, SDL_Window *_wndw)
 
 void ui_events(SDL_Window *_wndw, SDL_Event *event)
 {
+	static uint32_t time = 0;
 	int xpos, ypos;
 	int width, height;
 	uint32_t buttons = SDL_GetMouseState(&xpos, &ypos);
@@ -524,5 +525,5 @@ int sdl_get_button_keyboard_number()
 		}
 	}
 
-	return 0;
+	return KSAI_INT32_MAX;
 }

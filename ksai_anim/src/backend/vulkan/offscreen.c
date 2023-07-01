@@ -111,7 +111,7 @@ void prepare_offscreen(vk_rsrs *_rsrs, renderer_backend *backend)
 		.pDepthStencilAttachment = &depth_attachment_ref
 	};
 
-	VkSubpassDependency sbpss_deps[2];
+	VkSubpassDependency sbpss_deps[3];
 	sbpss_deps[0] = (VkSubpassDependency)
 	{
 		.srcSubpass = VK_SUBPASS_EXTERNAL,
@@ -131,7 +131,6 @@ void prepare_offscreen(vk_rsrs *_rsrs, renderer_backend *backend)
 		.dstStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
 		.dstAccessMask = 0,
 		.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-
 	};
 
 	VkAttachmentDescription attch_des[2] = { clr_att_desp, depth_attachment };
@@ -198,7 +197,31 @@ void prepare_offscreen(vk_rsrs *_rsrs, renderer_backend *backend)
 		.pImmutableSamplers = NULL
 	};
 
-	VkDescriptorSetLayoutBinding bindings[2] = { ubo_layout_binding, sampler_layout_binding };
+	VkDescriptorSetLayoutBinding bindings[KSAI_VK_DESCRIPTOR_POOL_SIZE] = {
+		ubo_layout_binding,
+		sampler_layout_binding,
+		(VkDescriptorSetLayoutBinding){
+			.binding = 2,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.descriptorCount = 1,
+			.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+			.pImmutableSamplers = NULL
+		},
+		(VkDescriptorSetLayoutBinding){
+			.binding = 3,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.descriptorCount = 1,
+			.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+			.pImmutableSamplers = NULL
+		},
+		(VkDescriptorSetLayoutBinding){
+			.binding = 4,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.descriptorCount = 1,
+			.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+			.pImmutableSamplers = NULL
+		}
+	};
 
 
 	VkVertexInputBindingDescription binding_desp = (VkVertexInputBindingDescription){
@@ -251,16 +274,27 @@ void prepare_offscreen(vk_rsrs *_rsrs, renderer_backend *backend)
 	};
 
 
-	VkDescriptorPoolSize pool_sizes[2] = { 0 };
+	VkDescriptorPoolSize pool_sizes[5] = { 0 };
 	pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	pool_sizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
 	pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+	pool_sizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	pool_sizes[2].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+	pool_sizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	pool_sizes[3].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+	pool_sizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	pool_sizes[4].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
 
 	create_vulkan_pipeline3(
 		_rsrs,
 		&backend->constant_color,
-		2,
+		KSAI_VK_DESCRIPTOR_POOL_SIZE,
 		bindings,
 		"res/shaders/renderer/constant/vshader.spv",
 		"res/shaders/renderer/constant/fshader.spv",
@@ -268,8 +302,8 @@ void prepare_offscreen(vk_rsrs *_rsrs, renderer_backend *backend)
 		1,
 		attr_desp,
 		6,
-		2,
-		pool_sizes
+		KSAI_VK_DESCRIPTOR_POOL_SIZE,
+		backend->pool_sizes
 	);
 }
 
@@ -493,12 +527,22 @@ void recreate_offscreen(vk_rsrs *_rsrs, renderer_backend *backend)
 
 void render_offscreen_begin(vk_rsrs *rsrs, renderer_backend *backend)
 {
+	render_offscreen_begin_buf(rsrs, backend, vk_command_buffer_[rsrs->current_frame], (vec3) {0, 0, 0});
+}
+
+void render_offscreen_end(vk_rsrs *rsrs, renderer_backend *backend)
+{
+	render_offscreen_end_buf(rsrs, backend, vk_command_buffer_[rsrs->current_frame]);
+}
+
+void render_offscreen_begin_buf(vk_rsrs *rsrs, renderer_backend *backend, VkCommandBuffer buffer, vec3 color)
+{
 	VkClearValue clear_color[2] = {
 	(VkClearValue)
 		{
-		.color.float32[0] = 0,
-		.color.float32[1] = 0,
-		.color.float32[2] = 0
+		.color.float32[0] = color[0],
+		.color.float32[1] = color[1],
+		.color.float32[2] = color[2]
 		},
 
 		(VkClearValue)
@@ -521,10 +565,10 @@ void render_offscreen_begin(vk_rsrs *rsrs, renderer_backend *backend)
 		}
 	};
 
-	vkCmdBeginRenderPass(vk_command_buffer_[rsrs->current_frame], &bgn_rndrpss, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdBeginRenderPass(buffer, &bgn_rndrpss, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-void render_offscreen_end(vk_rsrs *rsrs, renderer_backend *backend)
+void render_offscreen_end_buf(vk_rsrs *rsrs, renderer_backend *backend, VkCommandBuffer buffer)
 {
-	vkCmdEndRenderPass(vk_command_buffer_[rsrs->current_frame]);
+	vkCmdEndRenderPass(buffer);
 }

@@ -81,8 +81,18 @@ void prepare_skybox(vk_rsrs *rsrs, renderer_backend *backend)
 
 	backend->pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	backend->pool_sizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
 	backend->pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	backend->pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+	backend->pool_sizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	backend->pool_sizes[2].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+	backend->pool_sizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	backend->pool_sizes[3].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+	backend->pool_sizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	backend->pool_sizes[4].descriptorCount = MAX_FRAMES_IN_FLIGHT;
 
 	create_vulkan_pipeline3(
 		rsrs,

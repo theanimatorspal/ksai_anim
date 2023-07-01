@@ -3,7 +3,7 @@
 #include <engine/renderer/scene.h>
 #include "pipelines.h"
 
-typedef VkDescriptorSet vk_dsset_pair[2];
+typedef VkDescriptorSet vk_dsset_pair[KSAI_VK_DESCRIPTOR_POOL_SIZE];
 
 typedef struct renderer_backend
 {
@@ -29,10 +29,9 @@ typedef struct renderer_backend
 	VkDeviceSize(*uoffsets)[2];
 	uint32_t offset_count;
 
-	//vk_dsset_pair *descriptor_sets;
 	VkDescriptorSet(*descriptor_sets)[MAX_FRAMES_IN_FLIGHT];
 	VkDescriptorPool *descriptor_pools;
-	VkDescriptorPoolSize pool_sizes[2];
+	VkDescriptorPoolSize pool_sizes[KSAI_VK_DESCRIPTOR_POOL_SIZE];
 
 	/* Advanced */
 	pipeline_vk skybox;
@@ -80,3 +79,5 @@ KSAI_API void draw_backend_finish(vk_rsrs *_rsrs);
 KSAI_API void draw_backend_wait(vk_rsrs *_rsrs);
 
 
+KSAI_API void end_cmd_buffer_off_dont_use(vk_rsrs *_rsrs);
+KSAI_API void begin_cmd_buffer_off_dont_use(vk_rsrs *_rsrs);

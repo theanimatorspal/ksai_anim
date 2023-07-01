@@ -16,3 +16,7 @@ void destroy_offscreen(vk_rsrs *rsrs, renderer_backend *backend);
 void recreate_offscreen(vk_rsrs *_rsrs, renderer_backend *backend);
 void render_offscreen_begin(vk_rsrs *rsrs, renderer_backend *backend);
 void render_offscreen_end(vk_rsrs *rsrs, renderer_backend *backend);
+
+void render_offscreen_begin_buf(vk_rsrs *rsrs, renderer_backend *backend, VkCommandBuffer buffer, vec3 color);
+
+void render_offscreen_end_buf(vk_rsrs *rsrs, renderer_backend *backend, VkCommandBuffer buffer);
