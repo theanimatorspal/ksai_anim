@@ -427,7 +427,7 @@ ivec2s draw_file_menu(char ch[NO_OF_TOP_MENUS][NO_OF_POPUP_MENUS][KSAI_SMALL_STR
 	strcpy_s(lbl.text, sizeof(char) * KSAI_SMALL_STRING_LENGTH, "close");
 	if (ui_draw_button(lbl, rsrs->window))
 	{
-		*running = 0;
+		//*running = 0;
 	}
 
 

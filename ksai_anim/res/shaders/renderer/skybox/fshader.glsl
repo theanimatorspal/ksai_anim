@@ -49,4 +49,5 @@ layout(location = 0) out vec4 out_color;
 void main()
 {
 	out_color = texture(texSampler, vert_texcoord3);
+	out_color.a = 1;
 }

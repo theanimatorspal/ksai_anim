@@ -58,7 +58,7 @@ layout(push_constant, std430) uniform pc {
 
 void main() {
     vec3 position = mat3(ubo.proj * ubo.view * ubo.model) * inPosition.xyz;
-    gl_Position  = (ubo.proj *vec4(position, 0.0)).xyzz;
+    gl_Position  = (ubo.proj * vec4(position, 0.0)).xyzz;
     fragColor = inColor;
     vert_texcoord3 = inPosition.xyz;
 }

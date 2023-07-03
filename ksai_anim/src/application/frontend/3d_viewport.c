@@ -303,7 +303,7 @@ void threeD_viewport_events(
 			clr_arrx
 		);
 
-		if (clr_cmp(clr, clr_arrx))
+		if (clr_cmp(clr, clr_arrz))
 		{
 			rw_ui.arrx_s = true;
 		}
@@ -321,7 +321,7 @@ void threeD_viewport_events(
 			rw_ui.arry_s = false;
 		}
 
-		if (clr_cmp(clr, clr_arrz))
+		if (clr_cmp(clr, clr_arrx))
 		{
 			rw_ui.arrz_s = true;
 		}
@@ -717,8 +717,9 @@ void threeD_viewport_draw_buf(
 	for (int i = 0; i < backend->offset_count; i++)
 	{
 		int x;
-		if (!only_viewport_objects)
+		if (!only_viewport_objects) {
 			x = (i + viewport_obj_count) % (scene->objects_count);
+		}
 		else
 		{
 			x = i;
@@ -771,7 +772,6 @@ void threeD_viewport_draw_buf(
 
 		vkCmdBindIndexBuffer(cmd_buffer, backend->ibuffer, backend->ioffsets[x], VK_INDEX_TYPE_UINT32);
 
-
 		mat4 mvp;
 		mat4 projection;
 		mat4 model;
@@ -787,9 +787,7 @@ void threeD_viewport_draw_buf(
 		kie_generate_mvp(projection, camera, model, mvp);
 		glm_mat4_copy(mvp, backend->checker_pipeline.pconstant.mvp);
 		vkCmdPushConstants(cmd_buffer, backend->checker_pipeline.vk_pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(backend->checker_pipeline.pconstant), &backend->checker_pipeline.pconstant);
-		if(x == 3) // for skybox
-			continue;
-		vkCmdDrawIndexed(cmd_buffer, the_mesh->indices_count, 1, 0, 0, 0);
+		if(x!=3) vkCmdDrawIndexed(cmd_buffer, the_mesh->indices_count, 1, 0, 0, 0);
 		vkCmdSetDepthTestEnable(cmd_buffer, VK_FALSE);
 	}
 }

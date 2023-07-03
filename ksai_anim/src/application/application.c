@@ -81,14 +81,14 @@ int main(int argc, char *argv[])
 	kie_Object_init(&obj3);
 	kie_Object_init(&light_object);
 
-	glm_vec3_copy((vec3) {5, 5, 5}, obj1.scale);
 	read_obj_to_kie_Object("res/objs/cube.obj", &obj1);
 	read_obj_to_kie_Object("res/objs/oldmen.obj", &obj2);
 	read_obj_to_kie_Object("res/objs/plane.obj", &obj3);
+	glm_vec3_copy((vec3) {500, 500, 500}, obj1.scale);
 
 	kie_Scene_init(&scene1);
 	kie_Scene_add_object(&scene1, 3, &vobj1_arrowx, &vobj2_arrowy, &vobj3_arrowz);
-	kie_Scene_add_object(&scene1, 3, &obj1, &obj2, &obj3);
+	kie_Scene_add_object(&scene1, 2, &obj1, &obj2, &obj3);
 
 	int current_selected = 4;
 	bool should_show_viewport_objects = false;
@@ -166,8 +166,8 @@ int main(int argc, char *argv[])
 
 			draw_backend_begin(&resources, clear_color);
 
-			threeD_viewport_draw(&viewport_camera, &scene1, &backend_renderer, &resources, 4, false);
 			draw_skybox_backend(&resources, &backend_renderer, &scene1, 3);
+			threeD_viewport_draw(&viewport_camera, &scene1, &backend_renderer, &resources, 4, false);
 
 			ui_render(&resources.current_frame, &resources);
 
