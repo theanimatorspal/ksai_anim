@@ -26,7 +26,7 @@
 
 int main(int argc, char *argv[])
 {
-	vk_rsrs resources;
+	vk_rsrs resources = {0};
 	VkInstance instance;
 
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 	kie_Scene_add_object(&scene1, 3, &vobj1_arrowx, &vobj2_arrowy, &vobj3_arrowz);
 	kie_Scene_add_object(&scene1, 3, &obj1, &obj2, &obj3);
 
-	int current_selected = 3;
+	int current_selected = 4;
 	bool should_show_viewport_objects = false;
 	vec3 clear_color = {0, 0, 0};
 	bool running = true;
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 			&backend_renderer,
 			&current_selected,
 			clear_color,
-			3,
+			4,
 			&should_show_viewport_objects,
 			&viewport_camera
 		);
@@ -166,8 +166,8 @@ int main(int argc, char *argv[])
 
 			draw_backend_begin(&resources, clear_color);
 
+			threeD_viewport_draw(&viewport_camera, &scene1, &backend_renderer, &resources, 4, false);
 			draw_skybox_backend(&resources, &backend_renderer, &scene1, 3);
-			threeD_viewport_draw(&viewport_camera, &scene1, &backend_renderer, &resources, 3, false);
 
 			ui_render(&resources.current_frame, &resources);
 

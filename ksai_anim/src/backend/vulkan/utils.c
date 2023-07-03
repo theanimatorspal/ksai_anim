@@ -600,7 +600,7 @@ void create_texture_sampler_skybox(
 		.unnormalizedCoordinates = VK_FALSE,
 		.compareEnable = VK_FALSE,
 		.compareOp = VK_COMPARE_OP_ALWAYS,
-		.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+		.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
 		.mipLodBias = 0.0f,
 		.minLod = 0.0f,
 		.maxLod = 0.0f

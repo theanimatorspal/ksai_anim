@@ -171,8 +171,8 @@ void pick_physical_and_logical_devices(vk_rsrs *_rsrs, VkInstance instance)
 {
 	static bool phy_and_log_dev_cr = false;
 	{
-		static queue_family_indices indices_xt;
-		static swap_chain_support_details swap_chain_support_xt;
+		queue_family_indices indices_xt;
+		swap_chain_support_details swap_chain_support_xt;
 		/* Pick Physical Device*/
 		{
 			uint32_t device_count = 0;
@@ -323,7 +323,7 @@ void pick_physical_and_logical_devices(vk_rsrs *_rsrs, VkInstance instance)
 			surface_format = swap_chain_support_xt.formats[0];
 			for (int i = 0; i < swap_chain_support_xt.formats_size; i++)
 			{
-				if (swap_chain_support_xt.formats[i].format == VK_FORMAT_B8G8R8A8_SRGB && swap_chain_support_xt.formats[i].colorSpace == VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT)
+				if (swap_chain_support_xt.formats[i].format == VK_FORMAT_R8G8B8A8_UNORM && swap_chain_support_xt.formats[i].colorSpace == VK_COLORSPACE_SRGB_NONLINEAR_KHR)
 				{
 					surface_format = swap_chain_support_xt.formats[i];
 				}
@@ -627,7 +627,7 @@ void create_swap_chain_image_views_render_pass(vk_rsrs *_rsrs)
 		surface_format = swap_chain_support_xt.formats[0];
 		for (int i = 0; i < swap_chain_support_xt.formats_size; i++)
 		{
-			if (swap_chain_support_xt.formats[i].format == VK_FORMAT_B8G8R8A8_SRGB && swap_chain_support_xt.formats[i].colorSpace == VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT)
+			if (swap_chain_support_xt.formats[i].format == VK_FORMAT_R8G8B8A8_UNORM && swap_chain_support_xt.formats[i].colorSpace == VK_COLORSPACE_SRGB_NONLINEAR_KHR)
 			{
 				surface_format = swap_chain_support_xt.formats[i];
 			}

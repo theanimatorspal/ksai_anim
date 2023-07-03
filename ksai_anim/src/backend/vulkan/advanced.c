@@ -157,7 +157,7 @@ void prepare_skybox(vk_rsrs *rsrs, renderer_backend *backend)
 	create_image_util_array_cube(
 		VK_IMAGE_TYPE_2D,
 		tex_width, tex_height,
-		VK_FORMAT_R8G8B8A8_SRGB,
+		VK_FORMAT_R8G8B8A8_UNORM,
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -174,7 +174,7 @@ void prepare_skybox(vk_rsrs *rsrs, renderer_backend *backend)
 
 	backend->skybox_image_view = create_image_view_util2_skybox(
 		backend->skybox_image,
-		VK_FORMAT_R8G8B8A8_SRGB,
+		VK_FORMAT_R8G8B8A8_UNORM,
 		VK_IMAGE_ASPECT_COLOR_BIT
 	);
 
@@ -206,7 +206,7 @@ void prepare_skybox(vk_rsrs *rsrs, renderer_backend *backend)
 	transition_image_layout_util_layered(
 		6,
 		backend->skybox_image,
-		VK_FORMAT_R8G8B8A8_SRGB,
+		VK_FORMAT_R8G8B8A8_UNORM,
 		VK_IMAGE_LAYOUT_UNDEFINED,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		vk_command_pool_,
@@ -224,7 +224,7 @@ void prepare_skybox(vk_rsrs *rsrs, renderer_backend *backend)
 	transition_image_layout_util_layered(
 		6,
 		backend->skybox_image,
-		VK_FORMAT_R8G8B8A8_SRGB,
+		VK_FORMAT_R8G8B8A8_UNORM,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 		vk_command_pool_,
@@ -287,7 +287,6 @@ void draw_skybox_backendbuf(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene 
 		vkCmdBindVertexBuffers(cmd_buffer, 0, 1, vertex_buffers, offsets);
 
 		vkCmdBindIndexBuffer(cmd_buffer, backend->ibuffer, backend->ioffsets[skybox_obj_index], VK_INDEX_TYPE_UINT32);
-
 
 		vkCmdPushConstants(cmd_buffer, backend->skybox.vk_pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(backend->skybox.pconstant), &backend->skybox.pconstant);
 		vkCmdDrawIndexed(cmd_buffer, the_mesh->indices_count, 1, 0, 0, 0);
