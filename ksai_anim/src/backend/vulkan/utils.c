@@ -519,7 +519,7 @@ VkImageView create_image_view_util2_skybox(
 	{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
 		.image = image,
-		.viewType = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY,
+		.viewType = VK_IMAGE_VIEW_TYPE_CUBE,
 		.format = format,
 		.subresourceRange.aspectMask = aspect_flags,
 		.subresourceRange.baseMipLevel = 0,

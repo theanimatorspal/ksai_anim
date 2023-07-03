@@ -2,7 +2,7 @@
 
 void prepare_skybox(vk_rsrs *rsrs, renderer_backend *backend)
 {
-	/* SKYBOX RENDER */
+
 	VkDescriptorSetLayoutBinding ubo_layout_binding = { 0 };
 	ubo_layout_binding = (VkDescriptorSetLayoutBinding){
 		.binding = 0,
@@ -21,7 +21,35 @@ void prepare_skybox(vk_rsrs *rsrs, renderer_backend *backend)
 		.pImmutableSamplers = NULL
 	};
 
-	VkDescriptorSetLayoutBinding bindings[2] = { ubo_layout_binding, sampler_layout_binding };
+	VkDescriptorSetLayoutBinding bindings[KSAI_VK_DESCRIPTOR_POOL_SIZE] = { 
+		ubo_layout_binding, 
+		sampler_layout_binding,
+		(VkDescriptorSetLayoutBinding){
+			.binding = 2,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.descriptorCount = 1,
+			.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+			.pImmutableSamplers = NULL
+		},
+
+		(VkDescriptorSetLayoutBinding){
+			.binding = 3,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.descriptorCount = 1,
+			.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+			.pImmutableSamplers = NULL
+		},
+
+		(VkDescriptorSetLayoutBinding){
+			.binding = 4,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.descriptorCount = 1,
+			.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+			.pImmutableSamplers = NULL
+		},
+	};
+
+	/* SKYBOX RENDER */
 
 	VkVertexInputBindingDescription binding_desp = (VkVertexInputBindingDescription){
 		.binding = 0,
@@ -94,10 +122,10 @@ void prepare_skybox(vk_rsrs *rsrs, renderer_backend *backend)
 	backend->pool_sizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	backend->pool_sizes[4].descriptorCount = MAX_FRAMES_IN_FLIGHT;
 
-	create_vulkan_pipeline3(
+	create_vulkan_pipeline3_skybox(
 		rsrs,
 		&backend->skybox,
-		2,
+		KSAI_VK_DESCRIPTOR_POOL_SIZE,
 		bindings,
 		"res/shaders/renderer/skybox/vshader.spv",
 		"res/shaders/renderer/skybox/fshader.spv",
@@ -105,7 +133,7 @@ void prepare_skybox(vk_rsrs *rsrs, renderer_backend *backend)
 		1,
 		attr_desp,
 		6,
-		2,
+		KSAI_VK_DESCRIPTOR_POOL_SIZE,
 		pool_sizes
 	);
 
@@ -120,8 +148,8 @@ void prepare_skybox(vk_rsrs *rsrs, renderer_backend *backend)
 	char *paths[] = {
 		"res/textures/px.png",
 		"res/textures/nx.png",
-		"res/textures/py.png",
 		"res/textures/ny.png",
+		"res/textures/py.png",
 		"res/textures/pz.png",
 		"res/textures/nz.png",
 	};
@@ -171,7 +199,7 @@ void prepare_skybox(vk_rsrs *rsrs, renderer_backend *backend)
 		VkDeviceSize image_size = tex_width * tex_height * 4;
 		if (!pixels)
 			printf("error, cannot load image_temporary_testing_ \n");
-		memcpy(data, pixels, image_size);
+		memcpy(data + i * image_size, pixels, image_size);
 		stbi_image_free(pixels);
 	}
 	vkUnmapMemory(vk_logical_device_, staging_buffer_memory);
@@ -216,19 +244,26 @@ void destroy_skybox(vk_rsrs *rsrs, renderer_backend *backend)
 	pipeline_vk_destroy3(&backend->skybox);
 }
 
-void draw_skybox_backend(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene *scene)
+void draw_skybox_backend(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene *scene, uint32_t skybox_obj_index)
 {
-		vkCmdSetDepthTestEnable(vk_command_buffer_[rsrs->current_frame], VK_TRUE);
-		kie_Object *the_mesh = NULL;
-		vkCmdBindPipeline(vk_command_buffer_[rsrs->current_frame], VK_PIPELINE_BIND_POINT_GRAPHICS, backend->skybox.vk_pipeline_);
+	draw_skybox_backendbuf(rsrs, backend, scene, skybox_obj_index, vk_command_buffer_[rsrs->current_frame]);
+}
+
+
+void draw_skybox_backendbuf(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene *scene, uint32_t skybox_obj_index, VkCommandBuffer cmd_buffer)
+{
+		int x = 3; /* SkyBox index */
+		vkCmdSetDepthTestEnable(cmd_buffer, VK_TRUE);
+		kie_Object *the_mesh = &scene->objects[skybox_obj_index];
+		vkCmdBindPipeline(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, backend->skybox.vk_pipeline_);
 
 		vkCmdBindDescriptorSets(
-			vk_command_buffer_[rsrs->current_frame],
+			cmd_buffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			backend->checker_pipeline.vk_pipeline_layout_,
+			backend->skybox.vk_pipeline_layout_,
 			0,
 			1,
-			&backend->descriptor_sets[0][rsrs->current_frame],
+			&backend->descriptor_sets[x][rsrs->current_frame],
 			0,
 			NULL
 		);
@@ -240,22 +275,22 @@ void draw_skybox_backend(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene *sc
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 
-		vkCmdSetViewport(vk_command_buffer_[rsrs->current_frame], 0, 1, &viewport);
+		vkCmdSetViewport(cmd_buffer, 0, 1, &viewport);
 
 		VkRect2D scissor = { 0 };
 		scissor.offset = (VkOffset2D){ 0, 0 };
 		scissor.extent = rsrs->vk_swap_chain_image_extent_2d_;
-		vkCmdSetScissor(vk_command_buffer_[rsrs->current_frame], 0, 1, &scissor);
+		vkCmdSetScissor(cmd_buffer, 0, 1, &scissor);
 
 		VkBuffer vertex_buffers[] = { backend->vbuffer };
-		VkDeviceSize offsets[] = { backend->voffsets[0]};
-		vkCmdBindVertexBuffers(vk_command_buffer_[rsrs->current_frame], 0, 1, vertex_buffers, offsets);
+		VkDeviceSize offsets[] = { backend->voffsets[skybox_obj_index]};
+		vkCmdBindVertexBuffers(cmd_buffer, 0, 1, vertex_buffers, offsets);
 
-		vkCmdBindIndexBuffer(vk_command_buffer_[rsrs->current_frame], backend->ibuffer, backend->ioffsets[0], VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(cmd_buffer, backend->ibuffer, backend->ioffsets[skybox_obj_index], VK_INDEX_TYPE_UINT32);
 
 
-		vkCmdPushConstants(vk_command_buffer_[rsrs->current_frame], backend->checker_pipeline.vk_pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(backend->checker_pipeline.pconstant), &backend->checker_pipeline.pconstant);
-		vkCmdDrawIndexed(vk_command_buffer_[rsrs->current_frame], the_mesh->indices_count, 1, 0, 0, 0);
-		vkCmdSetDepthTestEnable(vk_command_buffer_[rsrs->current_frame], VK_FALSE);
+		vkCmdPushConstants(cmd_buffer, backend->skybox.vk_pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(backend->skybox.pconstant), &backend->skybox.pconstant);
+		vkCmdDrawIndexed(cmd_buffer, the_mesh->indices_count, 1, 0, 0, 0);
+		vkCmdSetDepthTestEnable(cmd_buffer, VK_FALSE);
 
 }

@@ -81,9 +81,10 @@ int main(int argc, char *argv[])
 	kie_Object_init(&obj3);
 	kie_Object_init(&light_object);
 
-	read_obj_to_kie_Object("res/objs/oldmen.obj", &obj1);
-	read_obj_to_kie_Object("res/objs/plane.obj", &obj2);
-	read_obj_to_kie_Object("res/objs/cube.obj", &obj3);
+	glm_vec3_copy((vec3) {5, 5, 5}, obj1.scale);
+	read_obj_to_kie_Object("res/objs/cube.obj", &obj1);
+	read_obj_to_kie_Object("res/objs/oldmen.obj", &obj2);
+	read_obj_to_kie_Object("res/objs/plane.obj", &obj3);
 
 	kie_Scene_init(&scene1);
 	kie_Scene_add_object(&scene1, 3, &vobj1_arrowx, &vobj2_arrowy, &vobj3_arrowz);
@@ -93,7 +94,7 @@ int main(int argc, char *argv[])
 	bool should_show_viewport_objects = false;
 	vec3 clear_color = {0, 0, 0};
 	bool running = true;
-	ivec2s st;
+	ivec2s st = {0, 0};
 	copy_scene_to_backend(&resources, &scene1, &backend_renderer);
 	while (running)
 	{
@@ -165,6 +166,7 @@ int main(int argc, char *argv[])
 
 			draw_backend_begin(&resources, clear_color);
 
+			draw_skybox_backend(&resources, &backend_renderer, &scene1, 3);
 			threeD_viewport_draw(&viewport_camera, &scene1, &backend_renderer, &resources, 3, false);
 
 			ui_render(&resources.current_frame, &resources);

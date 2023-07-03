@@ -3,6 +3,7 @@
 #include <engine/renderer/scene.h>
 #include <backend/vulkan/backend.h>
 #include <backend/vulkan/offscreen.h>
+#include <backend/vulkan/advanced.h>
 #include <vendor/cglm/cglm.h>
 #include <vendor/stbi/stbi_image_write.h>
 #include <SDL2/SDL.h>
@@ -15,6 +16,8 @@ void threeD_viewport_draw(kie_Camera *camera, kie_Scene *scene, renderer_backend
 void threeD_viewport_render_to_image(kie_Camera *camera, kie_Scene *scene, renderer_backend *backend, SDL_Window *window, SDL_Event *event, vk_rsrs *rsrs, int selected_object_index);
 
 void threeD_viewport_draw_buf(kie_Camera *camera, kie_Scene *scene, renderer_backend *backend, vk_rsrs *rsrs, int viewport_obj_count, bool only_viewport_objects, VkCommandBuffer cmd_buffer);
+
+void threeD_viewport_draw_buf_without_viewport_and_lights(kie_Camera *camera, kie_Scene *scene, renderer_backend *backend, vk_rsrs *rsrs, int viewport_obj_count, VkCommandBuffer cmd_buffer);
 
 
 #define INT_CLR_CNVRT(b, g, r) (ivec3) {roundf(255 * b), roundf(255 * g), roundf(255 * r)}

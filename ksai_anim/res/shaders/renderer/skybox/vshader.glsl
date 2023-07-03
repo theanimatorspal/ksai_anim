@@ -16,16 +16,39 @@ layout(location = 3) out float vert_color;
 layout(location = 4) out vec3 vert_position;
 layout(location = 5) out vec3 vert_tangent;
 layout(location = 6) out vec3 vert_bitangent;
+layout(location = 7) out vec3 vert_texcoord3;
 
 layout(binding = 0) uniform uniform_buffer_object
 {
 	vec3			v1;
 	vec3			v2;
 	vec3			v3;
+
+	vec3			light0;
+	vec3			light1;
+	vec3			light2;
+	vec3			light3;
+	vec3			light4;
+	vec3			light5;
+	vec3			light6;
+	vec3			light7;
+	vec3			light8;
+
+	float			lint0;
+	float			lint1;
+	float			lint2;
+	float			lint3;
+	float			lint4;
+	float			lint5;
+	float			lint6;
+	float			lint7;
+	float			lint8;
+
 	mat4			model;
 	mat4			view;
 	mat4			proj;
 } ubo;
+
 
 layout(push_constant, std430) uniform pc {
     mat4 mvp;
@@ -34,20 +57,8 @@ layout(push_constant, std430) uniform pc {
 
 
 void main() {
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
-    gl_Position.y = - gl_Position.y;
-    vert_position = inPosition;
+    vec3 position = mat3(ubo.proj * ubo.view * ubo.model) * inPosition.xyz;
+    gl_Position  = (ubo.proj *vec4(position, 0.0)).xyzz;
     fragColor = inColor;
-    vert_texcoord = inTexCoord;
-    vert_color = max(0.0, dot(vert_normal, vec3(0.58, 0.58, 0.58))) + 0.1;
-
-
-    mat4 model_view = ubo.view * ubo.model;
-    vert_normal = mat3( model_view ) * inNormal;
-    vert_tangent = mat3( model_view ) * inTangent;
-    vert_bitangent = mat3( model_view ) * inBitTangent;
-
-    debugPrintfEXT("mvp(%f, %f, %f):\n", ubo.model[0][0], ubo.model[1][0], ubo.model[2][0]);
-    debugPrintfEXT("view(%f, %f, %f):\n", ubo.model[0][0], ubo.model[1][1], ubo.model[2][2]);
-    debugPrintfEXT("proj(%f, %f, %f):\n", ubo.model[0][1], ubo.model[1][0], ubo.model[2][1]);
+    vert_texcoord3 = inPosition.xyz;
 }

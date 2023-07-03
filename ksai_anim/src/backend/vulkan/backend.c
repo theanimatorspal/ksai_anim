@@ -51,33 +51,36 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 			.pImmutableSamplers = NULL
 		};
 
-		VkDescriptorSetLayoutBinding bindings[KSAI_VK_DESCRIPTOR_POOL_SIZE] = { 
-			ubo_layout_binding, 
+		VkDescriptorSetLayoutBinding bindings[KSAI_VK_DESCRIPTOR_POOL_SIZE] = {
+			ubo_layout_binding,
 			sampler_layout_binding ,
 
-			(VkDescriptorSetLayoutBinding){
-				.binding = 2,
-				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-				.descriptorCount = 1,
-				.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-				.pImmutableSamplers = NULL
-			},
+			(VkDescriptorSetLayoutBinding)
+{
+.binding = 2,
+.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+.descriptorCount = 1,
+.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+.pImmutableSamplers = NULL
+},
 
-			(VkDescriptorSetLayoutBinding){
-				.binding = 3,
-				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-				.descriptorCount = 1,
-				.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-				.pImmutableSamplers = NULL
-			},
+(VkDescriptorSetLayoutBinding)
+{
+.binding = 3,
+.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+.descriptorCount = 1,
+.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+.pImmutableSamplers = NULL
+},
 
-			(VkDescriptorSetLayoutBinding){
-				.binding = 4,
-				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-				.descriptorCount = 1,
-				.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-				.pImmutableSamplers = NULL
-			},
+(VkDescriptorSetLayoutBinding)
+{
+.binding = 4,
+.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+.descriptorCount = 1,
+.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+.pImmutableSamplers = NULL
+},
 		};
 
 		VkVertexInputBindingDescription binding_desp = (VkVertexInputBindingDescription){
@@ -164,7 +167,7 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 			&backend->checker_pipeline.vk_texture_image_memory_,
 			&backend->checker_pipeline.vk_texture_image_sampler_,
 			&backend->checker_pipeline.vk_texture_image_view_,
-			 &p,
+			&p,
 			KSAI_VK_DESCRIPTOR_POOL_SIZE,
 			backend->pool_sizes
 		);
@@ -382,6 +385,7 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 					printf("Failed to allocate descriptor sets\n");
 				}
 
+
 				VkWriteDescriptorSet descriptor_writes[MAX_BUFFER_SIZE] = { 0 };
 				for (size_t ii = 0; ii < MAX_FRAMES_IN_FLIGHT; ii++)
 				{
@@ -405,11 +409,22 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 					descriptor_writes[0].pTexelBufferView = NULL;
 
 					VkDescriptorImageInfo image_info = { 0 };
-					image_info = (VkDescriptorImageInfo){
-						.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-						.imageView = backend->checker_pipeline.vk_texture_image_view_, // Yo euta matra hudaina
-						.sampler = backend->checker_pipeline.vk_texture_image_sampler_ // Yo euta matra hudaina
-					};
+					if (i == 3)
+					{
+						image_info = (VkDescriptorImageInfo){
+							.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+							.imageView = backend->skybox_image_view, // Yo euta matra hudaina
+							.sampler = backend->skybox_sampler // Yo euta matra hudaina
+						};
+					}
+					else
+					{
+						image_info = (VkDescriptorImageInfo){
+							.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+							.imageView = backend->checker_pipeline.vk_texture_image_view_, // Yo euta matra hudaina
+							.sampler = backend->checker_pipeline.vk_texture_image_sampler_ // Yo euta matra hudaina
+						};
+					}
 					descriptor_writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 					descriptor_writes[1].dstSet = backend->descriptor_sets[i][ii];
 					descriptor_writes[1].dstBinding = 1;

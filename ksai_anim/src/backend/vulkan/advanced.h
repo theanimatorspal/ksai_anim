@@ -13,4 +13,5 @@
 
 void prepare_skybox(vk_rsrs *rsrs, renderer_backend *backend);
 void destroy_skybox(vk_rsrs *rsrs, renderer_backend *backend);
-void draw_skybox_backend(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene *scene);
+void draw_skybox_backend(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene *scene, uint32_t skybox_obj_index);
+void draw_skybox_backendbuf(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene *scene, uint32_t skybox_obj_index, VkCommandBuffer cmd_buffer);

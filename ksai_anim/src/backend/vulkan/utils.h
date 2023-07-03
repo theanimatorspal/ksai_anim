@@ -44,6 +44,8 @@ void end_single_time_commands_util(VkCommandBuffer* command_buffer, VkQueue _vk_
 
 void transition_image_layout_util(VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, VkCommandPool _vk_command_pool, VkQueue _vk_graphics_queue);
 
+void transition_image_layout_util_layered(uint32_t layer_count, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, VkCommandPool _vk_command_pool, VkQueue _vk_graphics_queue);
+
 void copy_buffer_to_image_util(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkCommandPool _vk_command_pool, VkQueue _vk_graphics_queue);
 
 void copy_buffer_to_image_util_layered(uint32_t layer_count, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkCommandPool _vk_command_pool, VkQueue _vk_graphics_queue);

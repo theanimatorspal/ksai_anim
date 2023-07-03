@@ -595,8 +595,10 @@ void threeD_viewport_render_to_image(
 )
 {
 	VkCommandBuffer cmd_buffer = begin_single_time_commands_util(vk_command_pool_);
+	threeD_viewport_update(camera, scene, backend, window, event, rsrs, selected_object_index);
 	render_offscreen_begin_buf(rsrs, backend, cmd_buffer, (vec3) {0, 0, 0});
-	threeD_viewport_draw_buf(camera, scene, backend, rsrs, 3, false, cmd_buffer);
+	draw_skybox_backendbuf(rsrs, backend, scene, 3, cmd_buffer);
+	threeD_viewport_draw_buf_without_viewport_and_lights(camera, scene, backend, rsrs, 3, cmd_buffer);
 	render_offscreen_end_buf(rsrs, backend, cmd_buffer);
 
 
@@ -692,13 +694,12 @@ void threeD_viewport_render_to_image(
 	end_single_time_commands_util(&cmd_buffer, rsrs->vk_graphics_queue_);
 
 	uint8_t *arr = (uint8_t *) backend->mspk.data_;
-	stbi_write_png(
+	stbi_write_bmp(
 		"render.png",
 		rsrs->vk_swap_chain_image_extent_2d_.width,
 		rsrs->vk_swap_chain_image_extent_2d_.height,
 		4,
-		arr,
-		0
+		arr
 	);
 
 }
@@ -738,6 +739,85 @@ void threeD_viewport_draw_buf(
 			vkCmdSetDepthTestEnable(cmd_buffer, VK_TRUE);
 			vkCmdBindPipeline(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, backend->checker_pipeline.vk_pipeline_);
 		}
+
+		vkCmdBindDescriptorSets(
+			cmd_buffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			backend->checker_pipeline.vk_pipeline_layout_,
+			0,
+			1,
+			&backend->descriptor_sets[x][rsrs->current_frame],
+			0,
+			NULL
+		);
+		VkViewport viewport = { 0 };
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = rsrs->vk_swap_chain_image_extent_2d_.width;
+		viewport.height = rsrs->vk_swap_chain_image_extent_2d_.height;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+
+		vkCmdSetViewport(cmd_buffer, 0, 1, &viewport);
+
+		VkRect2D scissor = { 0 };
+		scissor.offset = (VkOffset2D){ 0, 0 };
+		scissor.extent = rsrs->vk_swap_chain_image_extent_2d_;
+		vkCmdSetScissor(cmd_buffer, 0, 1, &scissor);
+
+		VkBuffer vertex_buffers[] = { backend->vbuffer };
+		VkDeviceSize offsets[] = { backend->voffsets[x] };
+		vkCmdBindVertexBuffers(cmd_buffer, 0, 1, vertex_buffers, offsets);
+
+		vkCmdBindIndexBuffer(cmd_buffer, backend->ibuffer, backend->ioffsets[x], VK_INDEX_TYPE_UINT32);
+
+
+		mat4 mvp;
+		mat4 projection;
+		mat4 model;
+		glm_mat4_identity(model);
+		glm_mat4_identity(projection);
+		glm_mat4_identity(mvp);
+		glm_perspective(camera->fov, camera->w / camera->h, 0.1, 100, projection);
+		glm_translate(model, the_mesh->position);
+		glm_rotate(model, the_mesh->rotation[0], (vec3) { 1, 0, 0 });
+		glm_rotate(model, the_mesh->rotation[1], (vec3) { 0, 1, 0 });
+		glm_rotate(model, the_mesh->rotation[2], (vec3) { 0, 0, 1 });
+		glm_scale(model, the_mesh->scale);
+		kie_generate_mvp(projection, camera, model, mvp);
+		glm_mat4_copy(mvp, backend->checker_pipeline.pconstant.mvp);
+		vkCmdPushConstants(cmd_buffer, backend->checker_pipeline.vk_pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(backend->checker_pipeline.pconstant), &backend->checker_pipeline.pconstant);
+		if(x == 3) // for skybox
+			continue;
+		vkCmdDrawIndexed(cmd_buffer, the_mesh->indices_count, 1, 0, 0, 0);
+		vkCmdSetDepthTestEnable(cmd_buffer, VK_FALSE);
+	}
+}
+
+
+
+void threeD_viewport_draw_buf_without_viewport_and_lights(
+	kie_Camera *camera,
+	kie_Scene *scene,
+	renderer_backend *backend,
+	vk_rsrs *rsrs,
+	int viewport_obj_count,
+	VkCommandBuffer cmd_buffer
+)
+{
+	for (int i = viewport_obj_count; i < backend->offset_count; i++)
+	{
+		int x = i;
+
+		kie_Object *the_mesh = &scene->objects[x];
+		if(x == 3) // for skybox
+			continue;
+		if (the_mesh->is_light)
+			continue;
+
+
+		vkCmdSetDepthTestEnable(cmd_buffer, VK_TRUE);
+		vkCmdBindPipeline(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, backend->checker_pipeline.vk_pipeline_);
 
 		vkCmdBindDescriptorSets(
 			cmd_buffer,
