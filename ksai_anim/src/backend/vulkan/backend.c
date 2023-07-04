@@ -29,8 +29,6 @@ KSAI_API void initialize_backend(vk_rsrs *rsrs, VkInstance *instance)
 
 KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backend)
 {
-	/* CONSTANT RENDERING ENGINE */
-
 	/* CHECKER RENDERING ENGINE */
 	{
 		VkDescriptorSetLayoutBinding ubo_layout_binding = { 0 };
@@ -191,6 +189,8 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 			vk_logical_device_
 		);
 
+
+
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			size = sizeof(uniforms) * KSAI_MESH_UNIFORM_MEM;
@@ -211,18 +211,40 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 		backend->ioffsets = (VkDeviceSize *) ksai_Arena_allocate(sizeof(VkDeviceSize) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
 		backend->uoffsets = (VkDeviceSize(*)[MAX_FRAMES_IN_FLIGHT]) ksai_Arena_allocate(sizeof(VkDeviceSize) * MAX_FRAMES_IN_FLIGHT * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
 
-		backend->descriptor_sets = (VkDescriptorSet(*)[KSAI_VK_DESCRIPTOR_POOL_SIZE]) ksai_Arena_allocate(sizeof(vk_dsset_pair) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+		backend->descriptor_sets = (VkDescriptorSet(*)[MAX_FRAMES_IN_FLIGHT]) ksai_Arena_allocate(sizeof(vk_dsset_pair) * KSAI_MAX_NO_OF_OBJECTS * MAX_FRAMES_IN_FLIGHT, &global_object_arena);
 		backend->descriptor_pools = (VkDescriptorPool *) ksai_Arena_allocate(sizeof(VkDescriptorPool) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
 		backend->offset_count = 0;
 		backend->voffset = 0;
 		backend->ioffset = 0;
 		backend->uoffset[0] = 0;
 		backend->uoffset[1] = 0;
+
+		create_image_util_array(
+			KSAI_TEXTURE_IMAGE_WIDTH,
+			KSAI_TEXTURE_IMAGE_HEIGHT,
+			VK_FORMAT_R8G8B8A8_UNORM,
+			VK_IMAGE_TILING_OPTIMAL,
+			VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+			VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+			&backend->obj_images,
+			&backend->obj_images_memory,
+			vk_logical_device_,
+			KSAI_MAX_NO_OF_TEXTURES
+		);
+
+		backend->obj_image_views = (VkImageView *) ksai_Arena_allocate(sizeof(VkImageView) * KSAI_MAX_NO_OF_OBJECTS, &global_object_arena);
+		backend->obj_images_count = 0;
 	}
 }
 
 KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_backend *backend)
 {
+	//backend->uoffset[0] = 0;
+	//backend->uoffset[1] = 0;
+	for (int i = backend->offset_count; i < scene->objects_count; i++)
+	{
+		vkDestroyDescriptorPool(vk_logical_device_, backend->descriptor_pools[i], NULL);
+	}
 	if (scene->objects_count > backend->offset_count)
 	{
 		for (int i = backend->offset_count; i < scene->objects_count; i++)
@@ -495,8 +517,173 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 	}
 }
 
+KSAI_API void copy_scene_to_backend_reload(vk_rsrs *rsrs, kie_Scene *scene, renderer_backend *backend)
+{
+	for (int i = 0; i < backend->offset_count; i++)
+	{
+		vkDestroyDescriptorPool(vk_logical_device_, backend->descriptor_pools[i], NULL);
+	}
+	backend->uoffset[0] = 0;
+	backend->uoffset[1] = 0;
+	for (int i = 0; i < scene->objects_count; i++)
+	{
+
+		/* Descriptor Sets */
+		{
+			{
+				VkDescriptorPoolCreateInfo pool_info = { 0 };
+				pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+				pool_info.poolSizeCount = KSAI_VK_DESCRIPTOR_POOL_SIZE;
+				pool_info.pPoolSizes = backend->pool_sizes;
+				// we should also specify the max no of descriptro set that might be get allocated
+				pool_info.maxSets = MAX_FRAMES_IN_FLIGHT;
+
+				if (vkCreateDescriptorPool(vk_logical_device_, &pool_info, NULL, &backend->descriptor_pools[i]) != VK_SUCCESS)
+				{
+					printf("Failed to create descriptor pool\n");
+				}
+			}
+
+			VkDescriptorSetLayout layouts[MAX_FRAMES_IN_FLIGHT] = { backend->checker_pipeline.vk_descriptor_set_layout_, backend->checker_pipeline.vk_descriptor_set_layout_ };
+			VkDescriptorSetAllocateInfo alloc_info = { 0 };
+			alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+			alloc_info.descriptorPool = backend->descriptor_pools[i];
+			alloc_info.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
+			alloc_info.pSetLayouts = layouts;
+
+			VkResult res;
+			if ((res = vkAllocateDescriptorSets(vk_logical_device_, &alloc_info, backend->descriptor_sets[i])) != VK_SUCCESS)
+			{
+				printf("Failed to allocate descriptor sets\n");
+			}
+
+
+			VkWriteDescriptorSet descriptor_writes[MAX_BUFFER_SIZE] = { 0 };
+			for (size_t ii = 0; ii < MAX_FRAMES_IN_FLIGHT; ii++)
+			{
+
+				VkDeviceSize size = sizeof(uniforms);
+				VkDescriptorBufferInfo buffer_info = { 0 };
+				buffer_info.buffer = backend->ubuffer[ii];
+				buffer_info.offset = backend->uoffset[ii];
+				buffer_info.range = size; // to be changed to size
+				backend->uoffsets[i][ii] = backend->uoffset[ii];
+				backend->uoffset[ii] += size;
+
+				descriptor_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				descriptor_writes[0].dstSet = backend->descriptor_sets[i][ii];
+				descriptor_writes[0].dstBinding = 0;
+				descriptor_writes[0].dstArrayElement = 0;
+				descriptor_writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				descriptor_writes[0].descriptorCount = 1;
+				descriptor_writes[0].pBufferInfo = &buffer_info;
+				descriptor_writes[0].pImageInfo = NULL;
+				descriptor_writes[0].pTexelBufferView = NULL;
+
+				VkDescriptorImageInfo image_info = { 0 };
+				if (i == 3)
+				{
+					image_info = (VkDescriptorImageInfo){
+						.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						.imageView = backend->skybox_image_view, // Yo euta matra hudaina
+						.sampler = backend->skybox_sampler // Yo euta matra hudaina
+					};
+				}
+				else if (scene->objects[i].has_texture)
+				{
+					image_info = (VkDescriptorImageInfo){
+						.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						.imageView = backend->obj_image_views[scene->objects[i].texture_id], // Yo euta matra hudaina
+						.sampler = backend->checker_pipeline.vk_texture_image_sampler_ // Yo euta matra hudaina
+					};
+
+				}
+				else
+				{
+					image_info = (VkDescriptorImageInfo){
+						.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+						.imageView = backend->checker_pipeline.vk_texture_image_view_, // Yo euta matra hudaina
+						.sampler = backend->checker_pipeline.vk_texture_image_sampler_ // Yo euta matra hudaina
+					};
+				}
+				descriptor_writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				descriptor_writes[1].dstSet = backend->descriptor_sets[i][ii];
+				descriptor_writes[1].dstBinding = 1;
+				descriptor_writes[1].dstArrayElement = 0;
+				descriptor_writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				descriptor_writes[1].descriptorCount = 1;
+				descriptor_writes[1].pBufferInfo = NULL;
+				descriptor_writes[1].pImageInfo = &image_info;
+				descriptor_writes[1].pTexelBufferView = NULL;
+
+				VkDescriptorImageInfo image_info1 = { 0 };
+				image_info1 = (VkDescriptorImageInfo){
+					.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					.imageView = backend->checker_pipeline.vk_texture_image_view_, // Yo euta matra hudaina
+					.sampler = backend->checker_pipeline.vk_texture_image_sampler_ // Yo euta matra hudaina
+				};
+				descriptor_writes[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				descriptor_writes[2].dstSet = backend->descriptor_sets[i][ii];
+				descriptor_writes[2].dstBinding = 2;
+				descriptor_writes[2].dstArrayElement = 0;
+				descriptor_writes[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				descriptor_writes[2].descriptorCount = 1;
+				descriptor_writes[2].pBufferInfo = NULL;
+				descriptor_writes[2].pImageInfo = &image_info1;
+				descriptor_writes[2].pTexelBufferView = NULL;
+
+				VkDescriptorImageInfo image_info2 = { 0 };
+				image_info2 = (VkDescriptorImageInfo){
+					.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					.imageView = backend->checker_pipeline.vk_texture_image_view_, // Yo euta matra hudaina
+					.sampler = backend->checker_pipeline.vk_texture_image_sampler_ // Yo euta matra hudaina
+				};
+				descriptor_writes[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				descriptor_writes[3].dstSet = backend->descriptor_sets[i][ii];
+				descriptor_writes[3].dstBinding = 3;
+				descriptor_writes[3].dstArrayElement = 0;
+				descriptor_writes[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				descriptor_writes[3].descriptorCount = 1;
+				descriptor_writes[3].pBufferInfo = NULL;
+				descriptor_writes[3].pImageInfo = &image_info2;
+				descriptor_writes[3].pTexelBufferView = NULL;
+
+
+				VkDescriptorImageInfo image_info3 = { 0 };
+				image_info3 = (VkDescriptorImageInfo){
+					.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					.imageView = backend->checker_pipeline.vk_texture_image_view_, // Yo euta matra hudaina
+					.sampler = backend->checker_pipeline.vk_texture_image_sampler_ // Yo euta matra hudaina
+				};
+				descriptor_writes[4].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				descriptor_writes[4].dstSet = backend->descriptor_sets[i][ii];
+				descriptor_writes[4].dstBinding = 4;
+				descriptor_writes[4].dstArrayElement = 0;
+				descriptor_writes[4].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				descriptor_writes[4].descriptorCount = 1;
+				descriptor_writes[4].pBufferInfo = NULL;
+				descriptor_writes[4].pImageInfo = &image_info3;
+				descriptor_writes[4].pTexelBufferView = NULL;
+
+
+				vkUpdateDescriptorSets(vk_logical_device_, 5, descriptor_writes, 0, NULL);
+
+			}
+		}
+
+	}
+	backend->offset_count = scene->objects_count;
+}
+
+
 KSAI_API void destroy_renderer_backend(vk_rsrs *rsrs, renderer_backend *backend)
 {
+	for (int i = 0; i < backend->obj_images_count; i++)
+	{
+		vkDestroyImageView(vk_logical_device_, backend->obj_image_views[i], NULL);
+	}
+	vkDestroyImage(vk_logical_device_, backend->obj_images, NULL);
+	vkFreeMemory(vk_logical_device_, backend->obj_images_memory, NULL);
 	vkDestroyBuffer(vk_logical_device_, backend->vbuffer, NULL);
 	vkFreeMemory(vk_logical_device_, backend->vbuffer_memory, NULL);
 	vkDestroyBuffer(vk_logical_device_, backend->ibuffer, NULL);
@@ -601,6 +788,75 @@ KSAI_API int draw_backend_begin(vk_rsrs *_rsrs, vec3 color)
 	vkCmdSetDepthTestEnable(vk_command_buffer_[_rsrs->current_frame], VK_FALSE);
 	vkCmdBeginRenderPass(vk_command_buffer_[_rsrs->current_frame], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 	return _rsrs->current_frame;
+}
+
+KSAI_API int backend_add_texture_to_scene_object(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene *scene, uint32_t obj_index, char *texture_path)
+{
+	VkDeviceSize image_size = (VkDeviceSize) 4 * KSAI_TEXTURE_IMAGE_WIDTH * KSAI_TEXTURE_IMAGE_HEIGHT;
+	VkBuffer staging_buffer;
+	VkDeviceMemory staging_buffer_memory;
+	create_buffer_util(
+		image_size,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		&staging_buffer,
+		&staging_buffer_memory,
+		vk_logical_device_
+	);
+	void *data;
+	vkMapMemory(vk_logical_device_, staging_buffer_memory, 0, image_size, 0, &data);
+
+	int tex_width, tex_height, tex_channels;
+	stbi_uc *pixels = stbi_load(texture_path, &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
+	if (!pixels)
+		printf("error, cannot load image_temporary_testing_ \n");
+	memcpy(data, pixels, image_size);
+
+	vkUnmapMemory(vk_logical_device_, staging_buffer_memory);
+
+	transition_image_layout_util_layered(
+		KSAI_MAX_NO_OF_TEXTURES,
+		backend->obj_images,
+		VK_FORMAT_R8G8B8A8_UNORM,
+		VK_IMAGE_LAYOUT_UNDEFINED,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		vk_command_pool_,
+		rsrs->vk_graphics_queue_
+	);
+	copy_buffer_to_image_util_layered_base_layer(
+		1,
+		backend->obj_images_count,
+		staging_buffer,
+		backend->obj_images,
+		KSAI_TEXTURE_IMAGE_WIDTH,
+		KSAI_TEXTURE_IMAGE_HEIGHT,
+		vk_command_pool_,
+		rsrs->vk_graphics_queue_
+	);
+
+	transition_image_layout_util_layered(
+		KSAI_MAX_NO_OF_TEXTURES,
+		backend->obj_images,
+		VK_FORMAT_R8G8B8A8_UNORM,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		vk_command_pool_,
+		rsrs->vk_graphics_queue_
+	);
+	vkDeviceWaitIdle(vk_logical_device_);
+	vkDestroyBuffer(vk_logical_device_, staging_buffer, NULL);
+	vkFreeMemory(vk_logical_device_, staging_buffer_memory, NULL);
+
+	scene->objects[obj_index].has_texture = true;
+	scene->objects[obj_index].texture_id = backend->obj_images_count;
+	backend->obj_image_views[backend->obj_images_count] = create_image_view_util_base_array_layer(
+		backend->obj_images,
+		rsrs->vk_swap_chain_image_format_,
+		VK_IMAGE_ASPECT_COLOR_BIT,
+		backend->obj_images_count
+	);
+	backend->obj_images_count++;
+	return 0;
 }
 
 

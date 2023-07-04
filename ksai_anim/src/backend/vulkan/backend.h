@@ -33,7 +33,12 @@ typedef struct renderer_backend
 	VkDescriptorPool *descriptor_pools;
 	VkDescriptorPoolSize pool_sizes[KSAI_VK_DESCRIPTOR_POOL_SIZE];
 
-	/* Advanced */
+	VkImage obj_images;
+	VkImageView *obj_image_views;
+	VkDeviceMemory obj_images_memory;
+	uint32_t obj_images_count;
+
+	/* SkyBox */
 	pipeline_vk skybox;
 	VkImage skybox_image;
 	VkImageView skybox_image_view;
@@ -64,6 +69,7 @@ typedef struct renderer_backend
 } renderer_backend;
 
 KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_backend *backend);
+KSAI_API void copy_scene_to_backend_reload(vk_rsrs *rsrs, kie_Scene *scene, renderer_backend *backend);
 
 KSAI_API void initialize_backend(vk_rsrs *rsrs, VkInstance *instance);
 KSAI_API void destroy_backend(vk_rsrs *_rsrs);
@@ -81,3 +87,7 @@ KSAI_API void draw_backend_wait(vk_rsrs *_rsrs);
 
 KSAI_API void end_cmd_buffer_off_dont_use(vk_rsrs *_rsrs);
 KSAI_API void begin_cmd_buffer_off_dont_use(vk_rsrs *_rsrs);
+
+KSAI_API int backend_add_texture_to_scene_object(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene *scene, uint32_t obj_index, char *texture_path);
+
+

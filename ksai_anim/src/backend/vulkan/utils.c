@@ -448,6 +448,45 @@ void copy_buffer_to_image_util_layered(
 	end_single_time_commands_util(&command_buffer, _vk_graphics_queue);
 }
 
+void copy_buffer_to_image_util_layered_base_layer(
+	uint32_t layer_count,
+	uint32_t base_layer,
+	VkBuffer buffer,
+	VkImage image,
+	uint32_t width,
+	uint32_t height,
+	VkCommandPool _vk_command_pool,
+	VkQueue _vk_graphics_queue
+)
+{
+	VkCommandBuffer command_buffer = begin_single_time_commands_util(_vk_command_pool);
+	VkBufferImageCopy region = { 0 };
+	region = (VkBufferImageCopy){
+		.bufferOffset = 0,
+		.bufferRowLength = 0, // how the pixels are laid out in memory
+		.bufferImageHeight = 0,
+		.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+		.imageSubresource.mipLevel = 0,
+		.imageSubresource.baseArrayLayer = base_layer,
+		.imageSubresource.layerCount = layer_count,
+		.imageOffset = {0, 0, 0},
+		.imageExtent = {
+			width, height, 1
+		}
+	};
+
+	vkCmdCopyBufferToImage(
+		command_buffer,
+		buffer,
+		image,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		1,
+		&region
+	);
+
+
+	end_single_time_commands_util(&command_buffer, _vk_graphics_queue);
+}
 
 
 
@@ -496,6 +535,36 @@ VkImageView create_image_view_util2(
 		.subresourceRange.baseMipLevel = 0,
 		.subresourceRange.levelCount = 1,
 		.subresourceRange.baseArrayLayer = 0,
+		.subresourceRange.layerCount = 1,
+		.components = {VK_COMPONENT_SWIZZLE_IDENTITY}
+	};
+
+	VkImageView image_view;
+	if (vkCreateImageView(vk_logical_device_, &create_info, NULL, &image_view) != VK_SUCCESS)
+	{
+		printf("Failed to create image views \n");
+	}
+	return image_view;
+}
+
+VkImageView create_image_view_util_base_array_layer(
+	VkImage image,
+	VkFormat format,
+	VkImageAspectFlags aspect_flags,
+	int base_array_layer
+)
+{
+	VkImageViewCreateInfo create_info = { 0 };
+	create_info = (VkImageViewCreateInfo)
+	{
+		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+		.image = image,
+		.viewType = VK_IMAGE_VIEW_TYPE_2D,
+		.format = format,
+		.subresourceRange.aspectMask = aspect_flags,
+		.subresourceRange.baseMipLevel = 0,
+		.subresourceRange.levelCount = 1,
+		.subresourceRange.baseArrayLayer = base_array_layer,
 		.subresourceRange.layerCount = 1,
 		.components = {VK_COMPONENT_SWIZZLE_IDENTITY}
 	};

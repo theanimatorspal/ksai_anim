@@ -57,6 +57,7 @@ void handle_file_menu(
 	static bool properties_window = false;
 	static bool add_obj_file = false;
 	static bool render_to_img_window = false;
+	static bool add_texture_window = false;
 	static kie_Object light_object;
 	if (first_call)
 	{
@@ -98,7 +99,14 @@ void handle_file_menu(
 			world_window = !world_window;
 			break;
 		}
+		break;
 	case 3:
+		switch (file_option.y)
+		{
+		case 0:
+			add_texture_window = !add_texture_window;
+			break;
+		}
 		break;
 	case 4:
 		switch (file_option.y)
@@ -302,6 +310,26 @@ void handle_file_menu(
 		{
 			render_to_img_window = !render_to_img_window;
 		}
+
+	}
+
+	if(add_texture_window)
+	{ 
+		int ii = 2;
+		float padd = 0.7;
+		draw_window("render", 4, pos, aspect, rsrs, event, &move);
+		if (draw_button_window("Choose", pos, rsrs, aspect, ii++ * padd))
+		{
+			char filepath[KSAI_SMALL_STRING_LENGTH];
+			if (open_explorer(filepath, "Image (*.png)\0*.png\0"))
+			{
+				backend_add_texture_to_scene_object(rsrs, backend, scene, *current_selected, filepath);
+				copy_scene_to_backend_reload(rsrs, scene, backend);
+			}
+			add_texture_window = !add_texture_window;
+
+		}
+
 
 	}
 

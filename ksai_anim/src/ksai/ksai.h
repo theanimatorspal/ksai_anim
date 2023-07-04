@@ -20,6 +20,9 @@
 #define KSAI_MESH_VERTEX_MEM 1 << 17
 #define KSAI_MESH_INDEX_MEM 1 << 17
 #define KSAI_MESH_UNIFORM_MEM 1 << 17
+#define KSAI_MAX_NO_OF_TEXTURES 100
+#define KSAI_TEXTURE_IMAGE_WIDTH 2048
+#define KSAI_TEXTURE_IMAGE_HEIGHT 2048
 
 #define KSAI_VK_ASSERT(STATEMENT) if(STATEMENT != VK_SUCCESS) { printf("VKerror"); __debugbreak(); }
 #define KSAI_SDL_ASSERT(STATEMENT) if(STATEMENT != SDL_TRUE) { printf("SDLerror"); __debugbreak(); }

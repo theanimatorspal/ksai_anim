@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 
 
 		char m[6][10][100] = { 0 };
-		int c[6] = { 3, 6, 3, 0, 1 };
+		int c[6] = { 3, 6, 3, 1, 1 };
 		strcpy_s(m[0][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "File");
 		strcpy_s(m[1][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Create");
 		strcpy_s(m[2][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Window");
@@ -128,6 +128,8 @@ int main(int argc, char *argv[])
 		strcpy_s(m[2][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Properties");
 		strcpy_s(m[2][2], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Timeline");
 		strcpy_s(m[2][3], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "World");
+
+		strcpy_s(m[3][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "add_texture");
 
 
 		strcpy_s(m[4][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "RenderImg");

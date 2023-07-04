@@ -3,6 +3,21 @@
 #include <stdalign.h>
 #include <ksai/ksai_memory.h>
 
+typedef struct kie_Camera
+{
+	vec3 position;
+	vec3 rotation; 
+	vec3 target; 
+	vec3 direction;
+	vec3 up;
+	vec3 right;
+	vec3 pivot;
+	mat4 view;
+	float fov;
+	float w;
+	float h;
+} kie_Camera;
+
 extern ksai_Arena global_object_arena;
 
 typedef struct kie_Vertex
@@ -28,26 +43,18 @@ typedef struct kie_Object
 	vec3 scale;
 	vec3 color;
 
+	bool has_texture;
+	uint32_t texture_id;
+
 	bool is_light;
 	vec3 direction;
 	float intensity;
 	float area;
+
+	bool is_camera;
+	kie_Camera *camera;
 } kie_Object;
 
-typedef struct kie_Camera
-{
-	vec3 position;
-	vec3 rotation; 
-	vec3 target; 
-	vec3 direction;
-	vec3 up;
-	vec3 right;
-	vec3 pivot;
-	mat4 view;
-	float fov;
-	float w;
-	float h;
-} kie_Camera;
 
 void kie_Object_Arena_init();
 

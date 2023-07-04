@@ -50,9 +50,13 @@ void copy_buffer_to_image_util(VkBuffer buffer, VkImage image, uint32_t width, u
 
 void copy_buffer_to_image_util_layered(uint32_t layer_count, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkCommandPool _vk_command_pool, VkQueue _vk_graphics_queue);
 
+void copy_buffer_to_image_util_layered_base_layer(uint32_t layer_count, uint32_t base_layer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkCommandPool _vk_command_pool, VkQueue _vk_graphics_queue);
+
 VkImageView create_image_view_util(VkImage image, VkFormat format);
 
 VkImageView create_image_view_util2(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags);
+
+VkImageView create_image_view_util_base_array_layer(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, int base_array_layer);
 
 VkImageView create_image_view_util2_skybox(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags);
 
