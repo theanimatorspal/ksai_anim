@@ -561,6 +561,8 @@ void threeD_viewport_update(
 		else
 			uni.v2[0] = 0.0;
 
+		uni.v2[2] = (float)scene->objects[i].has_texture;
+
 		if (scene->objects[i].is_light)
 			uni.v2[1] = 1.0;
 		else
@@ -591,7 +593,8 @@ void threeD_viewport_render_to_image(
 	SDL_Window *window,
 	SDL_Event *event,
 	vk_rsrs *rsrs,
-	int selected_object_index
+	int selected_object_index,
+	char file[KSAI_SMALL_STRING_LENGTH]
 )
 {
 	VkCommandBuffer cmd_buffer = begin_single_time_commands_util(vk_command_pool_);
@@ -695,7 +698,7 @@ void threeD_viewport_render_to_image(
 
 	uint8_t *arr = (uint8_t *) backend->mspk.data_;
 	stbi_write_bmp(
-		"render.png",
+		file,
 		rsrs->vk_swap_chain_image_extent_2d_.width,
 		rsrs->vk_swap_chain_image_extent_2d_.height,
 		4,

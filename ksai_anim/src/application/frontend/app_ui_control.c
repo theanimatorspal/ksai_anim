@@ -14,13 +14,42 @@ bool open_explorer(char *file, char *file_type)
 	ofn.nMaxFile = sizeof(szFile);
 	ofn.lpstrFilter = file_type;
 	ofn.lpstrTitle = "Select a file";
-	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
 	// Display the common file dialog to get the file path
 	if (GetOpenFileNameA(&ofn) == TRUE)
 	{
 		// The user selected a file, so print its path
 		printf("Selected file: %s\n", szFile);
+		sprintf(file, "%s", szFile);
+		return true;
+	}
+	else
+	{
+		// The user cancelled the dialog, so handle the error
+		printf("Error: %d\n", CommDlgExtendedError());
+		return false;
+	}
+}
+
+bool save_explorer(char *file, char *file_type)
+{
+	// Initialize the OPENFILENAME structure
+	OPENFILENAMEA ofn;
+	char szFile[260] = { 0 };
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.lpstrFile = szFile;
+	ofn.nMaxFile = sizeof(szFile);
+	ofn.lpstrFilter = file_type;
+	ofn.lpstrTitle = "Select a file";
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+	// Display the common file dialog to get the file path
+	if (GetSaveFileNameA(&ofn) == TRUE)
+	{
+		// The user selected a file, so print its path
+		printf("Saved file: %s\n", szFile);
 		sprintf(file, "%s", szFile);
 		return true;
 	}
@@ -283,6 +312,19 @@ void handle_file_menu(
 				copy_scene_to_backend(rsrs, scene, backend);
 			}
 			add_obj_file = !add_obj_file;
+			*current_selected = scene->objects_count - 1;
+
+		}
+		if (draw_button_window("Add_rec", pos, rsrs, aspect, ii++ * padd))
+		{
+			char filepath[KSAI_SMALL_STRING_LENGTH];
+			if (open_explorer(filepath, "WaveFront OBJ (*.obj)\0*.obj\0"))
+			{
+				read_add_auto_objs(scene, filepath);
+				copy_scene_to_backend(rsrs, scene, backend);
+			}
+			add_obj_file = !add_obj_file;
+			*current_selected = scene->objects_count - 1;
 
 		}
 		if (draw_button_window("Cancel", pos, rsrs, aspect, ii++ * padd))
@@ -302,8 +344,12 @@ void handle_file_menu(
 
 		if (draw_button_window("render img", pos, rsrs, aspect, ii++ * padd))
 		{
-			threeD_viewport_render_to_image(camera, scene, backend, rsrs->window, event, rsrs, *current_selected);
-			render_to_img_window = !render_to_img_window;
+			char fileName[KSAI_SMALL_STRING_LENGTH];
+			if(save_explorer(fileName, "Image (*.png)\0*.png\0")) {
+				strcat(fileName, ".png");
+				threeD_viewport_render_to_image(camera, scene, backend, rsrs->window, event, rsrs, *current_selected, fileName);
+				render_to_img_window = !render_to_img_window;
+			}
 
 		}
 		if (draw_button_window("Cancel", pos, rsrs, aspect, ii++ * padd))

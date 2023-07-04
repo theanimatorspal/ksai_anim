@@ -75,7 +75,7 @@ void main()
 	diffuse += calc_point_light(ubo.lint3, ubo.light3, vert_position, normal_vector);
 
 	
-	out_color = (texture(texSampler, vert_texcoord) * ubo.v2.x + 1 ) * diffuse;
+	out_color = (texture(texSampler, vert_texcoord) * ubo.v2.z + 1 ) * diffuse;
 	out_color.r += 0.5 * ubo.v2.x;
 	//out_color.a += 0.5 * ubo.v2.x + 0.8;
 	out_color.a = 1;
