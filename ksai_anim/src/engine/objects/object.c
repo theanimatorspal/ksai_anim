@@ -23,6 +23,30 @@ void kie_Object_init(kie_Object *out_obj)
 	out_obj->vertices_count = 0;
 	out_obj->indices_count = 0;
 	out_obj->is_light = false;
+	out_obj->is_camera = false;
+}
+
+void kie_Camera_init(kie_Camera *out_cam)
+{
+	out_cam->direction[0] = 0.0f;
+	out_cam->direction[1] = 0.0f;
+	out_cam->direction[2] = 0.0f;
+	out_cam->target[0] = 0.0f;
+	out_cam->target[1] = 0.0f;
+	out_cam->target[2] = 0.0f;
+	out_cam->up[0] = 0.0f;
+	out_cam->up[1] = 1.0f;
+	out_cam->up[2] = 0.0f;
+	out_cam->position[0] = 0.0f;
+	out_cam->position[1] = 0.0f;
+	out_cam->position[2] = 0.0f;
+	out_cam->rotation[0] = 0.0f;
+	out_cam->rotation[1] = 0.0f;
+	out_cam->rotation[2] = 0.0f;
+	glm_vec3_copy((vec3) { 0, 0, 0 }, out_cam->pivot);
+	out_cam->fov = 0.7863;
+	out_cam->w = 1920;
+	out_cam->h = 1080;
 }
 
 void kie_Object_copy(kie_Object *out_obj, kie_Object *in_obj)

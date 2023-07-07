@@ -34,8 +34,8 @@ int main(int argc, char *argv[])
 		"NAME",
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
-		1920 * 0.7,
-		1080 * 0.7,
+		1920 * 0.6,
+		1080 * 0.6,
 		SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE
 	);
 
@@ -82,13 +82,13 @@ int main(int argc, char *argv[])
 	kie_Object_init(&light_object);
 
 	read_obj_to_kie_Object("res/objs/cube.obj", &obj1);
-	read_obj_to_kie_Object("res/objs/oldmen.obj", &obj2);
+	read_obj_to_kie_Object("res/objs/cube.obj", &obj2);
 	read_obj_to_kie_Object("res/objs/plane.obj", &obj3);
 	glm_vec3_copy((vec3) {500, 500, 500}, obj1.scale);
 
 	kie_Scene_init(&scene1);
 	kie_Scene_add_object(&scene1, 3, &vobj1_arrowx, &vobj2_arrowy, &vobj3_arrowz);
-	kie_Scene_add_object(&scene1, 1, &obj1, &obj2, &obj3);
+	kie_Scene_add_object(&scene1, 3, &obj1, &obj2, &obj3);
 
 	int current_selected = 4;
 	bool should_show_viewport_objects = false;

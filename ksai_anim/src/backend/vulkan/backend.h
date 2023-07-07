@@ -66,6 +66,14 @@ typedef struct renderer_backend
 		VkDescriptorImageInfo dscrptr_;
 	} mspk;
 
+
+	/* Particle System*/
+	struct particle_system
+	{
+		VkBuffer buffer;
+		VkDeviceMemory memory;
+	} particle_system;
+
 } renderer_backend;
 
 KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_backend *backend);

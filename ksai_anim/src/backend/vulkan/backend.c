@@ -170,6 +170,20 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 			backend->pool_sizes
 		);
 
+		create_vulkan_pipeline3(rsrs,
+			&backend->ksai_render_pipeline,
+			KSAI_VK_DESCRIPTOR_POOL_SIZE,
+			bindings,
+			"res/shaders/renderer/ksai_render/vshader.spv",
+			"res/shaders/renderer/ksai_render/fshader.spv",
+			&binding_desp,
+			1,
+			attr_desp,
+			6,
+			KSAI_VK_DESCRIPTOR_POOL_SIZE,
+			backend->pool_sizes
+			);
+
 		VkDeviceSize size = sizeof(kie_Vertex) * KSAI_MESH_VERTEX_MEM;
 		create_buffer_util(
 			size,
@@ -698,6 +712,7 @@ KSAI_API void destroy_renderer_backend(vk_rsrs *rsrs, renderer_backend *backend)
 		vkDestroyDescriptorPool(vk_logical_device_, backend->descriptor_pools[i], NULL);
 	}
 	pipeline_vk_destroy2(&backend->checker_pipeline);
+	pipeline_vk_destroy3(&backend->ksai_render_pipeline);
 	kie_Object_Arena_destroy();
 }
 

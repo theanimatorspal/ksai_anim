@@ -52,7 +52,7 @@ typedef struct kie_Object
 	float area;
 
 	bool is_camera;
-	kie_Camera *camera;
+	kie_Camera camera;
 } kie_Object;
 
 
@@ -61,6 +61,8 @@ void kie_Object_Arena_init();
 void kie_generate_mvp(mat4 projection, kie_Camera *camera, mat4 model, mat4 mvp);
 
 void kie_Object_init(kie_Object *out_obj);
+
+void kie_Camera_init(kie_Camera *out_cam);
 
 void kie_Object_copy(kie_Object *out_obj, kie_Object *in_obj);
 

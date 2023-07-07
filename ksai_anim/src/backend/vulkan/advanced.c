@@ -249,7 +249,6 @@ void draw_skybox_backend(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene *sc
 	draw_skybox_backendbuf(rsrs, backend, scene, skybox_obj_index, vk_command_buffer_[rsrs->current_frame]);
 }
 
-
 void draw_skybox_backendbuf(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene *scene, uint32_t skybox_obj_index, VkCommandBuffer cmd_buffer)
 {
 		int x = 3; /* SkyBox index */
@@ -291,5 +290,10 @@ void draw_skybox_backendbuf(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene 
 		vkCmdPushConstants(cmd_buffer, backend->skybox.vk_pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(backend->skybox.pconstant), &backend->skybox.pconstant);
 		vkCmdDrawIndexed(cmd_buffer, the_mesh->indices_count, 1, 0, 0, 0);
 		//vkCmdSetDepthTestEnable(cmd_buffer, VK_FALSE);
+
+}
+
+void draw_particle_buf(vk_rsrs *rsrs, renderer_backend *backend, kie_Scene *scene)
+{
 
 }

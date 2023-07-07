@@ -104,27 +104,16 @@ static void ry_cllsn(
 	}
 }
 
+
+
+
+
 void threeD_viewport_init(kie_Camera *camera, int args, ...)
 {
-	camera->direction[0] = 0.0f;
-	camera->direction[1] = 0.0f;
-	camera->direction[2] = 0.0f;
-	camera->target[0] = 0.0f;
-	camera->target[1] = 0.0f;
-	camera->target[2] = 0.0f;
-	camera->up[0] = 0.0f;
-	camera->up[1] = 1.0f;
-	camera->up[2] = 0.0f;
+	kie_Camera_init(camera);
 	camera->position[0] = 5.0f;
 	camera->position[1] = 5.0f;
 	camera->position[2] = 5.0f;
-	camera->rotation[0] = 0.0f;
-	camera->rotation[1] = 0.0f;
-	camera->rotation[2] = 0.0f;
-	glm_vec3_copy((vec3) { 0, 0, 0 }, camera->pivot);
-	camera->fov = 0.7863;
-	camera->w = 1920;
-	camera->h = 1080;
 	int objects_count = 2;
 
 	va_list object_list;
@@ -492,42 +481,42 @@ void threeD_viewport_update(
 		{
 			switch (x)
 			{
-			case 0:
-				glm_vec3_copy(scene->objects[i].position, uni.light0);
-				uni.lint0 = scene->objects[i].intensity;
-				break;
-			case 1:
-				glm_vec3_copy(scene->objects[i].position, uni.light1);
-				uni.lint1 = scene->objects[i].intensity;
-				break;
-			case 2:
-				glm_vec3_copy(scene->objects[i].position, uni.light2);
-				uni.lint2 = scene->objects[i].intensity;
-				break;
-			case 3:
-				glm_vec3_copy(scene->objects[i].position, uni.light3);
-				uni.lint3 = scene->objects[i].intensity;
-				break;
-			case 4:
-				glm_vec3_copy(scene->objects[i].position, uni.light4);
-				uni.lint4 = scene->objects[i].intensity;
-				break;
-			case 5:
-				glm_vec3_copy(scene->objects[i].position, uni.light5);
-				uni.lint5 = scene->objects[i].intensity;
-				break;
-			case 6:
-				glm_vec3_copy(scene->objects[i].position, uni.light6);
-				uni.lint6 = scene->objects[i].intensity;
-				break;
-			case 7:
-				glm_vec3_copy(scene->objects[i].position, uni.light6);
-				uni.lint7 = scene->objects[i].intensity;
-				break;
-			case 8:
-				glm_vec3_copy(scene->objects[i].position, uni.light8);
-				uni.lint8 = scene->objects[i].intensity;
-				break;
+				case 0:
+					glm_vec3_copy(scene->objects[i].position, uni.light0);
+					uni.lint0 = scene->objects[i].intensity;
+					break;
+				case 1:
+					glm_vec3_copy(scene->objects[i].position, uni.light1);
+					uni.lint1 = scene->objects[i].intensity;
+					break;
+				case 2:
+					glm_vec3_copy(scene->objects[i].position, uni.light2);
+					uni.lint2 = scene->objects[i].intensity;
+					break;
+				case 3:
+					glm_vec3_copy(scene->objects[i].position, uni.light3);
+					uni.lint3 = scene->objects[i].intensity;
+					break;
+				case 4:
+					glm_vec3_copy(scene->objects[i].position, uni.light4);
+					uni.lint4 = scene->objects[i].intensity;
+					break;
+				case 5:
+					glm_vec3_copy(scene->objects[i].position, uni.light5);
+					uni.lint5 = scene->objects[i].intensity;
+					break;
+				case 6:
+					glm_vec3_copy(scene->objects[i].position, uni.light6);
+					uni.lint6 = scene->objects[i].intensity;
+					break;
+				case 7:
+					glm_vec3_copy(scene->objects[i].position, uni.light6);
+					uni.lint7 = scene->objects[i].intensity;
+					break;
+				case 8:
+					glm_vec3_copy(scene->objects[i].position, uni.light8);
+					uni.lint8 = scene->objects[i].intensity;
+					break;
 			}
 			x++;
 		}
@@ -543,30 +532,75 @@ void threeD_viewport_update(
 		glm_mat4_identity(projection);
 		glm_mat4_identity(mvp);
 		glm_perspective(camera->fov, camera->w / camera->h, 0.1, 100, projection);
-		glm_translate(model, scene->objects[i].position);
-		glm_rotate(model, scene->objects[i].rotation[0], (vec3) { 1, 0, 0 });
-		glm_rotate(model, scene->objects[i].rotation[1], (vec3) { 0, 1, 0 });
-		glm_rotate(model, scene->objects[i].rotation[2], (vec3) { 0, 0, 1 });
-		glm_scale(model, scene->objects[i].scale);
-		kie_generate_mvp(projection, camera, model, mvp);
-		glm_mat4_copy(mvp, backend->checker_pipeline.pconstant.mvp);
-		glm_vec3_copy(scene->objects[i].color, uni.v1);
-		glm_mat4_copy(model, uni.model);
-		glm_mat4_copy(camera->view, uni.view);
-		glm_mat4_copy(projection, uni.proj);
+
+		kie_Object *cur_object = &scene->objects[i];
+		kie_Camera *cur_camera = &scene->objects[i].camera;
+		vec3 dir;
+		if (scene->objects[i].is_camera)
+		{
+			glm_vec3_copy(scene->objects[i].position, cur_camera->position);
+			glm_vec3_sub(cur_camera->position, cur_camera->target, dir);
+			glm_vec3_sub(cur_camera->position, cur_camera->target, cur_camera->direction);
+			glm_normalize(cur_camera->direction);
+			glm_cross(cur_camera->up, cur_camera->direction, cur_camera->right);
+			glm_cross(cur_camera->direction, cur_camera->right, cur_camera->up);
+			glm_normalize(cur_camera->right);
+
+			glm_normalize(dir);
+			glm_lookat(cur_camera->position, cur_camera->target, cur_camera->up, cur_camera->view);
+
+			glm_rotate_at(cur_camera->view, cur_camera->pivot, cur_camera->rotation[0], (vec3) { 1, 0, 0 });
+			glm_rotate_at(cur_camera->view, cur_camera->pivot, cur_camera->rotation[1], (vec3) { 0, 1, 0 });
+			glm_rotate_at(cur_camera->view, cur_camera->pivot, cur_camera->rotation[2], (vec3) { 0, 0, 1 });
+			glm_vec3_copy(cur_camera->rotation, scene->objects[i].rotation);
+
+			glm_lookat(cur_camera->position, cur_camera->target, (vec3) { 0, 1, 0 }, model);
+
+			glm_mat4_inv(model, model);
+			//glm_translate(model, (vec3) { cur_object->position[0], cur_object->position[1], cur_object->position[2] });
+			glm_scale(model, scene->objects[i].scale);
+			kie_generate_mvp(projection, camera, model, mvp);
+			glm_mat4_copy(mvp, backend->checker_pipeline.pconstant.mvp);
+			glm_vec3_copy(scene->objects[i].color, uni.v1);
+			glm_mat4_copy(model, uni.model);
+			glm_mat4_copy(camera->view, uni.view);
+			glm_mat4_copy(projection, uni.proj);
+		}
+		else
+		{
+			glm_translate(model, (vec3) { cur_object->position[0], cur_object->position[1], cur_object->position[2] });
+			glm_rotate(model, scene->objects[i].rotation[0], (vec3) { 1, 0, 0 });
+			glm_rotate(model, scene->objects[i].rotation[1], (vec3) { 0, 1, 0 });
+			glm_rotate(model, scene->objects[i].rotation[2], (vec3) { 0, 0, 1 });
+			glm_scale(model, scene->objects[i].scale);
+			kie_generate_mvp(projection, camera, model, mvp);
+			glm_mat4_copy(mvp, backend->checker_pipeline.pconstant.mvp);
+			glm_vec3_copy(scene->objects[i].color, uni.v1);
+			glm_mat4_copy(model, uni.model);
+			glm_mat4_copy(camera->view, uni.view);
+			glm_mat4_copy(projection, uni.proj);
+		}
 
 
 		if (i == selected_object_index)
+		{
 			uni.v2[0] = 1;
+		}
 		else
+		{
 			uni.v2[0] = 0.0;
+		}
 
-		uni.v2[2] = (float)scene->objects[i].has_texture;
+		uni.v2[2] = (float) scene->objects[i].has_texture;
 
 		if (scene->objects[i].is_light)
+		{
 			uni.v2[1] = 1.0;
+		}
 		else
+		{
 			uni.v2[1] = 0.0;
+		}
 
 		memcpy(backend->udata[rsrs->current_frame] + i * sizeof(uniforms), &uni, sizeof(uniforms));
 	}
@@ -594,14 +628,33 @@ void threeD_viewport_render_to_image(
 	SDL_Event *event,
 	vk_rsrs *rsrs,
 	int selected_object_index,
-	char file[KSAI_SMALL_STRING_LENGTH]
+	char file[KSAI_SMALL_STRING_LENGTH],
+	int camera_id
 )
 {
 	VkCommandBuffer cmd_buffer = begin_single_time_commands_util(vk_command_pool_);
-	threeD_viewport_update(camera, scene, backend, window, event, rsrs, selected_object_index);
-	render_offscreen_begin_buf(rsrs, backend, cmd_buffer, (vec3) {0, 0, 0});
+
+	kie_Camera *cur_camera = NULL;
+	int id = -1;
+	if (camera_id != -1)
+	{
+		for (int i = 0; i < scene->objects_count; i++)
+		{
+			id++;
+			if (scene->objects[i].is_camera && id == i)
+			{
+				cur_camera = &scene->objects[i].camera;
+			}
+		}
+	}
+	if (cur_camera == NULL)
+	{
+		cur_camera = camera;
+	}
+	threeD_viewport_update(cur_camera, scene, backend, window, event, rsrs, selected_object_index);
+	render_offscreen_begin_buf(rsrs, backend, cmd_buffer, (vec3) { 0, 0, 0 });
 	draw_skybox_backendbuf(rsrs, backend, scene, 3, cmd_buffer);
-	threeD_viewport_draw_buf_without_viewport_and_lights(camera, scene, backend, rsrs, 3, cmd_buffer);
+	threeD_viewport_draw_buf_without_viewport_and_lights(cur_camera, scene, backend, rsrs, 3, cmd_buffer, 0);
 	render_offscreen_end_buf(rsrs, backend, cmd_buffer);
 
 
@@ -720,7 +773,8 @@ void threeD_viewport_draw_buf(
 	for (int i = 0; i < backend->offset_count; i++)
 	{
 		int x;
-		if (!only_viewport_objects) {
+		if (!only_viewport_objects)
+		{
 			x = (i + viewport_obj_count) % (scene->objects_count);
 		}
 		else
@@ -790,40 +844,54 @@ void threeD_viewport_draw_buf(
 		kie_generate_mvp(projection, camera, model, mvp);
 		glm_mat4_copy(mvp, backend->checker_pipeline.pconstant.mvp);
 		vkCmdPushConstants(cmd_buffer, backend->checker_pipeline.vk_pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(backend->checker_pipeline.pconstant), &backend->checker_pipeline.pconstant);
-		if(x!=3) vkCmdDrawIndexed(cmd_buffer, the_mesh->indices_count, 1, 0, 0, 0);
+		if (x != 3) vkCmdDrawIndexed(cmd_buffer, the_mesh->indices_count, 1, 0, 0, 0);
 		vkCmdSetDepthTestEnable(cmd_buffer, VK_FALSE);
 	}
 }
 
 
-
+/* OFFSCREEN Rendering to Image */
 void threeD_viewport_draw_buf_without_viewport_and_lights(
 	kie_Camera *camera,
 	kie_Scene *scene,
 	renderer_backend *backend,
 	vk_rsrs *rsrs,
 	int viewport_obj_count,
-	VkCommandBuffer cmd_buffer
+	VkCommandBuffer cmd_buffer,
+	int pipeline_id
 )
 {
+	pipeline_vk *pipe;
+	switch (pipeline_id)
+	{
+		case 0:
+			pipe = &backend->checker_pipeline;
+			break;
+		case 1:
+			pipe = &backend->ksai_render_pipeline;
+			break;
+	}
+
 	for (int i = viewport_obj_count; i < backend->offset_count; i++)
 	{
 		int x = i;
 
 		kie_Object *the_mesh = &scene->objects[x];
-		if(x == 3) // for skybox
+		if (x == 3) // for skybox
 			continue;
 		if (the_mesh->is_light)
+			continue;
+		if (the_mesh->is_camera)
 			continue;
 
 
 		vkCmdSetDepthTestEnable(cmd_buffer, VK_TRUE);
-		vkCmdBindPipeline(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, backend->checker_pipeline.vk_pipeline_);
+		vkCmdBindPipeline(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipe->vk_pipeline_);
 
 		vkCmdBindDescriptorSets(
 			cmd_buffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			backend->checker_pipeline.vk_pipeline_layout_,
+			pipe->vk_pipeline_layout_,
 			0,
 			1,
 			&backend->descriptor_sets[x][rsrs->current_frame],
@@ -865,8 +933,8 @@ void threeD_viewport_draw_buf_without_viewport_and_lights(
 		glm_rotate(model, the_mesh->rotation[2], (vec3) { 0, 0, 1 });
 		glm_scale(model, the_mesh->scale);
 		kie_generate_mvp(projection, camera, model, mvp);
-		glm_mat4_copy(mvp, backend->checker_pipeline.pconstant.mvp);
-		vkCmdPushConstants(cmd_buffer, backend->checker_pipeline.vk_pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(backend->checker_pipeline.pconstant), &backend->checker_pipeline.pconstant);
+		glm_mat4_copy(mvp, pipe->pconstant.mvp);
+		vkCmdPushConstants(cmd_buffer, pipe->vk_pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pipe->pconstant), &pipe->pconstant);
 		vkCmdDrawIndexed(cmd_buffer, the_mesh->indices_count, 1, 0, 0, 0);
 		vkCmdSetDepthTestEnable(cmd_buffer, VK_FALSE);
 	}
