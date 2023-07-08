@@ -61,19 +61,28 @@ float calc_point_light(float light_intensity, vec3 light_position, vec3 frag_pos
     return diff;
 }
 
-
 void main()
 {
 
 	/* Diffuse */
 	float diffuse = 0;
 	vec3 normal_vector = normalize(vert_normal);
+	vec3 light_direction = normalize(ubo.light0 - vec3(0, 0, 0));
 
 	diffuse += calc_point_light(ubo.lint0, ubo.light0, vert_position, normal_vector);
 	diffuse += calc_point_light(ubo.lint1, ubo.light1, vert_position, normal_vector);
 	diffuse += calc_point_light(ubo.lint2, ubo.light2, vert_position, normal_vector);
 	diffuse += calc_point_light(ubo.lint3, ubo.light3, vert_position, normal_vector);
 	
-	out_color = (texture(texSampler, vert_texcoord) * ubo.v2.z + 1 ) * diffuse;
-	out_color.r = 1;
+	out_color = (texture(texSampler, vert_texcoord) + 1 ) * diffuse;
+
+	if(dot(ubo.view_dir, normal_vector) < mix(0.4, 0.1, max(0.0, dot(vert_normal, light_direction))))
+	{
+		out_color *= vec4(0.0, 0.0, 0.0, 1.0);
+	}
+
+	if(dot(ubo.view_dir, normal_vector) < 0.3) {
+		out_color *= vec4(0.0);
+	}
+	out_color.a = 1;
 }

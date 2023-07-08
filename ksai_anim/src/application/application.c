@@ -95,6 +95,7 @@ int main(int argc, char *argv[])
 	vec3 clear_color = {0, 0, 0};
 	bool running = true;
 	ivec2s st = {.x = 0, .y = 0};
+	int current_pipeline = 0;
 	copy_scene_to_backend(&resources, &scene1, &backend_renderer);
 	while (running)
 	{
@@ -144,7 +145,8 @@ int main(int argc, char *argv[])
 			clear_color,
 			4,
 			&should_show_viewport_objects,
-			&viewport_camera
+			&viewport_camera,
+			&current_pipeline
 		);
 
 
@@ -171,7 +173,11 @@ int main(int argc, char *argv[])
 
 
 			draw_skybox_backend(&resources, &backend_renderer, &scene1, 3);
-			threeD_viewport_draw(&viewport_camera, &scene1, &backend_renderer, &resources, 4, false);
+			if(current_pipeline == 0) {
+				threeD_viewport_draw(&viewport_camera, &scene1, &backend_renderer, &resources, 4, false);
+			} else {
+				threeD_viewport_draw_buf_without_viewport_and_lights(&viewport_camera, &scene1, &backend_renderer, &resources, 4, vk_command_buffer_[resources.current_frame], 1);
+			}
 
 			//draw_particles(&resources, &backend_renderer, &window_event);
 

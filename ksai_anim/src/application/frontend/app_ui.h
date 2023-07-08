@@ -30,5 +30,6 @@ void handle_file_menu(
 	vec3 clear_color,
 	int viewport_objects_count,
 	bool *should_show_viewport_objects,
-	kie_Camera *camera
+	kie_Camera *camera,
+	int *viewport_pipeline
 );

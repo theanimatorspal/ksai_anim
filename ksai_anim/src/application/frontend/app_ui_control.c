@@ -73,7 +73,8 @@ void handle_file_menu(
 	vec3 clear_color,
 	int viewport_objects_count,
 	bool *should_show_viewport_objects,
-	kie_Camera *camera
+	kie_Camera *camera,
+	int *viewport_pipeline
 )
 {
 	static bool first_call = true;
@@ -168,7 +169,7 @@ void handle_file_menu(
 		int ii = 2;
 		float padd = 0.7;
 		static vec2 debug_window_pos = { 0.75, -0.7 }; static bool move_debug_window = false;
-		draw_window("World    ", 7, debug_window_pos, aspect, rsrs, event, &move_debug_window);
+		draw_window("World    ", 11, debug_window_pos, aspect, rsrs, event, &move_debug_window);
 
 		char log[KSAI_SMALL_STRING_LENGTH];
 		sprintf_s(log, sizeof(char) * 100, "Object Count:%d", scene->objects_count);
@@ -195,6 +196,11 @@ void handle_file_menu(
 		draw_label_window("Show VOs:", debug_window_pos, rsrs, aspect, ii++ * padd);
 		static int selection2 = 0;
 		draw_selector_var(&selection2, aspect, debug_window_pos, rsrs, ii++ * padd, 2, "__TRUE__", "__FALSE__");
+
+		draw_label_window("Renderer:", debug_window_pos, rsrs, aspect, ii++ * padd);
+		static int selection_pipeline = 0;
+		draw_selector_var(&selection_pipeline, aspect, debug_window_pos, rsrs, ii++ * padd, 2, "Checker", "KSAI");
+		*viewport_pipeline = selection_pipeline;
 
 		int Length;
 		const Uint8 *KeyboardState = SDL_GetKeyboardState(&Length);
