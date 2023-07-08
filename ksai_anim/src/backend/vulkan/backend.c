@@ -404,6 +404,7 @@ KSAI_API void copy_scene_to_backend(vk_rsrs *rsrs, kie_Scene *scene, renderer_ba
 
 					if (vkCreateDescriptorPool(vk_logical_device_, &pool_info, NULL, &backend->descriptor_pools[i]) != VK_SUCCESS)
 					{
+						__debugbreak();
 						printf("Failed to create descriptor pool\n");
 					}
 				}

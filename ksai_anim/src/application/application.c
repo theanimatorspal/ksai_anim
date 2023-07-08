@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
 	SDL_Init(SDL_INIT_EVERYTHING);
 	resources.window = SDL_CreateWindow(
-		"NAME",
+		"KSAI Anim",
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
 		1920 * 0.6,
@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
 	kie_Camera viewport_camera;
 	prepare_skybox(&resources, &backend_renderer);
 	prepare_offscreen(&resources, &backend_renderer);
+	prepare_particles(&resources, &backend_renderer);
 	kie_Object vobj1_arrowx, vobj2_arrowy, vobj3_arrowz;
 	kie_Object_init(&vobj1_arrowx);
 	kie_Object_init(&vobj2_arrowy);
@@ -60,7 +61,6 @@ int main(int argc, char *argv[])
 
 	kie_Object_copy(&vobj2_arrowy, &vobj1_arrowx);
 	kie_Object_copy(&vobj3_arrowz, &vobj1_arrowx);
-
 
 	threeD_viewport_init(
 		&viewport_camera,
@@ -94,12 +94,12 @@ int main(int argc, char *argv[])
 	bool should_show_viewport_objects = false;
 	vec3 clear_color = {0, 0, 0};
 	bool running = true;
-	ivec2s st = {0, 0};
+	ivec2s st = {.x = 0, .y = 0};
 	copy_scene_to_backend(&resources, &scene1, &backend_renderer);
 	while (running)
 	{
-		SDL_Event windowEvent;
-		SDL_WaitEvent(&windowEvent);
+		SDL_Event window_event;
+		SDL_WaitEvent(&window_event);
 
 		static int width, height;
 		SDL_GetWindowSize(resources.window, &width, &height);
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 			st,
 			aspect,
 			&resources,
-			&windowEvent,
+			&window_event,
 			&scene1,
 			&backend_renderer,
 			&current_selected,
@@ -148,31 +148,35 @@ int main(int argc, char *argv[])
 		);
 
 
-		if (windowEvent.type == SDL_QUIT)
+		if (window_event.type == SDL_QUIT)
 		{
 			running = false;
 			break;
 		}
 		st = draw_file_menu(m, 5, c, aspect, &resources, (int *) &running);
 		{
-			ui_events(resources.window, &windowEvent);
+			ui_events(resources.window, &window_event);
 		}
 
 
 		ui_update(&resources.current_frame);
 		if (draw_backend_start(&resources, &backend_renderer) != -1 && running)
 		{
-			threeD_viewport_events(&viewport_camera, &scene1, &backend_renderer, resources.window, &windowEvent, &resources, current_selected);
-			threeD_viewport_update(&viewport_camera, &scene1, &backend_renderer, resources.window, &windowEvent, &resources, current_selected);
+			threeD_viewport_events(&viewport_camera, &scene1, &backend_renderer, resources.window, &window_event, &resources, current_selected);
+			threeD_viewport_update(&viewport_camera, &scene1, &backend_renderer, resources.window, &window_event, &resources, current_selected);
+			compute_particles(&resources, &backend_renderer);
 
 
 			draw_backend_begin(&resources, clear_color);
 
+
 			draw_skybox_backend(&resources, &backend_renderer, &scene1, 3);
 			threeD_viewport_draw(&viewport_camera, &scene1, &backend_renderer, &resources, 4, false);
 
-			ui_render(&resources.current_frame, &resources);
+			//draw_particles(&resources, &backend_renderer, &window_event);
 
+
+			ui_render(&resources.current_frame, &resources);
 			draw_backend_end(&resources);
 			draw_backend_finish(&resources);
 		}
@@ -183,6 +187,7 @@ int main(int argc, char *argv[])
 
 	}
 
+	destroy_particles(&resources, &backend_renderer);
 	destroy_offscreen(&resources, &backend_renderer);
 	destroy_skybox(&resources, &backend_renderer);
 	destroy_renderer_backend(&resources, &backend_renderer);

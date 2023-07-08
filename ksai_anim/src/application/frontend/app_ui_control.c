@@ -384,7 +384,7 @@ void handle_file_menu(
 			if (save_explorer(fileName, "Image (*.png)\0*.png\0"))
 			{
 				strcat(fileName, ".png");
-				threeD_viewport_render_to_image(camera, scene, backend, rsrs->window, event, rsrs, *current_selected, fileName, selected - 1);
+				threeD_viewport_render_to_image(camera, scene, backend, rsrs->window, event, rsrs, *current_selected, fileName, selected - 1, stuff);
 				render_to_img_window = !render_to_img_window;
 			}
 

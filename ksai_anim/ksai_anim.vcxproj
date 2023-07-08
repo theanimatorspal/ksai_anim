@@ -356,6 +356,9 @@
     <ClInclude Include="src\vendor\stbi\stbi_image_write.h" />
     <ClInclude Include="src\vendor\stbi\stb_image.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="res\shaders\renderer\particles\cshader.glsl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

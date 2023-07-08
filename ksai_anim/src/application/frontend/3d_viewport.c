@@ -11,7 +11,6 @@ typedef struct vk_ui
 	ivec3 arry_nc, arry_sc;
 	ivec3 arrz_nc, arrz_sc;
 	ivec3 arrx_c, arry_c, arrz_c;
-
 } vk_ui;
 
 static vk_ui rw_ui;
@@ -75,7 +74,7 @@ static void ry_cllsn(
 		float alpha = _org_pnt[0];
 		float beta = _org_pnt[1];
 		float gamma = _org_pnt[2];
-		float t = 0.0f;
+		float t = 1.0f;
 		float x = 0.0f;
 		float y = 0.0f;
 		float z = 0.0f;
@@ -464,7 +463,7 @@ void threeD_viewport_update(
 	int selected_object_index
 )
 {
-	uniforms uni;
+	uniforms uni = {0};
 	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light1);
 	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light2);
 	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light3);
@@ -569,7 +568,7 @@ void threeD_viewport_update(
 		else
 		{
 			glm_translate(model, (vec3) { cur_object->position[0], cur_object->position[1], cur_object->position[2] });
-			glm_rotate(model, scene->objects[i].rotation[0], (vec3) { 1, 0, 0 });
+			glm_rotate(model,scene->objects[i].rotation[0], (vec3) { 1, 0, 0 });
 			glm_rotate(model, scene->objects[i].rotation[1], (vec3) { 0, 1, 0 });
 			glm_rotate(model, scene->objects[i].rotation[2], (vec3) { 0, 0, 1 });
 			glm_scale(model, scene->objects[i].scale);
@@ -581,6 +580,7 @@ void threeD_viewport_update(
 			glm_mat4_copy(projection, uni.proj);
 		}
 
+		glm_vec3_copy(camera->direction, uni.view_dir);
 
 		if (i == selected_object_index)
 		{
@@ -629,7 +629,8 @@ void threeD_viewport_render_to_image(
 	vk_rsrs *rsrs,
 	int selected_object_index,
 	char file[KSAI_SMALL_STRING_LENGTH],
-	int camera_id
+	int camera_id,
+	int pipe_id
 )
 {
 	VkCommandBuffer cmd_buffer = begin_single_time_commands_util(vk_command_pool_);
@@ -654,7 +655,7 @@ void threeD_viewport_render_to_image(
 	threeD_viewport_update(cur_camera, scene, backend, window, event, rsrs, selected_object_index);
 	render_offscreen_begin_buf(rsrs, backend, cmd_buffer, (vec3) { 0, 0, 0 });
 	draw_skybox_backendbuf(rsrs, backend, scene, 3, cmd_buffer);
-	threeD_viewport_draw_buf_without_viewport_and_lights(cur_camera, scene, backend, rsrs, 3, cmd_buffer, 0);
+	threeD_viewport_draw_buf_without_viewport_and_lights(cur_camera, scene, backend, rsrs, 3, cmd_buffer, pipe_id);
 	render_offscreen_end_buf(rsrs, backend, cmd_buffer);
 
 

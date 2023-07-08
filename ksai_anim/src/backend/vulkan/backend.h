@@ -70,8 +70,24 @@ typedef struct renderer_backend
 	/* Particle System*/
 	struct particle_system
 	{
-		VkBuffer buffer;
-		VkDeviceMemory memory;
+		VkBuffer buffer[MAX_FRAMES_IN_FLIGHT];
+		VkDeviceMemory memory[MAX_FRAMES_IN_FLIGHT];
+		void *buffer_data[MAX_FRAMES_IN_FLIGHT];
+
+		VkBuffer ubuffer[MAX_FRAMES_IN_FLIGHT];
+		VkDeviceMemory ubuffer_memory[MAX_FRAMES_IN_FLIGHT];
+		void *ubffer_data[MAX_FRAMES_IN_FLIGHT];
+
+		VkDescriptorSet descriptor_sets[MAX_FRAMES_IN_FLIGHT];
+		VkDescriptorPool descriptor_pool[MAX_FRAMES_IN_FLIGHT];
+
+		pipeline_vk particle_pipe;
+		struct particle
+		{
+			alignas(16) vec3 position;
+			alignas(16) vec3 velocity;
+			alignas(16) vec4 color;
+		} particle[MAX_NO_OF_PARTICLES];
 	} particle_system;
 
 } renderer_backend;

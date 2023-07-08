@@ -42,6 +42,7 @@ layout(binding = 0) uniform uniform_buffer_object
 	mat4			model;
 	mat4			view;
 	mat4			proj;
+	vec3			view_dir;
 } ubo;
 
 
@@ -68,11 +69,11 @@ void main()
 	float diffuse = 0;
 	vec3 normal_vector = normalize(vert_normal);
 
-
 	diffuse += calc_point_light(ubo.lint0, ubo.light0, vert_position, normal_vector);
 	diffuse += calc_point_light(ubo.lint1, ubo.light1, vert_position, normal_vector);
 	diffuse += calc_point_light(ubo.lint2, ubo.light2, vert_position, normal_vector);
 	diffuse += calc_point_light(ubo.lint3, ubo.light3, vert_position, normal_vector);
 	
 	out_color = (texture(texSampler, vert_texcoord) * ubo.v2.z + 1 ) * diffuse;
+	out_color.r = 1;
 }

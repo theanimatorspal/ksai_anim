@@ -23,8 +23,9 @@
 #define KSAI_MAX_NO_OF_TEXTURES 100
 #define KSAI_TEXTURE_IMAGE_WIDTH 2048
 #define KSAI_TEXTURE_IMAGE_HEIGHT 2048
+#define MAX_NO_OF_PARTICLES 10000
 
-#define KSAI_VK_ASSERT(STATEMENT) if(STATEMENT != VK_SUCCESS) { printf("VKerror"); __debugbreak(); }
+#define KSAI_VK_ASSERT(STATEMENT) if((STATEMENT) != VK_SUCCESS) { printf("VKerror"); __debugbreak(); }
 #define KSAI_SDL_ASSERT(STATEMENT) if(STATEMENT != SDL_TRUE) { printf("SDLerror"); __debugbreak(); }
 #define KSAI_U64_MAX 0xffffffff
 #define KSAI_INT32_MAX 2147483647

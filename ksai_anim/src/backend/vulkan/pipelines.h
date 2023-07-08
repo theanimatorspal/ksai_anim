@@ -24,7 +24,6 @@ typedef struct uniforms
 	alignas(16) vec3			v2;
 	alignas(16) vec3			v3;
 
-
 	alignas(16) vec3			light0;
 	alignas(16) vec3			light1;
 	alignas(16) vec3			light2;
@@ -49,6 +48,8 @@ typedef struct uniforms
 	alignas(16) mat4			model;
 	alignas(16) mat4			view;
 	alignas(16) mat4			proj;
+
+	alignas(16) vec3 			view_dir;
 } uniforms;
 
 typedef enum mem_operations
@@ -66,6 +67,7 @@ struct pipeline_vk
 	VkDescriptorSetLayout vk_descriptor_set_layout_;
 	VkPipelineLayout vk_pipeline_layout_;
 	VkPipeline vk_pipeline_;
+	VkPipeline vk_pipeline_compute_;
 	VkCommandPool vk_command_pool_;
 	VkImage vk_texture_image_;
 	VkDeviceMemory vk_texture_image_memory_;
@@ -101,3 +103,7 @@ void create_vulkan_pipeline3(vk_rsrs *_rsrs, pipeline_vk *ppln, int _descriptor_
 void create_vulkan_pipeline3_skybox(vk_rsrs *_rsrs, pipeline_vk *ppln, int _descriptor_set_layout_binding_count, VkDescriptorSetLayoutBinding *_descriptor_layout_binding, const char *_vshader_path, const char *_fshader_path, VkVertexInputBindingDescription *_vertex_input_binding_description, int _vertex_input_binding_description_count, VkVertexInputAttributeDescription *_vertex_input_attribute_description, int _vertex_input_attribute_description_count, int _no_of_pool_sizes, VkDescriptorPoolSize *_pool_sizes);
 
 void pipeline_vk_destroy3(pipeline_vk *_ppln);
+
+void create_vulkan_pipeline3_compute(vk_rsrs *_rsrs, pipeline_vk *ppln, int _descriptor_set_layout_binding_count, VkDescriptorSetLayoutBinding *_descriptor_layout_binding, const char *_vshader_path, const char *_fshader_path, const char *_cshader_path, VkVertexInputBindingDescription *_vertex_input_binding_description, int _vertex_input_binding_description_count, VkVertexInputAttributeDescription *_vertex_input_attribute_description, int _vertex_input_attribute_description_count);
+
+void pipeline_vk_destroy3_compute(pipeline_vk *_ppln);

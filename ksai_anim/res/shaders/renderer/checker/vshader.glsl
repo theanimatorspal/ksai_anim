@@ -46,6 +46,7 @@ layout(binding = 0) uniform uniform_buffer_object
 	mat4			model;
 	mat4			view;
 	mat4			proj;
+	vec3			view_dir;
 } ubo;
 
 layout(push_constant, std430) uniform pc {

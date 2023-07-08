@@ -25,6 +25,7 @@ typedef struct vk_rsrs
 	VkSurfaceKHR vk_srf;
 	VkQueue vk_graphics_queue_;
 	VkQueue vk_present_queue_;
+	VkQueue vk_compute_queue_;
 	VkSemaphore vk_image_available_semaphores_[MAX_FRAMES_IN_FLIGHT];
 	VkSemaphore vk_render_finished_semaphore_[MAX_FRAMES_IN_FLIGHT];
 	VkFence vk_inflight_fences_[MAX_FRAMES_IN_FLIGHT];
