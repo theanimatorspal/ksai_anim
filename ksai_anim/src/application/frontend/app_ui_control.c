@@ -77,10 +77,11 @@ void handle_file_menu(
 	int *viewport_pipeline
 )
 {
+	void evaluate_Keyframes(kie_Scene *scene, uint32_t frame_time);
 	int Length;
 	const Uint8 *KeyboardState = SDL_GetKeyboardState(&Length);
 	static bool first_call = true;
-	static vec2 pos = { -0.40, 0.35 };
+	static vec2 pos = { -0.40, 0.0 };
 	static bool should_mode = false;
 	static bool move = false;
 	static bool add_circle_window = false;
@@ -95,6 +96,11 @@ void handle_file_menu(
 	static bool add_camera_window = false;
 	static kie_Object light_object;
 	static kie_Object camera_object;
+
+	/* Timeline */
+	static int current_frame_timeline = 1;
+	static int range_low_timeline = 1;
+	static int range_high_timeline = 120;
 
 	if (first_call)
 	{
@@ -399,7 +405,7 @@ void handle_file_menu(
 	{
 		int ii = 2;
 		float padd = 0.7;
-		draw_window("render", 6, pos, aspect, rsrs, event, &move);
+		draw_window("render", 7, pos, aspect, rsrs, event, &move);
 
 		static int stuff = 0;
 		draw_selector_var(&stuff, aspect, pos, rsrs, ii++ * padd, 3, "checker", "ksai", "ray");
@@ -418,6 +424,28 @@ void handle_file_menu(
 			}
 
 		}
+
+		draw_label_window("Animation", pos, rsrs, aspect, ii++ * padd);
+		static int range = 10;
+		static int low_range = 0;
+		static int high_range = 120;
+		low_range = range_low_timeline;
+		high_range = range_high_timeline;
+		draw_selector_integer(low_range, high_range, aspect, pos, rsrs, ii++ *padd, &range);
+
+		if (draw_button_window("Render Animation", pos, rsrs, aspect, ii++ *padd))
+		{
+			for(int i = low_range; i < range; i++)				
+			{
+				current_frame_timeline = i;
+				char file_Name[KSAI_SMALL_STRING_LENGTH] = "";
+				sprintf_s(file_Name, sizeof(char) * KSAI_SMALL_STRING_LENGTH, "%s%03d.png", "anim/frame", i);
+				evaluate_Keyframes(scene, current_frame_timeline);
+				threeD_viewport_update(camera, scene, backend, rsrs->window, event, rsrs, *current_selected);
+				threeD_viewport_render_to_image(camera, scene, backend, rsrs->window, event, rsrs, *current_selected, file_Name, selected - 1, stuff);
+			}
+		}
+
 		if (draw_button_window("Cancel", pos, rsrs, aspect, ii++ * padd))
 		{
 			render_to_img_window = !render_to_img_window;
@@ -587,36 +615,52 @@ void handle_file_menu(
 
 	if(timeline_window)
 	{
-		static int current_frame = 1;
-		static int range_low = 1;
-		static int range_high = 120;
 
-		draw_timeline(aspect, rsrs, &current_frame, &range_low, &range_high, scene, *current_selected);
+		draw_timeline(aspect, rsrs, &current_frame_timeline, &range_low_timeline, &range_high_timeline, scene, *current_selected);
 
 		if (KeyboardState[SDL_SCANCODE_RIGHT])
 		{
-			if(current_frame < range_high) current_frame++;
-			else current_frame = range_low;
-			kie_Frame_eval(&scene->objects[*current_selected], current_frame);
+			if(current_frame_timeline < range_high_timeline) current_frame_timeline++;
+			else current_frame_timeline = range_low_timeline;
+			evaluate_Keyframes(scene, current_frame_timeline);
 		}
 
 		if (KeyboardState[SDL_SCANCODE_LEFT])
 		{
-			if(current_frame > range_low) current_frame--;
-			else current_frame = range_high;
-			kie_Frame_eval(&scene->objects[*current_selected], current_frame);
+			if(current_frame_timeline > range_low_timeline) current_frame_timeline--;
+			else current_frame_timeline = range_high_timeline;
+			evaluate_Keyframes(scene, current_frame_timeline);
 		}
 
 		if(KeyboardState[SDL_SCANCODE_S])
 		{
-			if(kie_Frame_has(&scene->objects[*current_selected], current_frame))
+			if(kie_Frame_has(&scene->objects[*current_selected], current_frame_timeline))
 			{
-				kie_Frame_delete(&scene->objects[*current_selected], current_frame);
+				kie_Frame_delete(&scene->objects[*current_selected], current_frame_timeline);
+				kie_Frame_set(&scene->objects[*current_selected], current_frame_timeline);
 			} else {
-				kie_Frame_set(&scene->objects[*current_selected], current_frame);
+				kie_Frame_set(&scene->objects[*current_selected], current_frame_timeline);
 			}
-			kie_Frame_eval(&scene->objects[*current_selected], current_frame);
+			evaluate_Keyframes(scene, current_frame_timeline);
 			memset(KeyboardState, 0, sizeof(Uint8) * Length);
 		}
+
+		if (KeyboardState[SDL_SCANCODE_X])
+		{
+			if(kie_Frame_has(&scene->objects[*current_selected], current_frame_timeline))
+			{
+				kie_Frame_delete(&scene->objects[*current_selected], current_frame_timeline);
+			}
+			evaluate_Keyframes(scene, current_frame_timeline);
+			memset(KeyboardState, 0, sizeof(Uint8) * Length);
+		}
+	}
+}
+
+static void evaluate_Keyframes(kie_Scene *scene, uint32_t frame_time)
+{
+	for(int i = 4; i < scene->objects_count; i++)
+	{
+		kie_Frame_eval(&scene->objects[i], frame_time);
 	}
 }

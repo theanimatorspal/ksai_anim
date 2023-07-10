@@ -191,18 +191,19 @@ void kie_Object_Arena_destroy()
 	ksai_Area_free(&global_object_arena);
 }
 
-
-static int compare_kie_Frames(const void* a, const void* b)
+static int compare_kie_Frames(const void *a, const void *b)
 {
-	kie_Frame *frame1 = (kie_Frame*) a;
-	kie_Frame *frame2 = (kie_Frame*) b;
-	if(frame1->frame_time > frame2->frame_time) return 1;
-	else return 0;
+	kie_Frame *frame1 = (kie_Frame *)a;
+	kie_Frame *frame2 = (kie_Frame *)b;
+	if (frame1->frame_time > frame2->frame_time)
+		return 1;
+	else
+		return 0;
 }
 
 static void kie_Frames_sort(kie_Object *object)
 {
-	//qsort_s(object->frames, object->curr_frame, sizeof(kie_Frame), compare_kie_Frames, NULL);
+	// qsort_s(object->frames, object->curr_frame, sizeof(kie_Frame), compare_kie_Frames, NULL);
 	qsort(object->frames, object->curr_frame, sizeof(kie_Frame), compare_kie_Frames);
 }
 
@@ -238,14 +239,13 @@ void kie_Frame_set(kie_Object *object, uint32_t frame_time)
 	kie_Frames_sort(object);
 }
 
-
 void kie_Frame_delete(kie_Object *object, uint32_t frame_time)
 {
-	for(int i = 0; i < object->curr_frame; i++)
+	for (int i = 0; i < object->curr_frame; i++)
 	{
-		if(object->frames[i].frame_time == frame_time)
+		if (object->frames[i].frame_time == frame_time)
 		{
-			memmove_s(object->frames + i, sizeof(kie_Frame), object->frames + i + 1, sizeof(kie_Frame) * (object->curr_frame - i - 1));
+			memmove_s(object->frames + i, (size_t)(object->curr_frame - i - 1) * sizeof(kie_Frame), object->frames + i + 1, sizeof(kie_Frame) * (size_t)(object->curr_frame - i - 1));
 		}
 	}
 	object->curr_frame--;
@@ -277,26 +277,26 @@ static void kie_Frame_interp(kie_Object *object, int i, int j, int frame_time)
 {
 	kie_Frame frame1 = object->frames[i];
 	kie_Frame frame2 = object->frames[j];
-	if(frame1.type == frame2.type)
+	if (frame1.type == frame2.type)
 	{
 		float bias = glm_percentc(frame1.frame_time, frame2.frame_time, frame_time);
-		glm_vec3_copy( (vec3) { glm_lerp(frame1.position[0], frame2.position[0], bias), glm_lerp(frame1.position[1], frame2.position[1], bias), glm_lerp(frame1.position[2], frame2.position[2], bias) }, object->position);
-		glm_vec3_copy( (vec3) { glm_lerp(frame1.rotation[0], frame2.rotation[0], bias), glm_lerp(frame1.rotation[1], frame2.rotation[1], bias), glm_lerp(frame1.rotation[2], frame2.rotation[2], bias) }, object->rotation);
-		glm_vec3_copy( (vec3) { glm_lerp(frame1.scale[0], frame2.scale[0], bias), glm_lerp(frame1.scale[1], frame2.scale[1], bias), glm_lerp(frame1.scale[2], frame2.scale[2], bias) }, object->scale);
-		glm_vec3_copy( (vec3) { glm_lerp(frame1.color[0], frame2.color[0], bias), glm_lerp(frame1.color[1], frame2.color[1], bias), glm_lerp(frame1.color[2], frame2.color[2], bias) }, object->color);
-		glm_lerp(frame1.intensity, frame2.intensity, bias);
-		glm_lerp(frame1.area, frame2.area, object->area);
-		glm_vec3_copy( (vec3) { glm_lerp(frame1.camera.position[0], frame2.camera.position[0], bias), glm_lerp(frame1.camera.position[1], frame2.camera.position[1], bias), glm_lerp(frame1.camera.position[2], frame2.camera.position[2], bias) }, object->camera.position);
-		glm_vec3_copy( (vec3) { glm_lerp(frame1.camera.rotation[0], frame2.camera.rotation[0], bias), glm_lerp(frame1.camera.rotation[1], frame2.camera.rotation[1], bias), glm_lerp(frame1.camera.rotation[2], frame2.camera.rotation[2], bias) }, object->camera.rotation);
-		glm_vec3_copy( (vec3) { glm_lerp(frame1.camera.target[0], frame2.camera.target[0], bias), glm_lerp(frame1.camera.target[1], frame2.camera.target[1], bias), glm_lerp(frame1.camera.target[2], frame2.camera.target[2], bias) }, object->camera.target);
-		glm_vec3_copy( (vec3) { glm_lerp(frame1.camera.direction[0], frame2.camera.direction[0], bias), glm_lerp(frame1.camera.direction[1], frame2.camera.direction[1], bias), glm_lerp(frame1.camera.direction[2], frame2.camera.direction[2], bias) }, object->camera.direction);
-		glm_vec3_copy( (vec3) { glm_lerp(frame1.camera.up[0], frame2.camera.up[0], bias), glm_lerp(frame1.camera.up[1], frame2.camera.up[1], bias), glm_lerp(frame1.camera.up[2], frame2.camera.up[2], bias) }, object->camera.up);
-		glm_vec3_copy( (vec3) { glm_lerp(frame1.camera.right[0], frame2.camera.right[0], bias), glm_lerp(frame1.camera.right[1], frame2.camera.right[1], bias), glm_lerp(frame1.camera.right[2], frame2.camera.right[2], bias) }, object->camera.right);
-		glm_vec3_copy( (vec3) { glm_lerp(frame1.camera.pivot[0], frame2.camera.pivot[0], bias), glm_lerp(frame1.camera.pivot[1], frame2.camera.pivot[1], bias), glm_lerp(frame1.camera.pivot[2], frame2.camera.pivot[2], bias) }, object->camera.pivot);
-		//glm_vec3_copy( (vec3) { glm_lerp(frame1.camera.view[0], frame2.camera.view[0], bias), glm_lerp(frame1.camera.view[1], frame2.camera.view[1], bias), glm_lerp(frame1.camera.view[2], frame2.camera.view[2], bias) }, object->camera.view);
-		glm_lerp(frame1.camera.fov, frame2.camera.fov, object->camera.fov);
-		glm_lerp(frame1.camera.w, frame2.camera.w, object->camera.w);
-		glm_lerp(frame1.camera.h, frame2.camera.h, object->camera.h);
+		glm_vec3_copy((vec3){glm_lerp(frame1.position[0], frame2.position[0], bias), glm_lerp(frame1.position[1], frame2.position[1], bias), glm_lerp(frame1.position[2], frame2.position[2], bias)}, object->position);
+		glm_vec3_copy((vec3){glm_lerp(frame1.rotation[0], frame2.rotation[0], bias), glm_lerp(frame1.rotation[1], frame2.rotation[1], bias), glm_lerp(frame1.rotation[2], frame2.rotation[2], bias)}, object->rotation);
+		glm_vec3_copy((vec3){glm_lerp(frame1.scale[0], frame2.scale[0], bias), glm_lerp(frame1.scale[1], frame2.scale[1], bias), glm_lerp(frame1.scale[2], frame2.scale[2], bias)}, object->scale);
+		glm_vec3_copy((vec3){glm_lerp(frame1.color[0], frame2.color[0], bias), glm_lerp(frame1.color[1], frame2.color[1], bias), glm_lerp(frame1.color[2], frame2.color[2], bias)}, object->color);
+		object->intensity = glm_lerp(frame1.intensity, frame2.intensity, bias);
+		object->area = glm_lerp(frame1.area, frame2.area, object->area);
+		glm_vec3_copy((vec3){glm_lerp(frame1.camera.position[0], frame2.camera.position[0], bias), glm_lerp(frame1.camera.position[1], frame2.camera.position[1], bias), glm_lerp(frame1.camera.position[2], frame2.camera.position[2], bias)}, object->camera.position);
+		glm_vec3_copy((vec3){glm_lerp(frame1.camera.rotation[0], frame2.camera.rotation[0], bias), glm_lerp(frame1.camera.rotation[1], frame2.camera.rotation[1], bias), glm_lerp(frame1.camera.rotation[2], frame2.camera.rotation[2], bias)}, object->camera.rotation);
+		glm_vec3_copy((vec3){glm_lerp(frame1.camera.target[0], frame2.camera.target[0], bias), glm_lerp(frame1.camera.target[1], frame2.camera.target[1], bias), glm_lerp(frame1.camera.target[2], frame2.camera.target[2], bias)}, object->camera.target);
+		glm_vec3_copy((vec3){glm_lerp(frame1.camera.direction[0], frame2.camera.direction[0], bias), glm_lerp(frame1.camera.direction[1], frame2.camera.direction[1], bias), glm_lerp(frame1.camera.direction[2], frame2.camera.direction[2], bias)}, object->camera.direction);
+		glm_vec3_copy((vec3){glm_lerp(frame1.camera.up[0], frame2.camera.up[0], bias), glm_lerp(frame1.camera.up[1], frame2.camera.up[1], bias), glm_lerp(frame1.camera.up[2], frame2.camera.up[2], bias)}, object->camera.up);
+		glm_vec3_copy((vec3){glm_lerp(frame1.camera.right[0], frame2.camera.right[0], bias), glm_lerp(frame1.camera.right[1], frame2.camera.right[1], bias), glm_lerp(frame1.camera.right[2], frame2.camera.right[2], bias)}, object->camera.right);
+		glm_vec3_copy((vec3){glm_lerp(frame1.camera.pivot[0], frame2.camera.pivot[0], bias), glm_lerp(frame1.camera.pivot[1], frame2.camera.pivot[1], bias), glm_lerp(frame1.camera.pivot[2], frame2.camera.pivot[2], bias)}, object->camera.pivot);
+		// glm_vec3_copy( (vec3) { glm_lerp(frame1.camera.view[0], frame2.camera.view[0], bias), glm_lerp(frame1.camera.view[1], frame2.camera.view[1], bias), glm_lerp(frame1.camera.view[2], frame2.camera.view[2], bias) }, object->camera.view);
+		object->camera.fov = glm_lerp(frame1.camera.fov, frame2.camera.fov, object->camera.fov);
+		object->camera.w = glm_lerp(frame1.camera.w, frame2.camera.w, object->camera.w);
+		object->camera.h = glm_lerp(frame1.camera.h, frame2.camera.h, object->camera.h);
 	}
 }
 
@@ -313,19 +313,22 @@ void kie_Frame_eval(kie_Object *object, uint32_t frame_time)
 	}
 
 	/* If Current Frame time is between two keyframes */
-	for (int i = 0; i < object->curr_frame - 1;)
+	if (object->curr_frame > 0)
 	{
-		int j = i + 1;
+		for (int i = 0; i < object->curr_frame - 1;)
 		{
-			if(frame_time > object->frames[i].frame_time && frame_time < object->frames[j].frame_time)
+			int j = i + 1;
 			{
-				kie_Frame_interp(object, i, j, frame_time);
-				return;
+				if (frame_time > object->frames[i].frame_time && frame_time < object->frames[j].frame_time)
+				{
+					kie_Frame_interp(object, i, j, frame_time);
+					return;
+				}
 			}
+			i++;
+			j++;
 		}
-		i++; j++;
 	}
-
 }
 
 bool kie_Frame_has(kie_Object *object, uint32_t frame_time)

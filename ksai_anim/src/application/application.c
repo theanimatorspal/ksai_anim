@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 
 	kie_Scene_init(&scene1);
 	kie_Scene_add_object(&scene1, 3, &vobj1_arrowx, &vobj2_arrowy, &vobj3_arrowz);
-	kie_Scene_add_object(&scene1, 3, &obj1, &obj2, &obj3);
+	kie_Scene_add_object(&scene1, 1, &obj1, &obj2, &obj3);
 
 	int current_selected = 4;
 	bool should_show_viewport_objects = false;
@@ -99,7 +99,8 @@ int main(int argc, char *argv[])
 	while (running)
 	{
 		SDL_Event window_event;
-		SDL_WaitEvent(&window_event);
+		//SDL_WaitEvent(&window_event);
+		SDL_WaitEventTimeout(&window_event, 100);
 
 		static int width, height;
 		SDL_GetWindowSize(resources.window, &width, &height);

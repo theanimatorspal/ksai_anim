@@ -58,7 +58,7 @@ float calc_point_light(float light_intensity, vec3 light_position, vec3 frag_pos
     float distance    = length(light_position - frag_position);
     float attenuation = 1.0 / (light_constant + light_linear * distance + light_quadratic * (distance * distance));    
     vec3 lightDir = normalize(light_position - frag_position) * light_intensity;
-    float diff = max(dot(normal, lightDir), 0.0);
+    float diff = max(dot(normal, lightDir), 0.0) * attenuation;
     return diff;
 }
 

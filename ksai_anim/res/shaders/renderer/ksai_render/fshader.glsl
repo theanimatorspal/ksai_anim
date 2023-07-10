@@ -57,17 +57,21 @@ float calc_point_light(float light_intensity, vec3 light_position, vec3 frag_pos
     float distance    = length(light_position - frag_position);
     float attenuation = 1.0 / (light_constant + light_linear * distance + light_quadratic * (distance * distance));    
     vec3 lightDir = normalize(light_position - frag_position) * light_intensity;
-    float diff = max(dot(normal, lightDir), 0.0);
+    float diff = max(dot(normal, lightDir), 0.0) * attenuation;
     return diff;
 }
 
 void main()
 {
-
 	/* Diffuse */
 	float diffuse = 0;
 	vec3 normal_vector = normalize(vert_normal);
-	vec3 light_direction = normalize(ubo.light0 - vec3(0, 0, 0));
+
+	vec3 light_direction0 = normalize(ubo.light0 - vec3(0, 0, 0));
+	vec3 light_direction1 = normalize(ubo.light1 - vec3(0, 0, 0));
+	vec3 light_direction2 = normalize(ubo.light2 - vec3(0, 0, 0));
+	vec3 light_direction3 = normalize(ubo.light3 - vec3(0, 0, 0));
+	vec3 light_direction4 = normalize(ubo.light4 - vec3(0, 0, 0));
 
 	diffuse += calc_point_light(ubo.lint0, ubo.light0, vert_position, normal_vector);
 	diffuse += calc_point_light(ubo.lint1, ubo.light1, vert_position, normal_vector);
@@ -76,12 +80,16 @@ void main()
 	
 	out_color = (texture(texSampler, vert_texcoord) + 1 ) * diffuse;
 
-	if(dot(ubo.view_dir, normal_vector) < mix(0.4, 0.1, max(0.0, dot(vert_normal, light_direction))))
-	{
-		out_color *= vec4(0.0, 0.0, 0.0, 1.0);
-	}
+	float threshold = 0.3;
+	bool under_light = dot(light_direction0, normal_vector) > 0.3 || 
+					dot(light_direction1, normal_vector) > 0.3 ||
+					dot(light_direction2, normal_vector) > 0.3 || 
+					dot(light_direction3, normal_vector) > 0.3 ||
+					dot(light_direction4, normal_vector) > 0.3 ;
 
-	if(dot(ubo.view_dir, normal_vector) < 0.3) {
+	if(under_light) {
+		out_color *= vec4(0.1);
+	} else {
 		out_color *= vec4(0.0);
 	}
 	out_color.a = 1;
