@@ -88,6 +88,9 @@
     <ClCompile Include="src\application\frontend\app_ui_control.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\engine\animation\anmation.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\backend\vulkan\backend.h">
@@ -604,6 +607,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\backend\vulkan\offscreen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\animation\animation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -76,7 +76,7 @@ void gn_txt(const char *text, const int size, fnt_d *font_desp)
 {
 	static bool first_time = true;
 	if (first_time == true)
-		ksai_Arena_init(sizeof(l_vbs_vrtx) * 4 * size * KSAI_STRING_ARENA_MEMORY, &global_arena);
+		ksai_Arena_init(sizeof(l_vbs_vrtx) * 4 * size * KSAI_SMALL_STRING_LENGTH, &global_arena);
 	first_time = false;
 
 	int old_vcoutn = font_desp->ppln.vertices_count;

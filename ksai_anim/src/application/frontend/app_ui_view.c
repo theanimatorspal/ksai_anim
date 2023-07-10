@@ -173,7 +173,7 @@ int draw_selector_window(char select[MAX_SELECTOR_SIZE][KSAI_SMALL_STRING_LENGTH
 
 int draw_selector_integer(int smallest, int highest, float aspect, vec2 pos, vk_rsrs *rsrs, float row, int *selection)
 {
-	char select[KSAI_SMALL_STRING_LENGTH][KSAI_SMALL_STRING_LENGTH];
+	char select[KSAI_SELECTOR_INTEGER_LENGTH][KSAI_SMALL_STRING_LENGTH];
 	int j = 0;
 	for (int i = smallest; i <= highest; i++)
 	{
@@ -204,7 +204,7 @@ int draw_selector_var(int *selected, float aspect, vec2 pos, vk_rsrs *rsrs, floa
 
 	for (int i = 0; i < args; i++)
 	{
-		strcpy_s(select[i], sizeof(char) * KSAI_SMALL_STRING_LENGTH, va_arg(arg, char*));
+		strcpy_s(select[i], sizeof(char) * KSAI_SMALL_STRING_LENGTH, va_arg(arg, char *));
 	}
 
 	draw_selector_window(select, args, aspect, pos, rsrs, row, selected);
@@ -212,7 +212,7 @@ int draw_selector_var(int *selected, float aspect, vec2 pos, vk_rsrs *rsrs, floa
 	va_end(arg);
 }
 
-static uint32_t time = 0.0; 
+static uint32_t time = 0.0;
 int draw_input_number(float aspect, vec2 pos, vk_rsrs *rsrs, float row, char out[KSAI_SMALL_STRING_LENGTH], bool *should_input, int *place_value)
 {
 	ui_label lbl = (ui_label){
@@ -238,9 +238,11 @@ int draw_input_number(float aspect, vec2 pos, vk_rsrs *rsrs, float row, char out
 		glm_vec3_copy(MENU_BAR_COLOR, lbl.slctd_clr);
 		if (time < SDL_GetTicks() - 300)
 		{
-			if (xx == KSAI_INT32_MAX) {
-				
-			} else if (xx == 10)
+			if (xx == KSAI_INT32_MAX)
+			{
+
+			}
+			else if (xx == 10)
 			{
 				out[*place_value] = '\0';
 				(*place_value)--;
@@ -433,4 +435,62 @@ ivec2s draw_file_menu(char ch[NO_OF_TOP_MENUS][NO_OF_POPUP_MENUS][KSAI_SMALL_STR
 
 	return ret;
 
+}
+
+void draw_timeline(float aspect, vk_rsrs *rsrs, int *current_frame, int *low_range, int *high_range, kie_Scene *scene, int current_selected)
+{
+	ui_label lbl = (ui_label){
+		.typ = BUTTON,
+		.ps = {0, 1},
+		.scale = {TOP_MENU_SCALEX, 0.2 * aspect},
+		.st_typ = lbl_st_UNSELECTED,
+		.text = "MENU BAR"
+	};
+	glm_vec3_copy(MENU_BAR_COLOR, lbl.hvrd_clr);
+	glm_vec3_copy(MENU_BAR_COLOR, lbl.nrml_clr);
+	glm_vec3_copy(MENU_BAR_COLOR, lbl.slctd_clr);
+	glm_vec3_copy(MENU_BAR_COLOR, lbl.txt_clr);
+	ui_draw_button(lbl, rsrs->window);
+
+	sprintf(lbl.text, "|");
+
+	float ii = -80;
+	float paddx = 0.01;
+	float jj = 80;
+	float paddy = 0.01;
+	draw_selector_integer(*low_range, *high_range, aspect, (vec2) { ii++ * paddx, jj++ * paddy }, rsrs, 0, current_frame);
+
+	int j = 1;
+	float scalex = (2 / (float) (*high_range - *low_range + 2));
+	for (int i = *low_range; i <= *high_range; i++)
+	{
+		if (i == *current_frame)
+		{
+			glm_vec3_copy(color_BLUE, lbl.hvrd_clr);
+			glm_vec3_copy(color_BLUE, lbl.nrml_clr);
+			glm_vec3_copy(color_BLUE, lbl.slctd_clr);
+			glm_vec3_copy(color_BLUE, lbl.txt_clr);
+		}
+		else
+		{
+			glm_vec3_copy(color_DARKCERULEAN, lbl.hvrd_clr);
+			glm_vec3_copy(color_ALMOND, lbl.nrml_clr);
+			glm_vec3_copy(color_ALMOND, lbl.slctd_clr);
+			glm_vec3_copy(color_ALMOND, lbl.txt_clr);
+			if(kie_Frame_has(&scene->objects[current_selected], i))
+			{
+				glm_vec3_copy(color_DARKCERULEAN, lbl.hvrd_clr);
+				glm_vec3_copy(color_REDWOOD, lbl.nrml_clr);
+				glm_vec3_copy(color_REDWOOD, lbl.slctd_clr);
+				glm_vec3_copy(color_REDWOOD, lbl.txt_clr);
+			}
+		}
+		glm_vec3_copy((vec3) { scalex * 7, 0.2 / (float) 4 * aspect, 0 }, lbl.scale);
+		lbl.ps[0] = -1 + scalex * j;
+		if (ui_draw_button(lbl, rsrs->window))
+		{
+			*current_frame = i;
+		}
+		j++;
+	}
 }

@@ -40,14 +40,13 @@ int main(int argc, char *argv[])
 	);
 
 	initialize_backend(&resources, &instance);
-	ui_init(200, &resources);
+	ui_init(1000, &resources);
 	renderer_backend backend_renderer;
 	initialize_renderer_backend(&resources, &backend_renderer);
 
 	kie_Camera viewport_camera;
 	prepare_skybox(&resources, &backend_renderer);
 	prepare_offscreen(&resources, &backend_renderer);
-	prepare_particles(&resources, &backend_renderer);
 	kie_Object vobj1_arrowx, vobj2_arrowy, vobj3_arrowz;
 	kie_Object_init(&vobj1_arrowx);
 	kie_Object_init(&vobj2_arrowy);
@@ -166,7 +165,6 @@ int main(int argc, char *argv[])
 		{
 			threeD_viewport_events(&viewport_camera, &scene1, &backend_renderer, resources.window, &window_event, &resources, current_selected);
 			threeD_viewport_update(&viewport_camera, &scene1, &backend_renderer, resources.window, &window_event, &resources, current_selected);
-			compute_particles(&resources, &backend_renderer);
 
 
 			draw_backend_begin(&resources, clear_color);
@@ -179,7 +177,6 @@ int main(int argc, char *argv[])
 				threeD_viewport_draw_buf_without_viewport_and_lights(&viewport_camera, &scene1, &backend_renderer, &resources, 4, vk_command_buffer_[resources.current_frame], 1);
 			}
 
-			//draw_particles(&resources, &backend_renderer, &window_event);
 
 
 			ui_render(&resources.current_frame, &resources);
@@ -193,7 +190,6 @@ int main(int argc, char *argv[])
 
 	}
 
-	destroy_particles(&resources, &backend_renderer);
 	destroy_offscreen(&resources, &backend_renderer);
 	destroy_skybox(&resources, &backend_renderer);
 	destroy_renderer_backend(&resources, &backend_renderer);

@@ -2,6 +2,7 @@
 #include <ksai/ksai.h>
 #include <stdalign.h>
 #include <ksai/ksai_memory.h>
+#include <engine/animation/animation.h>
 
 typedef struct kie_Camera
 {
@@ -53,6 +54,8 @@ typedef struct kie_Object
 
 	bool is_camera;
 	kie_Camera camera;
+	kie_Frame *frames;
+	uint32_t curr_frame;
 } kie_Object;
 
 
@@ -74,3 +77,10 @@ void kie_Object_join(kie_Object *mesh1, kie_Object *mesh2);
 
 void kie_Object_Arena_destroy();
 
+void kie_Frame_set(kie_Object *object, uint32_t frame_time);
+
+void kie_Frame_eval(kie_Object *object, uint32_t frame_time);
+
+bool kie_Frame_has(kie_Object *object, uint32_t frame_time);
+
+void kie_Frame_delete(kie_Object *object, uint32_t frame_time);

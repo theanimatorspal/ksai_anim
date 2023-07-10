@@ -77,14 +77,18 @@ void handle_file_menu(
 	int *viewport_pipeline
 )
 {
+	int Length;
+	const Uint8 *KeyboardState = SDL_GetKeyboardState(&Length);
 	static bool first_call = true;
 	static vec2 pos = { -0.40, 0.35 };
+	static bool should_mode = false;
 	static bool move = false;
 	static bool add_circle_window = false;
 	static bool add_cylinder_window = false;
 	static bool add_light_window = false;
 	static bool world_window = true;
-	static bool properties_window = false;
+	static bool properties_window = true;
+	static bool timeline_window = true;
 	static bool add_obj_file = false;
 	static bool render_to_img_window = false;
 	static bool add_texture_window = false;
@@ -140,6 +144,7 @@ void handle_file_menu(
 					properties_window = !properties_window;
 					break;
 				case 1:
+					timeline_window = !timeline_window;
 					break;
 				case 2:
 					world_window = !world_window;
@@ -202,8 +207,24 @@ void handle_file_menu(
 		draw_selector_var(&selection_pipeline, aspect, debug_window_pos, rsrs, ii++ * padd, 2, "Checker", "KSAI");
 		*viewport_pipeline = selection_pipeline;
 
-		int Length;
-		const Uint8 *KeyboardState = SDL_GetKeyboardState(&Length);
+		draw_label_window("MovableWind", debug_window_pos, rsrs, aspect, ii++ * padd);
+		static int should_move = 0;
+		draw_selector_var(&should_move, aspect, debug_window_pos, rsrs, ii++ * padd, 2, "NO", "YES");
+
+		if (should_move == 1)
+		{
+			should_mode = false;
+		}
+		else if (should_move == 0)
+		{
+			should_mode = true;
+		}
+
+		if(should_mode)
+		{
+			move = false;
+		}
+
 		if (KeyboardState[SDL_SCANCODE_DOWN])
 		{
 			if (*current_selected > viewport_objects_count)
@@ -304,6 +325,8 @@ void handle_file_menu(
 		{
 			kie_Object_add_light_object(&light_object, scene);
 			*current_selected = scene->objects_count - 1;
+			scene->objects[*current_selected].frames = (kie_Frame *)ksai_Arena_allocate(sizeof(kie_Frame) * KSAI_MAX_NO_OF_KEYFRAMES, &global_object_arena);
+			scene->objects[*current_selected].is_light = true; 
 			copy_scene_to_backend(rsrs, scene, backend);
 			add_light_window = !add_light_window;
 		}
@@ -422,7 +445,7 @@ void handle_file_menu(
 
 	}
 
-	static vec2 props_pos = { -0.75, -0.75 };
+	static vec2 props_pos = { -0.75, -0.85 };
 	if (properties_window)
 	{
 		static bool update = true;
@@ -559,5 +582,41 @@ void handle_file_menu(
 
 
 
+	}
+
+
+	if(timeline_window)
+	{
+		static int current_frame = 1;
+		static int range_low = 1;
+		static int range_high = 120;
+
+		draw_timeline(aspect, rsrs, &current_frame, &range_low, &range_high, scene, *current_selected);
+
+		if (KeyboardState[SDL_SCANCODE_RIGHT])
+		{
+			if(current_frame < range_high) current_frame++;
+			else current_frame = range_low;
+			kie_Frame_eval(&scene->objects[*current_selected], current_frame);
+		}
+
+		if (KeyboardState[SDL_SCANCODE_LEFT])
+		{
+			if(current_frame > range_low) current_frame--;
+			else current_frame = range_high;
+			kie_Frame_eval(&scene->objects[*current_selected], current_frame);
+		}
+
+		if(KeyboardState[SDL_SCANCODE_S])
+		{
+			if(kie_Frame_has(&scene->objects[*current_selected], current_frame))
+			{
+				kie_Frame_delete(&scene->objects[*current_selected], current_frame);
+			} else {
+				kie_Frame_set(&scene->objects[*current_selected], current_frame);
+			}
+			kie_Frame_eval(&scene->objects[*current_selected], current_frame);
+			memset(KeyboardState, 0, sizeof(Uint8) * Length);
+		}
 	}
 }

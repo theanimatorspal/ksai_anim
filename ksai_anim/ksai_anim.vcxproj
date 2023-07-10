@@ -174,6 +174,7 @@
     <ClCompile Include="src\backend\vulkan\run.c" />
     <ClCompile Include="src\backend\vulkan\sync.c" />
     <ClCompile Include="src\backend\vulkan\utils.c" />
+    <ClCompile Include="src\engine\animation\anmation.c" />
     <ClCompile Include="src\engine\objects\object.c" />
     <ClCompile Include="src\engine\renderer\checker.c" />
     <ClCompile Include="src\engine\renderer\scene.c" />
@@ -199,6 +200,7 @@
     <ClInclude Include="src\backend\vulkan\run.h" />
     <ClInclude Include="src\backend\vulkan\sync.h" />
     <ClInclude Include="src\backend\vulkan\utils.h" />
+    <ClInclude Include="src\engine\animation\animation.h" />
     <ClInclude Include="src\engine\objects\object.h" />
     <ClInclude Include="src\engine\renderer\checker.h" />
     <ClInclude Include="src\engine\renderer\scene.h" />
