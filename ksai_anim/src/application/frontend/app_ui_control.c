@@ -4,7 +4,7 @@
 #include "3d_viewport.h"
 #include <SDL2/SDL_thread.h>
 
-static void evaluate_Keyframes(kie_Scene * scene, uint32_t frame_time, int layer);
+static void evaluate_Keyframes(kie_Scene *scene, uint32_t frame_time, int layer);
 static void evaluate_Keyframes_combined(kie_Scene *scene, uint32_t frame_time);
 static void kie_EvalKeyframes(kie_Scene *scene, uint32_t frame_time, int layer, int current_evaluation);
 
@@ -25,14 +25,14 @@ typedef struct sdl_thread_parameter
 	vk_rsrs *rsrs;
 	int low_range;
 	int range;
-	int selected; /* camera selection */
-	int stuff; /* Pipeline ID */
+	int selected;	 /* camera selection */
+	int pipeline_id; /* Pipeline ID */
 } sdl_thread_parameter;
 
 static sdl_thread_parameter pars;
 static int thread_function(void *data)
 {
-	sdl_thread_parameter *par = (sdl_thread_parameter*) data;
+	sdl_thread_parameter *par = (sdl_thread_parameter *)data;
 	for (int i = par->low_range; i < par->range; i++)
 	{
 		*par->current_frame_timeline = i;
@@ -40,10 +40,20 @@ static int thread_function(void *data)
 		sprintf_s(file_Name, sizeof(char) * KSAI_SMALL_STRING_LENGTH, "%s%03d.png", "anim/frame", i);
 		evaluate_Keyframes_combined(par->scene, *par->current_frame_timeline);
 		threeD_viewport_update(par->camera, par->scene, par->backend, par->rsrs->window, par->event, par->rsrs, *par->current_selected);
-		threeD_viewport_render_to_image(par->camera, par->scene, par->backend, par->rsrs->window, par->event, par->rsrs, *par->current_selected, file_Name, par->selected - 1, par->stuff);
+		threeD_viewport_render_to_image(
+			par->camera,
+			par->scene,
+			par->backend,
+			par->rsrs->window,
+			par->event,
+			par->rsrs,
+			*par->current_selected,
+			file_Name,
+			par->selected - 1,
+			par->pipeline_id
+		);
 	}
 }
-
 
 bool open_explorer(char *file, char *file_type)
 {
@@ -121,7 +131,8 @@ void handle_file_menu(
 	const Uint8 *KeyboardState = SDL_GetKeyboardState(&Length);
 	static bool first_call = true;
 	static vec2 pos = {-0.40f, 0.0};
-	pos[0] = -0.40f; pos[1] = 0.0f;
+	pos[0] = -0.40f;
+	pos[1] = 0.0f;
 	static bool should_mode = false;
 	static bool move = false;
 	static bool add_circle_window = false;
@@ -141,7 +152,7 @@ void handle_file_menu(
 	static int current_frame_timeline = 1;
 	static int range_low_timeline = 1;
 	static int range_high_timeline = 120;
-	static SDL_Thread* rendering_thread;
+	static SDL_Thread *rendering_thread;
 
 	if (first_call)
 	{
@@ -269,7 +280,6 @@ void handle_file_menu(
 		{
 			move = false;
 		}
-
 	}
 
 	if (KeyboardState[SDL_SCANCODE_DOWN])
@@ -437,8 +447,8 @@ void handle_file_menu(
 		float padd = 0.7;
 		draw_window("render", 7, pos, aspect, rsrs, event, &move);
 
-		static int stuff = 0;
-		draw_selector_var(&stuff, aspect, pos, rsrs, ii++ * padd, 3, "checker", "ksai", "ray");
+		static int pipeline_id = 0;
+		draw_selector_var(&pipeline_id, aspect, pos, rsrs, ii++ * padd, 3, "checker", "ksai", "ray");
 
 		static int selected = 0;
 		draw_selector_var(&selected, aspect, pos, rsrs, ii++ * padd, 4, "cam", "cam0", "cam1", "cam2");
@@ -449,7 +459,7 @@ void handle_file_menu(
 			if (save_explorer(fileName, "Image (*.png)\0*.png\0"))
 			{
 				strcat(fileName, ".png");
-				threeD_viewport_render_to_image(camera, scene, backend, rsrs->window, event, rsrs, *current_selected, fileName, selected - 1, stuff);
+				threeD_viewport_render_to_image(camera, scene, backend, rsrs->window, event, rsrs, *current_selected, fileName, selected - 1, pipeline_id);
 				render_to_img_window = !render_to_img_window;
 			}
 		}
@@ -464,8 +474,7 @@ void handle_file_menu(
 
 		if (draw_button_window("Render Animation", pos, rsrs, aspect, ii++ * padd))
 		{
-			pars = (sdl_thread_parameter)
-			{
+			pars = (sdl_thread_parameter){
 				.camera = camera,
 				.scene = scene,
 				.backend = backend,
@@ -476,9 +485,8 @@ void handle_file_menu(
 				.low_range = low_range,
 				.range = range,
 				.selected = selected,
-				.stuff = stuff
-			};
-			rendering_thread = (SDL_Thread*) SDL_CreateThread(thread_function, "Rendering thread", (void*)&pars);
+				.pipeline_id = pipeline_id};
+			rendering_thread = (SDL_Thread *)SDL_CreateThread(thread_function, "Rendering thread", (void *)&pars);
 		}
 
 		if (draw_button_window("Cancel", pos, rsrs, aspect, ii++ * padd))
@@ -728,7 +736,7 @@ void handle_file_menu(
 
 static void kie_EvalKeyframes(kie_Scene *scene, uint32_t frame_time, int layer, int current_evaluation)
 {
-	if(current_evaluation == 0)
+	if (current_evaluation == 0)
 		evaluate_Keyframes(scene, frame_time, layer);
 	else
 		evaluate_Keyframes_combined(scene, frame_time);
@@ -750,5 +758,4 @@ static void evaluate_Keyframes_combined(kie_Scene *scene, uint32_t frame_time)
 		kie_Frame_eval_additive(&scene->objects[i], frame_time, 2);
 		kie_Frame_eval_additive(&scene->objects[i], frame_time, 3);
 	}
-
 }

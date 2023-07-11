@@ -42,6 +42,8 @@ typedef struct vk_rsrs
 	VkImageView vk_depth_image_view;
 	VkFormat vk_depth_image_format;
 
+	VkCommandPool mRenderCommandPool;
+
 	bool frame_buffer_resized_;
 	uint32_t image_index;
 	VkResult result_next_image;

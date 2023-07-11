@@ -489,6 +489,7 @@ void draw_timeline(
 			glm_vec3_copy(color_REDWOOD, lbl.slctd_clr);
 			glm_vec3_copy(color_REDWOOD, lbl.txt_clr);
 		}
+
 		if (ui_draw_button(lbl, rsrs->window))
 		{
 			*current_frame = i;

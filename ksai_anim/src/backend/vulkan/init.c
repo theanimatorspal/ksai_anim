@@ -465,6 +465,13 @@ void pick_physical_and_logical_devices(vk_rsrs *_rsrs, VkInstance instance)
 			}
 		}
 
+		vkCreateCommandPool(vk_logical_device_, &(VkCommandPoolCreateInfo) {
+			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+			.pNext = NULL,
+			.queueFamilyIndex = 0,
+			.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+		}, NULL, &_rsrs->mRenderCommandPool);
+
 
 		/* Create Depth Image View */
 		{

@@ -345,11 +345,17 @@ void destroy_offscreen(vk_rsrs *rsrs, renderer_backend *backend)
 }
 
 void recreate_offscreen(vk_rsrs *_rsrs, renderer_backend *backend)
-{
+{	
+	vkUnmapMemory(vk_logical_device_, backend->mspk.render_buffer_memory);
+	vkDestroyBuffer(vk_logical_device_, backend->mspk.render_buffer, NULL);
+	vkFreeMemory(vk_logical_device_, backend->mspk.render_buffer_memory, NULL);
+
+
 	vkUnmapMemory(vk_logical_device_, backend->mspk.bfr_mmry_);
 	vkDestroySampler(vk_logical_device_, backend->mspk.smplr_, NULL);
 	vkDestroyBuffer(vk_logical_device_, backend->mspk.bfr_, NULL);
 	vkFreeMemory(vk_logical_device_, backend->mspk.bfr_mmry_, NULL);
+
 
 	vkDestroyImage(vk_logical_device_, backend->mspk.img_clr_att_, NULL);
 	vkFreeMemory(vk_logical_device_, backend->mspk.img_mmry_clr_att_, NULL);
@@ -537,6 +543,15 @@ void recreate_offscreen(vk_rsrs *_rsrs, renderer_backend *backend)
 		vk_logical_device_
 	);
 	vkMapMemory(vk_logical_device_, backend->mspk.bfr_mmry_, 0, siz_e, 0, &backend->mspk.data_);
+
+	create_buffer_util(siz_e,
+		VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+		&backend->mspk.render_buffer,
+		&backend->mspk.render_buffer_memory,
+		vk_logical_device_
+	);
+	vkMapMemory(vk_logical_device_, backend->mspk.render_buffer_memory, 0, siz_e, 0, &backend->mspk.render_buffer_data);
 
 }
 

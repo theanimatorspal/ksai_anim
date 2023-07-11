@@ -692,6 +692,8 @@ KSAI_API void copy_scene_to_backend_reload(vk_rsrs *rsrs, kie_Scene *scene, rend
 
 KSAI_API void destroy_renderer_backend(vk_rsrs *rsrs, renderer_backend *backend)
 {
+	vkDeviceWaitIdle(vk_logical_device_);
+	vkDestroyCommandPool(vk_logical_device_, rsrs->mRenderCommandPool, NULL);
 	for (int i = 0; i < backend->obj_images_count; i++)
 	{
 		vkDestroyImageView(vk_logical_device_, backend->obj_image_views[i], NULL);

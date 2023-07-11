@@ -656,15 +656,8 @@ void threeD_viewport_render_to_image(
 	int pipe_id
 )
 {
-	VkCommandPool temporary_pool;
-	vkCreateCommandPool(vk_logical_device_, &(VkCommandPoolCreateInfo) {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-		.pNext = NULL,
-		.queueFamilyIndex = 0,
-		.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
-	}, NULL, &temporary_pool);
 
-	VkCommandBuffer cmd_buffer = begin_single_time_commands_util(temporary_pool);
+	VkCommandBuffer cmd_buffer = begin_single_time_commands_util(rsrs->mRenderCommandPool);
 
 	kie_Camera *cur_camera = NULL;
 	int id = -1;
@@ -791,8 +784,6 @@ void threeD_viewport_render_to_image(
 		arr
 	);
 
-	vkDeviceWaitIdle(vk_logical_device_);
-	vkDestroyCommandPool(vk_logical_device_, temporary_pool, NULL);
 }
 
 void threeD_viewport_draw_buf(
