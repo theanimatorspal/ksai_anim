@@ -65,19 +65,14 @@ float calc_point_light(float light_intensity, vec3 light_position, vec3 frag_pos
 
 void main()
 {
-
 	/* Diffuse */
 	float diffuse = 0;
 	vec3 normal_vector = normalize(vert_normal);
 
-
-	diffuse += calc_point_light(ubo.lint0, ubo.light0, vert_position, normal_vector);
-	diffuse += calc_point_light(ubo.lint1, ubo.light1, vert_position, normal_vector);
-	diffuse += calc_point_light(ubo.lint2, ubo.light2, vert_position, normal_vector);
-	diffuse += calc_point_light(ubo.lint3, ubo.light3, vert_position, normal_vector);
-
+	diffuse += calc_point_light(1.5, vec3( 4, 4, 4), vert_position, normal_vector);
+	diffuse += calc_point_light(1.5, vec3( -4, 4, -4), vert_position, normal_vector);
 	
-	out_color = (texture(texSampler, vert_texcoord) * ubo.v2.z + 1 ) * diffuse;
+	out_color = (texture(texSampler, vert_texcoord)) * diffuse;
 	out_color.r += 0.5 * ubo.v2.x;
 	//out_color.a += 0.5 * ubo.v2.x + 0.8;
 	out_color.a = 1;

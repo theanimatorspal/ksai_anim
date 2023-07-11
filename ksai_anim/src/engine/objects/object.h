@@ -56,6 +56,9 @@ typedef struct kie_Object
 	kie_Camera camera;
 	kie_Frame *frames;
 	uint32_t curr_frame;
+
+	/* For the renderers */
+	float line_thickness;
 } kie_Object;
 
 

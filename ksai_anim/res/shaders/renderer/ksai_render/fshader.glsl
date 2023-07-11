@@ -43,6 +43,7 @@ layout(binding = 0) uniform uniform_buffer_object
 	mat4			view;
 	mat4			proj;
 	vec3			view_dir;
+	float			line_thickness;
 } ubo;
 
 
@@ -80,17 +81,13 @@ void main()
 	
 	out_color = (texture(texSampler, vert_texcoord) + 1 ) * diffuse;
 
-	float threshold = 0.3;
-	bool under_light = dot(light_direction0, normal_vector) > 0.3 || 
-					dot(light_direction1, normal_vector) > 0.3 ||
-					dot(light_direction2, normal_vector) > 0.3 || 
-					dot(light_direction3, normal_vector) > 0.3 ||
-					dot(light_direction4, normal_vector) > 0.3 ;
+	float threshold = ubo.line_thickness;
+	bool under_light = dot(ubo.view_dir, normal_vector) > threshold; 
 
 	if(under_light) {
-		out_color *= vec4(0.1);
+
 	} else {
-		out_color *= vec4(0.0);
+		out_color *= vec4(0.1);
 	}
 	out_color.a = 1;
 }

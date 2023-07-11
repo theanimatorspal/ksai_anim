@@ -201,6 +201,21 @@ void end_single_time_commands_util(
 	vkQueueSubmit(_vk_graphics_queue, 1, &submit_info, VK_NULL_HANDLE);
 }
 
+void end_single_time_commands_util_queue_wait(
+	VkCommandBuffer *command_buffer,
+	VkQueue _vk_graphics_queue
+)
+{
+	vkEndCommandBuffer(*command_buffer);
+
+	VkSubmitInfo submit_info = { 0 };
+	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.commandBufferCount = 1;
+	submit_info.pCommandBuffers = command_buffer;
+
+	vkQueueSubmit(_vk_graphics_queue, 1, &submit_info, VK_NULL_HANDLE);
+}
+
 void transition_image_layout_util(
 	VkImage image,
 	VkFormat format,

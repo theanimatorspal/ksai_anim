@@ -52,6 +52,10 @@ typedef struct renderer_backend
 		VkDeviceMemory bfr_mmry_;
 		void *data_;
 
+		VkBuffer render_buffer;  /* MOUSEPICK BUFFER*/
+		VkDeviceMemory render_buffer_memory;
+		void *render_buffer_data;
+
 		VkImage img_clr_att_; /* COLOR ATTACHMENT */
 		VkDeviceMemory img_mmry_clr_att_;
 		VkImageView img_vw_clr_att_;

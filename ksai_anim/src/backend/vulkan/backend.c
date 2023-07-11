@@ -204,7 +204,6 @@ KSAI_API void initialize_renderer_backend(vk_rsrs *rsrs, renderer_backend *backe
 		);
 
 
-
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			size = sizeof(uniforms) * KSAI_MESH_UNIFORM_MEM;

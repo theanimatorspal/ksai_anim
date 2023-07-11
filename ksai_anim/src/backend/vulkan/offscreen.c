@@ -170,6 +170,7 @@ void prepare_offscreen(vk_rsrs *_rsrs, renderer_backend *backend)
 	backend->mspk.dscrptr_.sampler = backend->mspk.smplr_;
 
 	VkDeviceSize siz_e = (uint64_t) _rsrs->vk_swap_chain_image_extent_2d_.width * _rsrs->vk_swap_chain_image_extent_2d_.height * 4;
+
 	create_buffer_util(siz_e,
 		VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
 		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
@@ -178,6 +179,16 @@ void prepare_offscreen(vk_rsrs *_rsrs, renderer_backend *backend)
 		vk_logical_device_
 	);
 	vkMapMemory(vk_logical_device_, backend->mspk.bfr_mmry_, 0, siz_e, 0, &backend->mspk.data_);
+
+	create_buffer_util(siz_e,
+		VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+		&backend->mspk.render_buffer,
+		&backend->mspk.render_buffer_memory,
+		vk_logical_device_
+	);
+	vkMapMemory(vk_logical_device_, backend->mspk.render_buffer_memory, 0, siz_e, 0, &backend->mspk.render_buffer_data);
+
 
 	VkDescriptorSetLayoutBinding ubo_layout_binding = { 0 };
 	ubo_layout_binding = (VkDescriptorSetLayoutBinding){
@@ -310,6 +321,10 @@ void prepare_offscreen(vk_rsrs *_rsrs, renderer_backend *backend)
 void destroy_offscreen(vk_rsrs *rsrs, renderer_backend *backend)
 {
 	pipeline_vk_destroy3(&backend->constant_color);
+
+	vkUnmapMemory(vk_logical_device_, backend->mspk.render_buffer_memory);
+	vkDestroyBuffer(vk_logical_device_, backend->mspk.render_buffer, NULL);
+	vkFreeMemory(vk_logical_device_, backend->mspk.render_buffer_memory, NULL);
 
 	vkUnmapMemory(vk_logical_device_, backend->mspk.bfr_mmry_);
 	vkDestroySampler(vk_logical_device_, backend->mspk.smplr_, NULL);

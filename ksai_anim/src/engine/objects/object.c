@@ -26,6 +26,7 @@ void kie_Object_init(kie_Object *out_obj)
 	out_obj->is_camera = false;
 	out_obj->frames = (kie_Frame *)ksai_Arena_allocate(sizeof(kie_Frame) * KSAI_MAX_NO_OF_KEYFRAMES, &global_object_arena);
 	out_obj->curr_frame = 0;
+	out_obj->line_thickness = 0.3;
 }
 
 void kie_Camera_init(kie_Camera *out_cam)
@@ -245,7 +246,7 @@ void kie_Frame_delete(kie_Object *object, uint32_t frame_time)
 	{
 		if (object->frames[i].frame_time == frame_time)
 		{
-			memmove_s(object->frames + i, (size_t)(object->curr_frame - i - 1) * sizeof(kie_Frame), object->frames + i + 1, sizeof(kie_Frame) * (size_t)(object->curr_frame - i - 1));
+			memmove_s(object->frames + i, sizeof(kie_Frame), object->frames + i + 1, sizeof(kie_Frame) * (object->curr_frame - i - 1));
 		}
 	}
 	object->curr_frame--;

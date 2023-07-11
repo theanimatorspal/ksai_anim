@@ -580,7 +580,30 @@ void threeD_viewport_update(
 			glm_mat4_copy(projection, uni.proj);
 		}
 
-		glm_vec3_copy(camera->direction, uni.view_dir);
+		mat4 camera_matrix;
+		glm_mat4_identity(camera_matrix);
+		glm_rotate(camera_matrix, -camera->rotation[1], (vec3) {0, 1, 0});
+		vec4 view_direction;
+		glm_vec3_copy(
+			(vec4) {
+			camera->direction[0],
+			camera->direction[1],
+			camera->direction[2],
+			1.0f
+			},
+			view_direction
+		);
+		glm_mat4_mulv(camera_matrix, view_direction, view_direction);
+		glm_vec3_copy(
+			(vec3) {
+			view_direction[0],
+			view_direction[1],
+			view_direction[2] 
+			}, 
+			uni.view_dir
+		);
+
+		uni.line_thickness = cur_object->line_thickness;
 
 		if (i == selected_object_index)
 		{
@@ -633,7 +656,15 @@ void threeD_viewport_render_to_image(
 	int pipe_id
 )
 {
-	VkCommandBuffer cmd_buffer = begin_single_time_commands_util(vk_command_pool_);
+	VkCommandPool temporary_pool;
+	vkCreateCommandPool(vk_logical_device_, &(VkCommandPoolCreateInfo) {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+		.pNext = NULL,
+		.queueFamilyIndex = 0,
+		.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+	}, NULL, &temporary_pool);
+
+	VkCommandBuffer cmd_buffer = begin_single_time_commands_util(temporary_pool);
 
 	kie_Camera *cur_camera = NULL;
 	int id = -1;
@@ -712,7 +743,7 @@ void threeD_viewport_render_to_image(
 		cmd_buffer,
 		backend->mspk.img_clr_att_,
 		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-		backend->mspk.bfr_,
+		backend->mspk.render_buffer,
 		1,
 		&regions
 	);
@@ -749,8 +780,9 @@ void threeD_viewport_render_to_image(
 	);
 
 	end_single_time_commands_util(&cmd_buffer, rsrs->vk_graphics_queue_);
+	vkQueueWaitIdle(rsrs->vk_graphics_queue_);
 
-	uint8_t *arr = (uint8_t *) backend->mspk.data_;
+	uint8_t *arr = (uint8_t *) backend->mspk.render_buffer_data;
 	stbi_write_bmp(
 		file,
 		rsrs->vk_swap_chain_image_extent_2d_.width,
@@ -759,6 +791,8 @@ void threeD_viewport_render_to_image(
 		arr
 	);
 
+	vkDeviceWaitIdle(vk_logical_device_);
+	vkDestroyCommandPool(vk_logical_device_, temporary_pool, NULL);
 }
 
 void threeD_viewport_draw_buf(

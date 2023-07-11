@@ -50,6 +50,7 @@ typedef struct uniforms
 	alignas(16) mat4			proj;
 
 	alignas(16) vec3 			view_dir;
+	alignas(4) float			line_thickness;
 } uniforms;
 
 typedef enum mem_operations
