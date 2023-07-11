@@ -17,7 +17,7 @@ int draw_selector_integer(int smallest, int highest, float aspect, vec2 pos, vk_
 int draw_selector_var(int *selected, float aspect, vec2 pos, vk_rsrs *rsrs, float row, int args, ...);
 int draw_input_number(float aspect, vec2 pos, vk_rsrs *rsrs, float row, char out[KSAI_SMALL_STRING_LENGTH], bool *should_input, int *place_value);
 ivec2s draw_file_menu(char ch[NO_OF_TOP_MENUS][NO_OF_POPUP_MENUS][KSAI_SMALL_STRING_LENGTH], int tmenu_count, int popmenu_count[NO_OF_TOP_MENUS], float aspect, vk_rsrs *rsrs, int *running);
-void draw_timeline(float aspect, vk_rsrs *rsrs, int *current_frame, int *low_range, int *high_range, kie_Scene *scene, int current_selected);
+void draw_timeline(float aspect, vk_rsrs *rsrs, int *current_frame, int *low_range, int *high_range, kie_Scene *scene, int current_selected, int *current_animation_layer, int *keyframe_evaluation);
 
 
 void handle_file_menu(

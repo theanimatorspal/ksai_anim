@@ -514,10 +514,11 @@ int sdl_get_button_keyboard_number()
 		SDL_SCANCODE_8,
 		SDL_SCANCODE_9,
 		SDL_SCANCODE_BACKSPACE,
-		SDL_SCANCODE_PERIOD
+		SDL_SCANCODE_PERIOD,
+		SDL_SCANCODE_MINUS
 	};
 
-	for (int i = 0; i < 12; i++)
+	for (int i = 0; i < 13; i++)
 	{
 		if (KeyboardState[numbers[i]])
 		{

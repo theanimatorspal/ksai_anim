@@ -4,7 +4,9 @@
 #include "3d_viewport.h"
 #include <SDL2/SDL_thread.h>
 
-void evaluate_Keyframes(kie_Scene * scene, uint32_t frame_time);
+static void evaluate_Keyframes(kie_Scene * scene, uint32_t frame_time, int layer);
+static void evaluate_Keyframes_combined(kie_Scene *scene, uint32_t frame_time);
+static void kie_EvalKeyframes(kie_Scene *scene, uint32_t frame_time, int layer, int current_evaluation);
 
 static bool is_thread_about_to_exit = true;
 static bool is_thread_running()
@@ -36,7 +38,7 @@ static int thread_function(void *data)
 		*par->current_frame_timeline = i;
 		char file_Name[KSAI_SMALL_STRING_LENGTH] = "";
 		sprintf_s(file_Name, sizeof(char) * KSAI_SMALL_STRING_LENGTH, "%s%03d.png", "anim/frame", i);
-		evaluate_Keyframes(par->scene, *par->current_frame_timeline);
+		evaluate_Keyframes_combined(par->scene, *par->current_frame_timeline);
 		threeD_viewport_update(par->camera, par->scene, par->backend, par->rsrs->window, par->event, par->rsrs, *par->current_selected);
 		threeD_viewport_render_to_image(par->camera, par->scene, par->backend, par->rsrs->window, par->event, par->rsrs, *par->current_selected, file_Name, par->selected - 1, par->stuff);
 	}
@@ -673,8 +675,9 @@ void handle_file_menu(
 
 	if (timeline_window)
 	{
-
-		draw_timeline(aspect, rsrs, &current_frame_timeline, &range_low_timeline, &range_high_timeline, scene, *current_selected);
+		static int CurrentEvaluation = 0;
+		static int CurrentAnimationLayer = 1;
+		draw_timeline(aspect, rsrs, &current_frame_timeline, &range_low_timeline, &range_high_timeline, scene, *current_selected, &CurrentAnimationLayer, &CurrentEvaluation);
 
 		if (KeyboardState[SDL_SCANCODE_RIGHT])
 		{
@@ -682,7 +685,8 @@ void handle_file_menu(
 				current_frame_timeline++;
 			else
 				current_frame_timeline = range_low_timeline;
-			evaluate_Keyframes(scene, current_frame_timeline);
+
+			kie_EvalKeyframes(scene, current_frame_timeline, CurrentAnimationLayer, CurrentEvaluation);
 		}
 
 		if (KeyboardState[SDL_SCANCODE_LEFT])
@@ -691,41 +695,60 @@ void handle_file_menu(
 				current_frame_timeline--;
 			else
 				current_frame_timeline = range_high_timeline;
-			evaluate_Keyframes(scene, current_frame_timeline);
+			kie_EvalKeyframes(scene, current_frame_timeline, CurrentAnimationLayer, CurrentEvaluation);
 		}
 
 		if (KeyboardState[SDL_SCANCODE_S])
 		{
-			if (kie_Frame_has(&scene->objects[*current_selected], current_frame_timeline))
+			if (kie_Frame_has(&scene->objects[*current_selected], current_frame_timeline, CurrentAnimationLayer))
 			{
-				kie_Frame_delete(&scene->objects[*current_selected], current_frame_timeline);
-				kie_Frame_set(&scene->objects[*current_selected], current_frame_timeline);
+				kie_Frame_delete(&scene->objects[*current_selected], current_frame_timeline, CurrentAnimationLayer);
+				kie_Frame_set(&scene->objects[*current_selected], current_frame_timeline, CurrentAnimationLayer);
 			}
 			else
 			{
-				kie_Frame_set(&scene->objects[*current_selected], current_frame_timeline);
+				kie_Frame_set(&scene->objects[*current_selected], current_frame_timeline, CurrentAnimationLayer);
 			}
-			evaluate_Keyframes(scene, current_frame_timeline);
+			kie_EvalKeyframes(scene, current_frame_timeline, CurrentAnimationLayer, CurrentEvaluation);
 			memset(KeyboardState, 0, sizeof(Uint8) * Length);
 		}
 
 		if (KeyboardState[SDL_SCANCODE_X])
 		{
-			if (kie_Frame_has(&scene->objects[*current_selected], current_frame_timeline))
+			if (kie_Frame_has(&scene->objects[*current_selected], current_frame_timeline, CurrentAnimationLayer))
 			{
-				kie_Frame_delete(&scene->objects[*current_selected], current_frame_timeline);
+				kie_Frame_delete(&scene->objects[*current_selected], current_frame_timeline, CurrentAnimationLayer);
 			}
-			evaluate_Keyframes(scene, current_frame_timeline);
+			kie_EvalKeyframes(scene, current_frame_timeline, CurrentAnimationLayer, CurrentEvaluation);
 			memset(KeyboardState, 0, sizeof(Uint8) * Length);
 		}
 	}
 	move = false;
 }
 
-static void evaluate_Keyframes(kie_Scene *scene, uint32_t frame_time)
+static void kie_EvalKeyframes(kie_Scene *scene, uint32_t frame_time, int layer, int current_evaluation)
+{
+	if(current_evaluation == 0)
+		evaluate_Keyframes(scene, frame_time, layer);
+	else
+		evaluate_Keyframes_combined(scene, frame_time);
+}
+
+static void evaluate_Keyframes(kie_Scene *scene, uint32_t frame_time, int layer)
 {
 	for (int i = 4; i < scene->objects_count; i++)
 	{
-		kie_Frame_eval(&scene->objects[i], frame_time);
+		kie_Frame_eval(&scene->objects[i], frame_time, layer);
 	}
+}
+
+static void evaluate_Keyframes_combined(kie_Scene *scene, uint32_t frame_time)
+{
+	for (int i = 4; i < scene->objects_count; i++)
+	{
+		kie_Frame_eval(&scene->objects[i], frame_time, 1);
+		kie_Frame_eval_additive(&scene->objects[i], frame_time, 2);
+		kie_Frame_eval_additive(&scene->objects[i], frame_time, 3);
+	}
+
 }

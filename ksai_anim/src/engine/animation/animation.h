@@ -35,5 +35,12 @@ typedef struct kie_Frame
         QUADRATIC,
         CUBIC
     } type;
+    enum layer
+    {
+        LAYER_ZERO,
+        LAYER_ONE,
+        LAYER_TWO,
+        LAYER_THREE,
+    } layer;
 } kie_Frame;
 

@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	);
 
 	initialize_backend(&resources, &instance);
-	ui_init(1000, &resources);
+	ui_init(1500, &resources);
 	renderer_backend backend_renderer;
 	initialize_renderer_backend(&resources, &backend_renderer);
 
@@ -100,7 +100,6 @@ int main(int argc, char *argv[])
 	{
 		SDL_Event window_event;
 		SDL_WaitEvent(&window_event);
-		//SDL_WaitEventTimeout(&window_event, 100);
 
 		static int width, height;
 		SDL_GetWindowSize(resources.window, &width, &height);
