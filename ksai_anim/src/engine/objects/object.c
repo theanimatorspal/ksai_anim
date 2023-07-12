@@ -273,6 +273,14 @@ void kie_Frame_set(kie_Object *object, uint32_t frame_time, int current_animatio
 	kie_FramesSortByLayersAndFrameTime(object);
 }
 
+void kie_SetKeyframeWithAKeyframe(kie_Object *object, kie_Frame frame)
+{
+	object->frames[object->curr_frame] = frame;
+	object->curr_frame++;
+	kie_FramesSortByLayersAndFrameTime(object);
+}
+
+
 void kie_Frame_delete(kie_Object *object, uint32_t frame_time, int animation_layer)
 {
 	for (int i = 0; i < object->curr_frame; i++)

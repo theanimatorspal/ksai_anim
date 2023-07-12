@@ -89,3 +89,5 @@ void kie_Frame_eval_additive(kie_Object *object, uint32_t frame_time, int layer)
 bool kie_Frame_has(kie_Object *object, uint32_t frame_time, int layer);
 
 void kie_Frame_delete(kie_Object *object, uint32_t frame_time, int animation_layer);
+
+void kie_SetKeyframeWithAKeyframe(kie_Object *object, kie_Frame frame);

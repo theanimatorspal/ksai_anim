@@ -446,10 +446,10 @@ void draw_timeline(
 		.scale = {TOP_MENU_SCALEX, 0.2 * aspect},
 		.st_typ = lbl_st_UNSELECTED,
 		.text = "MENU BAR"};
-	glm_vec3_copy(MENU_BAR_COLOR, lbl.hvrd_clr);
-	glm_vec3_copy(MENU_BAR_COLOR, lbl.nrml_clr);
-	glm_vec3_copy(MENU_BAR_COLOR, lbl.slctd_clr);
-	glm_vec3_copy(MENU_BAR_COLOR, lbl.txt_clr);
+	glm_vec3_copy(MENU_HOVER_COLOR, lbl.hvrd_clr);
+	glm_vec3_copy(MENU_HOVER_COLOR, lbl.nrml_clr);
+	glm_vec3_copy(MENU_HOVER_COLOR, lbl.slctd_clr);
+	glm_vec3_copy(MENU_HOVER_COLOR, lbl.txt_clr);
 	ui_draw_button(lbl, rsrs->window);
 
 	sprintf(lbl.text, "|");
@@ -493,11 +493,12 @@ void draw_timeline(
 	float PreviousScaleY = lbl.scale[1];
 	float PreviousPosY = lbl.ps[1];
 	float PreviousScaleX = lbl.scale[0];
+
+	lbl.scale[0] *= 0.90f;
 	for (int i = *low_range; i <= *high_range; i++)
 	{
 		lbl.ps[0] = -1 + scalex * j;
 		lbl.scale[1] = 0.01f;
-		lbl.scale[0] *= 0.95f;
 
 		if (kie_Frame_has(&scene->objects[current_selected], i, 1))
 		{
@@ -560,7 +561,35 @@ void draw_timeline(
 	draw_selector_integer(1, 4, aspect, (vec2){ii * paddx, jj * paddy}, rsrs, 0, current_animation_layer);
 
 	ii += 25;
-	draw_label_window("KeyEvaluation", (vec2){ii * paddx, jj * paddy}, rsrs, aspect, 0);
+	draw_label_window("KeyEvaluation:", (vec2){ii * paddx, jj * paddy}, rsrs, aspect, 0);
 	ii += 25;
 	draw_selector_var(keyframe_evaluation, aspect, (vec2){ii * paddx, jj * paddy}, rsrs, 0, 2, "Override", "Additive");
+	ii += 20;
+	draw_selector_var(keyframe_evaluation, aspect, (vec2){ii * paddx, jj * paddy}, rsrs, 0, 2, "Linear", "Expont");
+	ii += 20;
+	static kie_Frame CopiedKeyFrame = {0};
+	if(draw_button_window("Copy Key", (vec2) {ii * paddx, jj * paddy}, rsrs, aspect, 0))
+	{
+		if(kie_Frame_has(&scene->objects[current_selected], *current_frame, *current_animation_layer))	
+		{
+			for(int i = 0; i < scene->objects[current_selected].curr_frame; i++)
+			{
+				kie_Frame *CurrentFrame = &scene->objects[current_selected].frames[i];
+				if(CurrentFrame->frame_time == *current_frame && CurrentFrame->layer == *current_animation_layer)
+				{
+					CopiedKeyFrame = *CurrentFrame;
+					break;
+				}
+			}
+		}
+	}
+	jj += 5;
+	if(draw_button_window("Paste Key", (vec2) {ii * paddx, jj * paddy}, rsrs, aspect, 0))
+	{
+		if(CopiedKeyFrame.frame_time)
+		{
+			CopiedKeyFrame.frame_time = *current_frame;
+			kie_SetKeyframeWithAKeyframe(&scene->objects[current_selected], CopiedKeyFrame);
+		}
+	}
 }
