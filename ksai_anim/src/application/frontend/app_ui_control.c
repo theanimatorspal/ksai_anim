@@ -747,6 +747,16 @@ void handle_file_menu(
 			kie_EvalKeyframes(scene, current_frame_timeline, CurrentAnimationLayer, CurrentEvaluation);
 			memset(KeyboardState, 0, sizeof(Uint8) * Length);
 		}
+
+		if(current_frame_timeline < range_low_timeline)
+		{
+			current_frame_timeline = range_low_timeline;
+		}
+		if(current_frame_timeline > range_high_timeline)
+		{
+			current_frame_timeline = range_high_timeline;
+		}
+
 	}
 	move = false;
 }
