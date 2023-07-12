@@ -541,20 +541,13 @@ void threeD_viewport_update(
 			glm_normalize(cur_camera->direction);
 			glm_cross(cur_camera->up, cur_camera->direction, cur_camera->right);
 			glm_cross(cur_camera->direction, cur_camera->right, cur_camera->up);
-			glm_normalize(cur_camera->right);
-
 			glm_normalize(dir);
-			glm_lookat(cur_camera->position, cur_camera->target, cur_camera->up, cur_camera->view);
+			glm_lookat(cur_camera->position, cur_camera->target, (vec3) {0, 1, 0}, cur_camera->view);
 
-			//glm_rotate_at(cur_camera->view, cur_camera->pivot, cur_camera->rotation[0], (vec3) { 1, 0, 0 });
-			//glm_rotate_at(cur_camera->view, cur_camera->pivot, cur_camera->rotation[1], (vec3) { 0, 1, 0 });
-			//glm_rotate_at(cur_camera->view, cur_camera->pivot, cur_camera->rotation[2], (vec3) { 0, 0, 1 });
 			glm_vec3_copy(cur_camera->rotation, scene->objects[i].rotation);
-
-			glm_lookat(cur_camera->position, cur_camera->target, (vec3) { 0, 1, 0 }, model);
-
+			glm_lookat(cur_camera->position, cur_camera->target, (vec3) {0, 1, 0}, model);
 			glm_mat4_inv(model, model);
-			//glm_translate(model, (vec3) { cur_object->position[0], cur_object->position[1], cur_object->position[2] });
+
 			glm_scale(model, scene->objects[i].scale);
 			kie_generate_mvp(projection, camera, model, mvp);
 			glm_mat4_copy(mvp, backend->checker_pipeline.pconstant.mvp);
@@ -578,6 +571,7 @@ void threeD_viewport_update(
 			glm_mat4_copy(projection, uni.proj);
 		}
 
+		/* This is For Line View */
 		mat4 camera_matrix;
 		glm_mat4_identity(camera_matrix);
 		glm_rotate(camera_matrix, -camera->rotation[1], (vec3) {0, 1, 0});

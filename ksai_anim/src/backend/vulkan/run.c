@@ -81,7 +81,6 @@ void run_main(vk_rsrs *_rsrs)
 	static int current_frame_xt = 0;
 	vkWaitForFences( vk_logical_device_, 1, &_rsrs->vk_inflight_fences_[current_frame_xt], VK_TRUE, UINT64_MAX);
 
-
 	/* Acquiring an image from the swap chain */
 	uint32_t image_index;
 	VkResult result_next_image;
