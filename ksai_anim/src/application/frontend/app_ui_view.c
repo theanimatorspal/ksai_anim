@@ -438,8 +438,7 @@ void draw_timeline(
 	kie_Scene *scene,
 	int current_selected,
 	int *current_animation_layer,
-	int *keyframe_evaluation
-)
+	int *keyframe_evaluation)
 {
 	ui_label lbl = (ui_label){
 		.typ = BUTTON,
@@ -467,10 +466,10 @@ void draw_timeline(
 	{
 		if (i == *current_frame)
 		{
-			glm_vec3_copy(color_BLUE, lbl.hvrd_clr);
-			glm_vec3_copy(color_BLUE, lbl.nrml_clr);
-			glm_vec3_copy(color_BLUE, lbl.slctd_clr);
-			glm_vec3_copy(color_BLUE, lbl.txt_clr);
+			glm_vec3_copy(color_WARMBLACK, lbl.hvrd_clr);
+			glm_vec3_copy(color_WARMBLACK, lbl.nrml_clr);
+			glm_vec3_copy(color_WARMBLACK, lbl.slctd_clr);
+			glm_vec3_copy(color_WARMBLACK, lbl.txt_clr);
 		}
 		else
 		{
@@ -482,13 +481,6 @@ void draw_timeline(
 
 		glm_vec3_copy((vec3){scalex * 7, 0.2 / (float)4 * aspect, 0}, lbl.scale);
 		lbl.ps[0] = -1 + scalex * j;
-		if (kie_Frame_has(&scene->objects[current_selected], i, *current_animation_layer))
-		{
-			glm_vec3_copy(color_DARKCERULEAN, lbl.hvrd_clr);
-			glm_vec3_copy(color_REDWOOD, lbl.nrml_clr);
-			glm_vec3_copy(color_REDWOOD, lbl.slctd_clr);
-			glm_vec3_copy(color_REDWOOD, lbl.txt_clr);
-		}
 
 		if (ui_draw_button(lbl, rsrs->window))
 		{
@@ -496,6 +488,55 @@ void draw_timeline(
 		}
 		j++;
 	}
+
+	j = 1;
+	float PreviousScaleY = lbl.scale[1];
+	float PreviousPosY = lbl.ps[1];
+	float PreviousScaleX = lbl.scale[0];
+	for (int i = *low_range; i <= *high_range; i++)
+	{
+		lbl.ps[0] = -1 + scalex * j;
+		lbl.scale[1] = 0.01f;
+		lbl.scale[0] *= 0.95f;
+
+		if (kie_Frame_has(&scene->objects[current_selected], i, 1))
+		{
+			lbl.ps[1] = 0.99f;
+			glm_vec3_copy(color_DARKCERULEAN, lbl.hvrd_clr);
+			glm_vec3_copy(color_RED_VIOLET, lbl.nrml_clr);
+			glm_vec3_copy(color_RED_VIOLET, lbl.slctd_clr);
+			glm_vec3_copy(color_RED_VIOLET, lbl.txt_clr);
+
+			ui_draw_button(lbl, rsrs->window);
+		}
+
+		if (kie_Frame_has(&scene->objects[current_selected], i, 2))
+		{
+			lbl.ps[1] = 0.965f;
+			glm_vec3_copy(color_DARKCERULEAN, lbl.hvrd_clr);
+			glm_vec3_copy(color_RED_VIOLET, lbl.nrml_clr);
+			glm_vec3_copy(color_RED_VIOLET, lbl.slctd_clr);
+			glm_vec3_copy(color_RED_VIOLET, lbl.txt_clr);
+
+			ui_draw_button(lbl, rsrs->window);
+		}
+
+		if (kie_Frame_has(&scene->objects[current_selected], i, 3))
+		{
+			lbl.ps[1] = 0.94f;
+			glm_vec3_copy(color_DARKCERULEAN, lbl.hvrd_clr);
+			glm_vec3_copy(color_RED_VIOLET, lbl.nrml_clr);
+			glm_vec3_copy(color_RED_VIOLET, lbl.slctd_clr);
+			glm_vec3_copy(color_RED_VIOLET, lbl.txt_clr);
+
+			ui_draw_button(lbl, rsrs->window);
+		}
+		j++;
+	}
+
+	lbl.scale[1] = PreviousScaleY;
+	lbl.ps[1] = PreviousPosY;
+	lbl.scale[0] = PreviousScaleX;
 
 	lbl.ps[0] = -1 + scalex * (*current_frame);
 	lbl.ps[1] *= 0.9f;
@@ -521,32 +562,5 @@ void draw_timeline(
 	ii += 25;
 	draw_label_window("KeyEvaluation", (vec2){ii * paddx, jj * paddy}, rsrs, aspect, 0);
 	ii += 25;
-	draw_selector_var(keyframe_evaluation, aspect, (vec2){ii * paddx, jj * paddy}, rsrs, 0, 2, "Override", "Combine");
-
-
-	for (int i = *low_range; i <= *high_range; i++)
-	{
-		glm_vec3_copy((vec3){scalex * 7, 0.2 / (float)4 * aspect, 0}, lbl.scale);
-		lbl.ps[0] = -1 + scalex * j;
-		if (kie_Frame_has(&scene->objects[current_selected], i, *current_animation_layer))
-		{
-			glm_vec3_copy(color_DARKCERULEAN, lbl.hvrd_clr);
-			glm_vec3_copy(color_REDWOOD, lbl.nrml_clr);
-			glm_vec3_copy(color_REDWOOD, lbl.slctd_clr);
-			glm_vec3_copy(color_REDWOOD, lbl.txt_clr);
-		}
-
-		if (ui_draw_button(lbl, rsrs->window))
-		{
-			*current_frame = i;
-		}
-		j++;
-	}
-
-
-
-
-
-
-
+	draw_selector_var(keyframe_evaluation, aspect, (vec2){ii * paddx, jj * paddy}, rsrs, 0, 2, "Override", "Additive");
 }

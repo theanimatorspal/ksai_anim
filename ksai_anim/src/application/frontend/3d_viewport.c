@@ -546,9 +546,9 @@ void threeD_viewport_update(
 			glm_normalize(dir);
 			glm_lookat(cur_camera->position, cur_camera->target, cur_camera->up, cur_camera->view);
 
-			glm_rotate_at(cur_camera->view, cur_camera->pivot, cur_camera->rotation[0], (vec3) { 1, 0, 0 });
-			glm_rotate_at(cur_camera->view, cur_camera->pivot, cur_camera->rotation[1], (vec3) { 0, 1, 0 });
-			glm_rotate_at(cur_camera->view, cur_camera->pivot, cur_camera->rotation[2], (vec3) { 0, 0, 1 });
+			//glm_rotate_at(cur_camera->view, cur_camera->pivot, cur_camera->rotation[0], (vec3) { 1, 0, 0 });
+			//glm_rotate_at(cur_camera->view, cur_camera->pivot, cur_camera->rotation[1], (vec3) { 0, 1, 0 });
+			//glm_rotate_at(cur_camera->view, cur_camera->pivot, cur_camera->rotation[2], (vec3) { 0, 0, 1 });
 			glm_vec3_copy(cur_camera->rotation, scene->objects[i].rotation);
 
 			glm_lookat(cur_camera->position, cur_camera->target, (vec3) { 0, 1, 0 }, model);
