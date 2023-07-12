@@ -313,6 +313,7 @@ void pick_physical_and_logical_devices(vk_rsrs *_rsrs, VkInstance instance)
 				}
 			vkGetDeviceQueue(vk_logical_device_, indices_xt.graphics_family, 0, &_rsrs->vk_graphics_queue_);
 			vkGetDeviceQueue(vk_logical_device_, indices_xt.present_family, 0, &_rsrs->vk_present_queue_);
+			vkGetDeviceQueue(vk_logical_device_, indices_xt.graphics_family, 0, &_rsrs->vk_compute_queue_);
 		}
 
 		phy_and_log_dev_cr = true;
@@ -468,7 +469,7 @@ void pick_physical_and_logical_devices(vk_rsrs *_rsrs, VkInstance instance)
 		vkCreateCommandPool(vk_logical_device_, &(VkCommandPoolCreateInfo) {
 			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
 			.pNext = NULL,
-			.queueFamilyIndex = 0,
+			.queueFamilyIndex = indices_xt.graphics_family,
 			.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
 		}, NULL, &_rsrs->mRenderCommandPool);
 

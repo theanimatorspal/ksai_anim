@@ -449,8 +449,6 @@ void threeD_viewport_events(
 	glm_rotate_at(camera->view, camera->pivot, camera->rotation[0], (vec3) { 1, 0, 0 });
 	glm_rotate_at(camera->view, camera->pivot, camera->rotation[1], (vec3) { 0, 1, 0 });
 	glm_rotate_at(camera->view, camera->pivot, camera->rotation[2], (vec3) { 0, 0, 1 });
-
-
 }
 
 void threeD_viewport_update(
@@ -772,18 +770,18 @@ void threeD_viewport_render_to_image(
 		&barrirer
 	);
 
-	end_single_time_commands_util(&cmd_buffer, rsrs->vk_graphics_queue_);
-	vkQueueWaitIdle(rsrs->vk_graphics_queue_);
+	end_single_time_commands_util(&cmd_buffer, rsrs->vk_compute_queue_);
+	vkQueueWaitIdle(rsrs->vk_compute_queue_);
 
 	uint8_t *arr = (uint8_t *) backend->mspk.render_buffer_data;
-	stbi_write_bmp(
+	stbi_write_png(
 		file,
 		rsrs->vk_swap_chain_image_extent_2d_.width,
 		rsrs->vk_swap_chain_image_extent_2d_.height,
 		4,
-		arr
+		arr,
+		0
 	);
-
 }
 
 void threeD_viewport_draw_buf(

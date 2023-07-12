@@ -231,7 +231,7 @@ void handle_file_menu(
 		int ii = 2;
 		float padd = 0.7;
 		static vec2 debug_window_pos = {0.83, -0.87};
-		draw_window("World    ", 11, debug_window_pos, aspect, rsrs, event, &move);
+		draw_window("World    ", 20, debug_window_pos, aspect, rsrs, event, &move);
 
 		char log[KSAI_SMALL_STRING_LENGTH];
 		sprintf_s(log, sizeof(char) * 100, "Object Count:%d", scene->objects_count);
@@ -279,6 +279,23 @@ void handle_file_menu(
 		if (should_mode)
 		{
 			move = false;
+		}
+
+		if(draw_button_window("ZfillScl", debug_window_pos, rsrs, aspect, ii++ * padd))
+		{
+			glm_vec3_copy((vec3) {0.0f, 0.0f, 0.0f}, scene->objects[*current_selected].scale);
+		}
+		if(draw_button_window("ZfillPos", debug_window_pos, rsrs, aspect, ii++ * padd))
+		{
+			glm_vec3_copy((vec3) {0.0f, 0.0f, 0.0f}, scene->objects[*current_selected].position);
+		}
+		if(draw_button_window("ZfillRot", debug_window_pos, rsrs, aspect, ii++ * padd))
+		{
+			glm_vec3_copy((vec3) {0.0f, 0.0f, 0.0f}, scene->objects[*current_selected].rotation);
+		}
+		if(draw_button_window("FrameObject", debug_window_pos, rsrs, aspect, ii++ * padd))
+		{
+			glm_vec3_copy(scene->objects[*current_selected].position, camera->target);
 		}
 	}
 

@@ -522,4 +522,31 @@ void draw_timeline(
 	draw_label_window("KeyEvaluation", (vec2){ii * paddx, jj * paddy}, rsrs, aspect, 0);
 	ii += 25;
 	draw_selector_var(keyframe_evaluation, aspect, (vec2){ii * paddx, jj * paddy}, rsrs, 0, 2, "Override", "Combine");
+
+
+	for (int i = *low_range; i <= *high_range; i++)
+	{
+		glm_vec3_copy((vec3){scalex * 7, 0.2 / (float)4 * aspect, 0}, lbl.scale);
+		lbl.ps[0] = -1 + scalex * j;
+		if (kie_Frame_has(&scene->objects[current_selected], i, *current_animation_layer))
+		{
+			glm_vec3_copy(color_DARKCERULEAN, lbl.hvrd_clr);
+			glm_vec3_copy(color_REDWOOD, lbl.nrml_clr);
+			glm_vec3_copy(color_REDWOOD, lbl.slctd_clr);
+			glm_vec3_copy(color_REDWOOD, lbl.txt_clr);
+		}
+
+		if (ui_draw_button(lbl, rsrs->window))
+		{
+			*current_frame = i;
+		}
+		j++;
+	}
+
+
+
+
+
+
+
 }

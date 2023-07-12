@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 		SDL_WINDOWPOS_UNDEFINED,
 		1920 * 0.6,
 		1080 * 0.6,
-		SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE
+		SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_MAXIMIZED
 	);
 
 	initialize_backend(&resources, &instance);
