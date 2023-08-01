@@ -181,6 +181,7 @@
     <ClCompile Include="src\backend\vulkan\run.c" />
     <ClCompile Include="src\backend\vulkan\sync.c" />
     <ClCompile Include="src\backend\vulkan\utils.c" />
+    <ClCompile Include="src\backend\vulkan\VulkanPipelines.cpp" />
     <ClCompile Include="src\engine\animation\anmation.c" />
     <ClCompile Include="src\engine\objects\object.c" />
     <ClCompile Include="src\engine\renderer\checker.c" />
