@@ -88,15 +88,14 @@ extern "C" void PrepareForShadows(const vk_rsrs * rsrs, renderer_backend * inBac
             100.0f);
     inBackend->mShadow.mRenderPass = CreateShadowMapRenderPass(Device);
 
-    vk::FramebufferCreateInfo FrameBufferCreateInfo = vk::FramebufferCreateInfo(
-        vk::FramebufferCreateFlags(),
-        inBackend->mShadow.mRenderPass,
-        1,
-        inBackend->mShadow.mView,
-        rsrs->vk_swap_chain_image_extent_2d_.width,
-        rsrs->vk_swap_chain_image_extent_2d_.height,
-        1
-    );
+    std::array<vk::ImageView, 1> ShadowAttachment = { inBackend->mShadow.mView };
+    vk::FramebufferCreateInfo FrameBufferCreateInfo = vk::FramebufferCreateInfo()
+        .setRenderPass(inBackend->mShadow.mRenderPass)
+        .setAttachmentCount(1)
+        .setAttachments(ShadowAttachment)
+        .setWidth(rsrs->vk_swap_chain_image_extent_2d_.width)
+        .setHeight(rsrs->vk_swap_chain_image_extent_2d_.height)
+        .setLayers(1);
 
     inBackend->mShadow.mFrameBuffer = Device.createFramebuffer(FrameBufferCreateInfo);
 }
