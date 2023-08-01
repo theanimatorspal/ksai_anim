@@ -10,6 +10,7 @@ typedef struct renderer_backend
 	pipeline_vk checker_pipeline;
 	pipeline_vk ksai_render_pipeline;
 	pipeline_vk constant_color;
+	pipeline_vk mShadowPipe;
 
 	VkBuffer vbuffer;
 	VkDeviceMemory vbuffer_memory;
@@ -52,9 +53,13 @@ typedef struct renderer_backend
 		VkDeviceMemory bfr_mmry_;
 		void *data_;
 
-		VkBuffer render_buffer;  /* MOUSEPICK BUFFER*/
+		VkBuffer render_buffer;  /* Render BUFFER*/
 		VkDeviceMemory render_buffer_memory;
 		void *render_buffer_data;
+
+		VkBuffer mShadowBuffer;
+		VkDeviceMemory mShadowBufferMemory;
+		void *mShadowBufferData;
 
 		VkImage img_clr_att_; /* COLOR ATTACHMENT */
 		VkDeviceMemory img_mmry_clr_att_;
@@ -70,6 +75,13 @@ typedef struct renderer_backend
 		VkDescriptorImageInfo dscrptr_;
 	} mspk;
 
+	struct Shadow
+	{
+		VkImage mDepthImage;
+		VkImageView mView;
+		VkRenderPass mRenderPass;
+		VkFramebuffer mFrameBuffer;
+	} mShadow;
 
 	/* Particle System*/
 	struct particle_system

@@ -91,6 +91,9 @@
     <ClCompile Include="src\engine\animation\anmation.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\backend\vulkan\PostProcessing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\backend\vulkan\backend.h">

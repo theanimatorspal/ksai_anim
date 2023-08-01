@@ -375,6 +375,7 @@ static void kie_Frame_interp_additive(kie_Object *object, int i, int j, int fram
 {
 	kie_Frame frame1 = object->frames[i];
 	kie_Frame frame2 = object->frames[j];
+	kie_Frame_interp(object, i, j, frame_time);
 	if (frame1.type == frame2.type)
 	{
 		float bias = glm_percentc(frame1.frame_time, frame2.frame_time, frame_time);

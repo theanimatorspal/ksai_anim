@@ -79,8 +79,34 @@ void main()
 	diffuse += calc_point_light(ubo.lint2, ubo.light2, vert_position, normal_vector);
 	diffuse += calc_point_light(ubo.lint3, ubo.light3, vert_position, normal_vector);
 	
-	out_color = (texture(texSampler, vert_texcoord) + 1 ) * diffuse;
+	out_color = (texture(texSampler, vert_texcoord));
+	if(out_color.r < 0.1)
+	{
+		out_color.r = 0.0;
+	}
+	if(out_color.g < 0.1)
+	{
+		out_color.g = 0.1;
+	}
+	if(out_color.b < 0.1)
+	{
+		out_color.b = 0.1;
+	}
 
+	if(out_color.r > 0.9)
+	{
+		out_color.r = 1.0;
+	}
+	if(out_color.g > 0.9)
+	{
+		out_color.g = 1.0;
+	}
+	if(out_color.b > 0.9)
+	{
+		out_color.b = 1.0;
+	}
+
+	out_color *= diffuse;
 	float threshold = ubo.line_thickness;
 	bool under_light = dot(ubo.view_dir, normal_vector) > threshold; 
 
@@ -89,5 +115,5 @@ void main()
 	} else {
 		out_color *= vec4(0.1);
 	}
-	out_color.a = 1;
+
 }

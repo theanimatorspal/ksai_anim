@@ -349,7 +349,7 @@ void threeD_viewport_events(
 		delta_y = cllsn_pnt_y[1] - prv_ms_cllsn_y[1];
 
 		{
-			if ((buttons & SDL_BUTTON_LMASK) && !KeyboardState[SDL_SCANCODE_LALT])
+			if ((buttons & SDL_BUTTON_LMASK) && !KeyboardState[SDL_SCANCODE_LALT] && !KeyboardState[SDL_SCANCODE_LSHIFT])
 			{
 				if ((tr_st_x || rw_ui.arrx_s) && !(tr_st_y || tr_st_z))
 				{
@@ -411,7 +411,9 @@ void threeD_viewport_events(
 
 	if (!(xpos == prev_mouse_pos[0] && ypos == prev_mouse_pos[1]))
 	{
-		if ((buttons & SDL_BUTTON_LMASK) && KeyboardState[SDL_SCANCODE_LALT])
+		bool ShouldZoomCamera = ((buttons) & SDL_BUTTON_LMASK) && (KeyboardState[SDL_SCANCODE_LSHIFT]) && !(KeyboardState[SDL_SCANCODE_LALT]);
+		bool ShouldRotateCamera = ((buttons) &SDL_BUTTON_LMASK) && KeyboardState[SDL_SCANCODE_LALT] && (!KeyboardState[SDL_SCANCODE_LSHIFT]);
+		if (ShouldRotateCamera)
 		{
 			mat4 mat;
 			vec3 out;
@@ -424,6 +426,18 @@ void threeD_viewport_events(
 			camera->position[1] = old_x + pitch;
 			camera->rotation[1] = old_y + yaw;
 
+		}
+		else if (ShouldZoomCamera)
+		{
+			glm_vec3_add(
+			camera->position,
+			(vec3)
+			{
+				camera->direction[0] * deltaY / 1000,
+					camera->direction[1] * deltaY / 1000,
+					camera->direction[2] * deltaY / 1000
+			},
+			camera->position);
 		}
 		else if (!(buttons & SDL_BUTTON_LMASK))
 		{
@@ -439,6 +453,7 @@ void threeD_viewport_events(
 	}
 
 	vec3 dir;
+	glm_vec3_copy((vec3) { 0, 1, 0 }, camera->up);
 	glm_vec3_sub(camera->position, camera->target, dir);
 	glm_vec3_sub(camera->position, camera->target, camera->direction);
 	glm_normalize(camera->direction);
@@ -446,9 +461,9 @@ void threeD_viewport_events(
 	glm_cross(camera->direction, camera->right, camera->up);
 	glm_normalize(camera->right);
 	glm_lookat(camera->position, camera->target, camera->up, camera->view);
-	glm_rotate_at(camera->view, camera->pivot, camera->rotation[0], (vec3) { 1, 0, 0 });
-	glm_rotate_at(camera->view, camera->pivot, camera->rotation[1], (vec3) { 0, 1, 0 });
-	glm_rotate_at(camera->view, camera->pivot, camera->rotation[2], (vec3) { 0, 0, 1 });
+	glm_rotate_at(camera->view, camera->target, camera->rotation[0], (vec3) { 1, 0, 0 });
+	glm_rotate_at(camera->view, camera->target, camera->rotation[1], (vec3) { 0, 1, 0 });
+	glm_rotate_at(camera->view, camera->target, camera->rotation[2], (vec3) { 0, 0, 1 });
 }
 
 void threeD_viewport_update(
@@ -461,7 +476,7 @@ void threeD_viewport_update(
 	int selected_object_index
 )
 {
-	uniforms uni = {0};
+	uniforms uni = { 0 };
 	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light1);
 	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light2);
 	glm_vec3_copy((vec3) { 0, 0, 0 }, uni.light3);
@@ -542,10 +557,10 @@ void threeD_viewport_update(
 			glm_cross(cur_camera->up, cur_camera->direction, cur_camera->right);
 			glm_cross(cur_camera->direction, cur_camera->right, cur_camera->up);
 			glm_normalize(dir);
-			glm_lookat(cur_camera->position, cur_camera->target, (vec3) {0, 1, 0}, cur_camera->view);
+			glm_lookat(cur_camera->position, cur_camera->target, (vec3) { 0, 1, 0 }, cur_camera->view);
 
 			glm_vec3_copy(cur_camera->rotation, scene->objects[i].rotation);
-			glm_lookat(cur_camera->position, cur_camera->target, (vec3) {0, 1, 0}, model);
+			glm_lookat(cur_camera->position, cur_camera->target, (vec3) { 0, 1, 0 }, model);
 			glm_mat4_inv(model, model);
 
 			glm_scale(model, scene->objects[i].scale);
@@ -559,7 +574,7 @@ void threeD_viewport_update(
 		else
 		{
 			glm_translate(model, (vec3) { cur_object->position[0], cur_object->position[1], cur_object->position[2] });
-			glm_rotate(model,scene->objects[i].rotation[0], (vec3) { 1, 0, 0 });
+			glm_rotate(model, scene->objects[i].rotation[0], (vec3) { 1, 0, 0 });
 			glm_rotate(model, scene->objects[i].rotation[1], (vec3) { 0, 1, 0 });
 			glm_rotate(model, scene->objects[i].rotation[2], (vec3) { 0, 0, 1 });
 			glm_scale(model, scene->objects[i].scale);
@@ -574,24 +589,26 @@ void threeD_viewport_update(
 		/* This is For Line View */
 		mat4 camera_matrix;
 		glm_mat4_identity(camera_matrix);
-		glm_rotate(camera_matrix, -camera->rotation[1], (vec3) {0, 1, 0});
+		glm_rotate(camera_matrix, -camera->rotation[1], (vec3) { 0, 1, 0 });
 		vec4 view_direction;
 		glm_vec3_copy(
-			(vec4) {
+			(vec4)
+		{
 			camera->direction[0],
-			camera->direction[1],
-			camera->direction[2],
-			1.0f
-			},
+				camera->direction[1],
+				camera->direction[2],
+				1.0f
+		},
 			view_direction
 		);
 		glm_mat4_mulv(camera_matrix, view_direction, view_direction);
 		glm_vec3_copy(
-			(vec3) {
+			(vec3)
+		{
 			view_direction[0],
-			view_direction[1],
-			view_direction[2] 
-			}, 
+				view_direction[1],
+				view_direction[2]
+		},
 			uni.view_dir
 		);
 

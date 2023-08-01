@@ -297,6 +297,16 @@ void handle_file_menu(
 		{
 			glm_vec3_copy(scene->objects[*current_selected].position, camera->target);
 		}
+
+		if(draw_button_window("Duplicate", debug_window_pos, rsrs, aspect, ii++ * padd))
+		{
+			kie_Object object;
+			kie_Object_init(&object);
+			kie_Object_copy(&object, &scene->objects[*current_selected]);
+			kie_Scene_add_object(scene, 1, &object);
+			copy_scene_to_backend(rsrs, scene, backend);
+			*current_selected = scene->objects_count - 1;
+		}
 	}
 
 	if (KeyboardState[SDL_SCANCODE_DOWN])
