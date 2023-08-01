@@ -215,6 +215,7 @@
     <ClInclude Include="src\ksai\ksai_debug.h" />
     <ClInclude Include="src\ksai\ksai_memory.h" />
     <ClInclude Include="src\ksai\ksai_primitives.h" />
+    <ClInclude Include="VulkanPipelines.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\renderer\particles\cshader.glsl" />
