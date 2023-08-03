@@ -23,6 +23,36 @@
 #include <backend/vulkan/advanced.h>
 #include <backend/vulkan/offscreen.h>
 #include "frontend/PostProcessing.hpp"
+#include "application.h"
+
+void FillMenuBar(char  m[6][10][100])
+{
+	strcpy_s(m[0][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "File");
+	strcpy_s(m[1][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Create");
+	strcpy_s(m[2][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Window");
+	strcpy_s(m[3][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Mesh ");
+	strcpy_s(m[4][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Render");
+
+	strcpy_s(m[0][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "New");
+	strcpy_s(m[0][2], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Open");
+	strcpy_s(m[0][3], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Close");
+
+	strcpy_s(m[1][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Circle");
+	strcpy_s(m[1][2], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Cylinder");
+	strcpy_s(m[1][3], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Annulus");
+	strcpy_s(m[1][4], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "OBJ");
+	strcpy_s(m[1][5], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Light");
+	strcpy_s(m[1][6], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Camera");
+
+	strcpy_s(m[2][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Properties");
+	strcpy_s(m[2][2], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Timeline");
+	strcpy_s(m[2][3], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "World");
+
+	strcpy_s(m[3][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "add_texture");
+
+
+	strcpy_s(m[4][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "RenderImg");
+}
 
 int main(int argc, char *argv[])
 {
@@ -48,6 +78,7 @@ int main(int argc, char *argv[])
 	prepare_skybox(&resources, &backend_renderer);
 	prepare_offscreen(&resources, &backend_renderer);
 	PrepareForShadows(&resources, &backend_renderer);
+	PrepareForPostProcessing(&resources, &backend_renderer);
 	kie_Object vobj1_arrowx, vobj2_arrowy, vobj3_arrowz;
 	kie_Object_init(&vobj1_arrowx);
 	kie_Object_init(&vobj2_arrowy);
@@ -109,31 +140,7 @@ int main(int argc, char *argv[])
 
 		char m[6][10][100] = { 0 };
 		int c[6] = { 3, 6, 3, 1, 1 };
-		strcpy_s(m[0][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "File");
-		strcpy_s(m[1][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Create");
-		strcpy_s(m[2][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Window");
-		strcpy_s(m[3][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Mesh ");
-		strcpy_s(m[4][0], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Render");
-
-		strcpy_s(m[0][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "New");
-		strcpy_s(m[0][2], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Open");
-		strcpy_s(m[0][3], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Close");
-
-		strcpy_s(m[1][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Circle");
-		strcpy_s(m[1][2], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Cylinder");
-		strcpy_s(m[1][3], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Annulus");
-		strcpy_s(m[1][4], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "OBJ");
-		strcpy_s(m[1][5], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Light");
-		strcpy_s(m[1][6], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Camera");
-
-		strcpy_s(m[2][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Properties");
-		strcpy_s(m[2][2], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "Timeline");
-		strcpy_s(m[2][3], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "World");
-
-		strcpy_s(m[3][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "add_texture");
-
-
-		strcpy_s(m[4][1], sizeof(char) * KSAI_SMALL_STRING_LENGTH, "RenderImg");
+		FillMenuBar(m);
 		handle_file_menu(
 			st,
 			aspect,
@@ -167,6 +174,8 @@ int main(int argc, char *argv[])
 			threeD_viewport_events(&viewport_camera, &scene1, &backend_renderer, resources.window, &window_event, &resources, current_selected);
 			threeD_viewport_update(&viewport_camera, &scene1, &backend_renderer, resources.window, &window_event, &resources, current_selected);
 
+			DrawShadows(&viewport_camera, &scene1, 4, &resources, &backend_renderer, vk_command_buffer_[resources.current_frame]);
+
 
 			draw_backend_begin(&resources, clear_color);
 
@@ -182,7 +191,6 @@ int main(int argc, char *argv[])
 
 			ui_render(&resources.current_frame, &resources);
 			draw_backend_end(&resources);
-			DrawShadows(&viewport_camera, &scene1, 4, &resources, &backend_renderer, vk_command_buffer_[resources.current_frame]);
 			draw_backend_finish(&resources);
 		}
 		else
@@ -192,6 +200,7 @@ int main(int argc, char *argv[])
 
 	}
 
+	DestroyForPostProcessing(&resources, &backend_renderer);
 	DestroyForShadows(&resources, &backend_renderer);
 	destroy_offscreen(&resources, &backend_renderer);
 	destroy_skybox(&resources, &backend_renderer);

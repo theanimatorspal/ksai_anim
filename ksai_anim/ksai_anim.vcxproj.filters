@@ -624,6 +624,9 @@
     <ClInclude Include="src\application\frontend\PostProcessing.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\application\application.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\renderer\particles\cshader.glsl" />

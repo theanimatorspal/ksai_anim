@@ -12,6 +12,12 @@ typedef struct renderer_backend
 	pipeline_vk constant_color;
 	pipeline_vk mShadowPipe;
 
+	pipeline_vk mPostProcess;
+	VkBuffer mScreenQuadBufferV;
+	VkDeviceMemory mScreenQuadVmem;
+	VkDeviceMemory mScreenQuadImem;
+	VkBuffer mScreenQuadBufferI;
+
 	VkBuffer vbuffer;
 	VkDeviceMemory vbuffer_memory;
 	VkDeviceSize voffset;

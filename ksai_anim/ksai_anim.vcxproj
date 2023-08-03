@@ -193,6 +193,7 @@
     <ClCompile Include="src\vendor\stbi\stbi.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\application.h" />
     <ClInclude Include="src\application\frontend\3d_viewport.h" />
     <ClInclude Include="src\application\frontend\app_ui.h" />
     <ClInclude Include="src\application\frontend\PostProcessing.hpp" />

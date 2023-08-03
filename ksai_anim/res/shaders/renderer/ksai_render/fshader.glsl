@@ -110,6 +110,8 @@ void main()
 	float threshold = ubo.line_thickness;
 	bool under_light = dot(ubo.view_dir, normal_vector) > threshold; 
 
+	out_color.a = 1.0;
+
 	if(under_light) {
 
 	} else {

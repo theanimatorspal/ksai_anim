@@ -134,7 +134,7 @@ extern "C" {
 		pipeline_vk_destroy3(&backend->mShadowPipe);
 	}
 
-	void DrawShadows(kie_Camera* camera, kie_Scene *scene, uint32_t viewport_obj_count, vk_rsrs* rsrs, renderer_backend* backend, VkCommandBuffer inCmdBuffer)
+	void DrawShadows(kie_Camera* camera, kie_Scene* scene, uint32_t viewport_obj_count, vk_rsrs* rsrs, renderer_backend* backend, VkCommandBuffer inCmdBuffer)
 	{
 		vk::Device Device(vk_logical_device_);
 		auto ClearValue = vk::ClearValue()
@@ -162,7 +162,7 @@ extern "C" {
 			rsrs->vk_swap_chain_image_extent_2d_);
 		CmdBuffer.setScissor(0, Scissor);
 		kie_Camera Ncamera = *camera;
-		glm_vec3_copy((vec3) {-5.0f, 5.0f, 5.0f}, Ncamera.position);
+		glm_vec3_copy((vec3) { -5.0f, 5.0f, 5.0f }, Ncamera.position);
 		threeD_viewport_draw_buf_without_viewport_and_lightsPP(
 			&Ncamera,
 			scene,
@@ -175,4 +175,52 @@ extern "C" {
 		CmdBuffer.endRenderPass();
 	}
 
+	void PrepareForPostProcessing(const vk_rsrs* rsrs, renderer_backend* inBackend)
+	{
+		std::array<kie_Vertex, 4> vertices = { };
+		std::array<uint32_t, 6> indices = { };
+
+		vk::Device Device(vk_logical_device_);
+		VkDeviceSize vsize = vertices.size() * sizeof(kie_Vertex);
+		create_buffer_util(
+			vsize,
+			static_cast<VkBufferUsageFlags>(vk::BufferUsageFlagBits::eVertexBuffer),
+			static_cast<VkMemoryPropertyFlags>(vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostVisible),
+			&inBackend->mScreenQuadBufferV,
+			&inBackend->mScreenQuadVmem,
+			Device
+		);
+		void* vdata;
+		void* stuff = Device.mapMemory(inBackend->mScreenQuadVmem, 0, vsize);
+		if (!stuff)
+		{
+			std::memcpy(vdata, vertices.data(), vsize);
+			Device.unmapMemory(inBackend->mScreenQuadVmem);
+		}
+
+		vsize = indices.size() * sizeof(uint32_t);
+		create_buffer_util(
+			vsize,
+			static_cast<VkBufferUsageFlags>(vk::BufferUsageFlagBits::eIndexBuffer),
+			static_cast<VkMemoryPropertyFlags>(vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostVisible),
+			&inBackend->mScreenQuadBufferI,
+			&inBackend->mScreenQuadImem,
+			Device
+		);
+		void* idata;
+		void* stuffi = Device.mapMemory(inBackend->mScreenQuadImem, 0, vsize);
+		if (!stuffi)
+		{
+			std::memcpy(idata, indices.data(), vsize);
+			Device.unmapMemory(inBackend->mScreenQuadImem);
+		}
+
+
+		VulkanPipeline::createPipelineForPP(rsrs, inBackend, &inBackend->mPostProcess, rsrs->vk_render_pass_);
+	}
+
+	void DestroyForPostProcessing(const vk_rsrs* rsr, renderer_backend* backend)
+	{
+		pipeline_vk_destroy3(&backend->mPostProcess);
+	}
 }

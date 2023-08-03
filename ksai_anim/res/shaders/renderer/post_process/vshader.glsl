@@ -56,20 +56,7 @@ layout(push_constant, std430) uniform pc {
 
 
 void main() {
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
+    gl_Position = vec4(inPosition, 1.0);
     gl_Position.y = - gl_Position.y;
-    fragColor = inColor;
     vert_texcoord = inTexCoord;
-    vert_color = max(0.0, dot(vert_normal, vec3(0.58, 0.58, 0.58))) + 0.1;
-
-
-    mat4 model_view = ubo.view * ubo.model;
-    vert_position = mat3(ubo.model) * inPosition;
-    vert_normal = mat3( ubo.model ) * inNormal;
-    vert_tangent = mat3( model_view ) * inTangent;
-    vert_bitangent = mat3( model_view ) * inBitTangent;
-
-    debugPrintfEXT("mvp(%f, %f, %f):\n", ubo.model[0][0], ubo.model[1][0], ubo.model[2][0]);
-    debugPrintfEXT("view(%f, %f, %f):\n", ubo.model[0][0], ubo.model[1][1], ubo.model[2][2]);
-    debugPrintfEXT("proj(%f, %f, %f):\n", ubo.model[0][1], ubo.model[1][0], ubo.model[2][1]);
 }
