@@ -53,4 +53,5 @@ layout(binding = 1) uniform sampler2D texSampler;
 void main()
 {
 	out_color = (texture(texSampler, vert_texcoord));
+	out_color.a = 1;
 }

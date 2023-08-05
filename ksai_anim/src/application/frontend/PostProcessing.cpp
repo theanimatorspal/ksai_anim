@@ -92,9 +92,11 @@ extern "C" {
 				static_cast<VkMemoryPropertyFlags>(vk::MemoryPropertyFlagBits::eDeviceLocal)));
 		inBackend->mShadow.mDepthImageMemory = Device.allocateMemory(MemoryAllocateInfo);
 
-
 		Device.bindImageMemory(inBackend->mShadow.mDepthImage, inBackend->mShadow.mDepthImageMemory, 0);
 		inBackend->mShadow.mView = Device.createImageView(ImageViewCreateInfo);
+
+		auto SamplerCreateInfo = vk::SamplerCreateInfo();
+		inBackend->mShadow.mSampler = Device.createSampler(SamplerCreateInfo);
 
 		glm::mat4 clip = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f,
 			0.0f, -1.0f, 0.0f, 0.0f,
@@ -131,6 +133,7 @@ extern "C" {
 		Device.destroyFramebuffer(backend->mShadow.mFrameBuffer);
 		Device.destroyImageView(backend->mShadow.mView);
 		Device.destroyRenderPass(backend->mShadow.mRenderPass);
+		Device.destroySampler(backend->mShadow.mSampler);
 		pipeline_vk_destroy3(&backend->mShadowPipe);
 	}
 
@@ -177,8 +180,36 @@ extern "C" {
 
 	void PrepareForPostProcessing(const vk_rsrs* rsrs, renderer_backend* inBackend)
 	{
-		std::array<kie_Vertex, 4> vertices = { };
-		std::array<uint32_t, 6> indices = { };
+		vk::Device d(vk_logical_device_);
+		std::array<vk::DescriptorPoolSize, KSAI_VK_DESCRIPTOR_POOL_SIZE> PoolSizes;
+		{
+			int i = 0;
+			for (auto& PoolSize : PoolSizes)
+			{
+				PoolSize = inBackend->pool_sizes[i];
+				i++;
+			}
+		}
+		auto DpoolCreateInfo = vk::DescriptorPoolCreateInfo(vk::DescriptorPoolCreateFlags(), 2, PoolSizes);
+		inBackend->mPPDpool = d.createDescriptorPool(DpoolCreateInfo);
+
+		std::array<vk::DescriptorSetLayout, 1> DescriptorSetLayouts = { inBackend->mShadowPipe.vk_descriptor_set_layout_ };
+		auto DsetAllocateInfo = vk::DescriptorSetAllocateInfo(inBackend->mPPDpool, DescriptorSetLayouts);
+		inBackend->mPPDset = d.allocateDescriptorSets(DsetAllocateInfo).front();
+
+		auto imageInfo = vk::DescriptorImageInfo(inBackend->mShadow.mSampler, inBackend->mShadow.mView, vk::ImageLayout::eShaderReadOnlyOptimal);// TODO
+		auto WriteDescriptorSet = vk::WriteDescriptorSet(inBackend->mPPDset, 1, 0, vk::DescriptorType::eCombinedImageSampler, imageInfo);
+		d.updateDescriptorSets(WriteDescriptorSet, nullptr);
+
+		std::array<kie_Vertex, 4> vertices;
+		vertices[0] = (kie_Vertex){ .position = {0.5f,  0.5f, 0.0f}, .tex_coord = {1.0f, 1.0f} };
+		vertices[1] = (kie_Vertex){ .position = {0.5f,  -0.5f, 0.0f}, .tex_coord = {1.0f, 0.0f} };
+		vertices[2] = (kie_Vertex){ .position = {-0.5f, -0.5f, 0.0f}, .tex_coord = {0.0f, 0.0f} };
+		vertices[3] = (kie_Vertex){ .position = {-0.5f,  0.5f, 0.0f}, .tex_coord = {0.0f, 1.0f} };
+		std::array<uint32_t, 6> indices = {
+			0, 1, 3,
+			1, 2, 3
+		};
 
 		vk::Device Device(vk_logical_device_);
 		VkDeviceSize vsize = vertices.size() * sizeof(kie_Vertex);
@@ -221,6 +252,39 @@ extern "C" {
 
 	void DestroyForPostProcessing(const vk_rsrs* rsr, renderer_backend* backend)
 	{
+		vk::Device d(vk_logical_device_);
+		d.freeMemory(backend->mScreenQuadImem);
+		d.freeMemory(backend->mScreenQuadVmem);
+		d.destroyBuffer(backend->mScreenQuadBufferV);
+		d.destroyBuffer(backend->mScreenQuadBufferI);
+		d.destroyDescriptorPool(backend->mPPDpool);
 		pipeline_vk_destroy3(&backend->mPostProcess);
+	}
+
+	void DrawForPostProcessed(const vk_rsrs* rsrs, renderer_backend* backend, VkCommandBuffer CmdBuffer)
+	{
+		vk::CommandBuffer Cmd(CmdBuffer);
+		Cmd.setDepthTestEnable(VK_FALSE);
+		Cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, backend->mPostProcess.vk_pipeline_);
+		std::array<vk::DescriptorSet, 1> dsets = {backend->mPPDset};
+		std::array<uint32_t, 0> offsets{};
+		Cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, backend->mPostProcess.vk_pipeline_layout_, 0, dsets, offsets);
+
+		auto viewport = vk::Viewport()
+			.setHeight(rsrs->vk_swap_chain_image_extent_2d_.height)
+			.setWidth(rsrs->vk_swap_chain_image_extent_2d_.width)
+			.setMinDepth(0.0f)
+			.setMaxDepth(1.0f);
+		Cmd.setViewport(0, viewport);
+
+		auto scissor = vk::Rect2D(vk::Offset2D(0, 0), rsrs->vk_swap_chain_image_extent_2d_);
+		Cmd.setScissor(0, scissor);
+
+		std::array < vk::Buffer, 1> Vbuffers = { backend->mScreenQuadBufferV };
+		std::array<vk::DeviceSize, 1> Offsets = { 0 };
+		Cmd.bindVertexBuffers(0, Vbuffers, Offsets );
+		Cmd.bindIndexBuffer(backend->mScreenQuadBufferI, 0, vk::IndexType::eUint32);
+		Cmd.drawIndexed(6, 1, 0, 0, 0);
+		Cmd.setDepthTestEnable(VK_FALSE);
 	}
 }

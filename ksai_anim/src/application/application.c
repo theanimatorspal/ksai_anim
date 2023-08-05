@@ -185,9 +185,8 @@ int main(int argc, char *argv[])
 				threeD_viewport_draw(&viewport_camera, &scene1, &backend_renderer, &resources, 4, false);
 			} else {
 				threeD_viewport_draw_buf_without_viewport_and_lights(&viewport_camera, &scene1, &backend_renderer, &resources, 4, vk_command_buffer_[resources.current_frame], 1);
+				DrawForPostProcessed(&resources, &backend_renderer, vk_command_buffer_[resources.current_frame]);
 			}
-
-
 
 			ui_render(&resources.current_frame, &resources);
 			draw_backend_end(&resources);

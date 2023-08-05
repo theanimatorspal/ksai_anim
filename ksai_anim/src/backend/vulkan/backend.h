@@ -17,6 +17,8 @@ typedef struct renderer_backend
 	VkDeviceMemory mScreenQuadVmem;
 	VkDeviceMemory mScreenQuadImem;
 	VkBuffer mScreenQuadBufferI;
+	VkDescriptorPool mPPDpool;
+	VkDescriptorSet mPPDset;
 
 	VkBuffer vbuffer;
 	VkDeviceMemory vbuffer_memory;
@@ -88,6 +90,7 @@ typedef struct renderer_backend
 		VkImageView mView;
 		VkRenderPass mRenderPass;
 		VkFramebuffer mFrameBuffer;
+		VkSampler mSampler;
 	} mShadow;
 
 	/* Particle System*/
