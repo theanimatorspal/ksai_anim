@@ -98,7 +98,8 @@ extern "C" {
 		auto SamplerCreateInfo = vk::SamplerCreateInfo();
 		inBackend->mShadow.mSampler = Device.createSampler(SamplerCreateInfo);
 
-		glm::mat4 clip = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f,
+		auto clip = glm::mat4(
+			1.0f, 0.0f, 0.0f, 0.0f,
 			0.0f, -1.0f, 0.0f, 0.0f,
 			0.0f, 0.0f, 0.5f, 0.0f,
 			0.0f, 0.0f, 0.5f, 1.0f);
@@ -123,6 +124,37 @@ extern "C" {
 		inBackend->mShadow.mFrameBuffer = Device.createFramebuffer(FrameBufferCreateInfo);
 
 		VulkanPipeline::createPipelineForShadow(rsrs, inBackend, &inBackend->mShadowPipe, inBackend->mShadow.mRenderPass);
+
+		auto CmdCrtInfo = vk::CommandBufferAllocateInfo(rsrs->mRenderCommandPool, vk::CommandBufferLevel::ePrimary, 1);
+		inBackend->mShadow.mCmdBuffer = Device.allocateCommandBuffers(CmdCrtInfo).front();
+
+		vk::CommandBuffer cb = inBackend->mShadow.mCmdBuffer;
+
+		auto ImgMemBarr = vk::ImageMemoryBarrier(
+			vk::AccessFlagBits::eNone,
+			vk::AccessFlagBits::eNone,
+			vk::ImageLayout::eUndefined,
+			vk::ImageLayout::eShaderReadOnlyOptimal,
+			VK_QUEUE_FAMILY_IGNORED,
+			VK_QUEUE_FAMILY_IGNORED,
+			inBackend->mShadow.mDepthImage,
+			vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eDepth , 0U, 1U, 0U, 1U)
+		);
+
+		cb.begin(vk::CommandBufferBeginInfo());
+		cb.pipelineBarrier(
+			vk::PipelineStageFlagBits::eTopOfPipe,
+			vk::PipelineStageFlagBits::eBottomOfPipe,
+			vk::DependencyFlagBits::eByRegion,
+			nullptr,
+			nullptr,
+			ImgMemBarr
+		);
+
+		cb.end();
+		vk::Queue Gqueue = rsrs->vk_graphics_queue_;
+		Gqueue.submit(vk::SubmitInfo().setCommandBufferCount(1).setCommandBuffers(cb));
+		Gqueue.waitIdle();
 	}
 
 	void DestroyForShadows(vk_rsrs* rsrs, renderer_backend* backend)
@@ -137,7 +169,7 @@ extern "C" {
 		pipeline_vk_destroy3(&backend->mShadowPipe);
 	}
 
-	void DrawShadows(kie_Camera* camera, kie_Scene* scene, uint32_t viewport_obj_count, vk_rsrs* rsrs, renderer_backend* backend, VkCommandBuffer inCmdBuffer)
+	void DrawShadows(kie_Camera* camera, kie_Scene* scene, uint32_t viewport_obj_count, vk_rsrs* rsrs, renderer_backend* backend)
 	{
 		vk::Device Device(vk_logical_device_);
 		auto ClearValue = vk::ClearValue()
@@ -148,8 +180,8 @@ extern "C" {
 			vk::Rect2D(vk::Offset2D(0.0f, 0.0f),
 				rsrs->vk_swap_chain_image_extent_2d_),
 			ClearValue);
-		vk::CommandBuffer CmdBuffer(inCmdBuffer);
-		//CmdBuffer.begin(vk::CommandBufferBeginInfo());
+		vk::CommandBuffer CmdBuffer(backend->mShadow.mCmdBuffer);
+		CmdBuffer.begin(vk::CommandBufferBeginInfo());
 		CmdBuffer.beginRenderPass(BeginInfo, vk::SubpassContents::eInline);
 
 		auto Viewport = vk::Viewport(
@@ -176,6 +208,11 @@ extern "C" {
 			2
 		);
 		CmdBuffer.endRenderPass();
+		CmdBuffer.end();
+		auto SubmitInfo = vk::SubmitInfo().setCommandBufferCount(1).setCommandBuffers(CmdBuffer);
+		vk::Queue Queue = rsrs->vk_graphics_queue_;
+		Queue.submit(SubmitInfo);
+		Queue.waitIdle();
 	}
 
 	void PrepareForPostProcessing(const vk_rsrs* rsrs, renderer_backend* inBackend)
@@ -197,15 +234,19 @@ extern "C" {
 		auto DsetAllocateInfo = vk::DescriptorSetAllocateInfo(inBackend->mPPDpool, DescriptorSetLayouts);
 		inBackend->mPPDset = d.allocateDescriptorSets(DsetAllocateInfo).front();
 
+		inBackend->mPostSampler = d.createSampler(vk::SamplerCreateInfo());
+
 		auto imageInfo = vk::DescriptorImageInfo(inBackend->mShadow.mSampler, inBackend->mShadow.mView, vk::ImageLayout::eShaderReadOnlyOptimal);// TODO
 		auto WriteDescriptorSet = vk::WriteDescriptorSet(inBackend->mPPDset, 1, 0, vk::DescriptorType::eCombinedImageSampler, imageInfo);
-		d.updateDescriptorSets(WriteDescriptorSet, nullptr);
+		//auto WriteDescriptorSet2 = vk::WriteDescriptorSet(inBackend->mPPDset, 2, 0, vk::DescriptorType::eCombinedImageSampler, imageInfo2);
+		std::array<vk::WriteDescriptorSet, 1> wdsets = { WriteDescriptorSet };
+		d.updateDescriptorSets(wdsets, nullptr);
 
-		std::array<kie_Vertex, 4> vertices;
-		vertices[0] = (kie_Vertex){ .position = {0.5f,  0.5f, 0.0f}, .tex_coord = {1.0f, 1.0f} };
-		vertices[1] = (kie_Vertex){ .position = {0.5f,  -0.5f, 0.0f}, .tex_coord = {1.0f, 0.0f} };
-		vertices[2] = (kie_Vertex){ .position = {-0.5f, -0.5f, 0.0f}, .tex_coord = {0.0f, 0.0f} };
-		vertices[3] = (kie_Vertex){ .position = {-0.5f,  0.5f, 0.0f}, .tex_coord = {0.0f, 1.0f} };
+		std::array<kie_Vertex, 4> vertices{};
+		vertices[0] = (kie_Vertex){ .position = {1.0f,  1.0f, 0.0f}, .tex_coord = {1.0f, 1.0f} };
+		vertices[1] = (kie_Vertex){ .position = {1.0f,  -1.0f, 0.0f}, .tex_coord = {1.0f, 0.0f} };
+		vertices[2] = (kie_Vertex){ .position = {-1.0f, -1.0f, 0.0f}, .tex_coord = {0.0f, 0.0f} };
+		vertices[3] = (kie_Vertex){ .position = {-1.0f,  1.0f, 0.0f}, .tex_coord = {0.0f, 1.0f} };
 		std::array<uint32_t, 6> indices = {
 			0, 1, 3,
 			1, 2, 3
@@ -221,13 +262,9 @@ extern "C" {
 			&inBackend->mScreenQuadVmem,
 			Device
 		);
-		void* vdata;
-		void* stuff = Device.mapMemory(inBackend->mScreenQuadVmem, 0, vsize);
-		if (!stuff)
-		{
-			std::memcpy(vdata, vertices.data(), vsize);
-			Device.unmapMemory(inBackend->mScreenQuadVmem);
-		}
+		void* vdata = Device.mapMemory(inBackend->mScreenQuadVmem, 0, vsize);
+		std::memcpy(vdata, vertices.data(), vsize);
+		Device.unmapMemory(inBackend->mScreenQuadVmem);
 
 		vsize = indices.size() * sizeof(uint32_t);
 		create_buffer_util(
@@ -238,13 +275,9 @@ extern "C" {
 			&inBackend->mScreenQuadImem,
 			Device
 		);
-		void* idata;
-		void* stuffi = Device.mapMemory(inBackend->mScreenQuadImem, 0, vsize);
-		if (!stuffi)
-		{
-			std::memcpy(idata, indices.data(), vsize);
-			Device.unmapMemory(inBackend->mScreenQuadImem);
-		}
+		void* idata = Device.mapMemory(inBackend->mScreenQuadImem, 0, vsize);
+		std::memcpy(idata, indices.data(), vsize);
+		Device.unmapMemory(inBackend->mScreenQuadImem);
 
 
 		VulkanPipeline::createPipelineForPP(rsrs, inBackend, &inBackend->mPostProcess, rsrs->vk_render_pass_);
@@ -261,13 +294,16 @@ extern "C" {
 		pipeline_vk_destroy3(&backend->mPostProcess);
 	}
 
-	void DrawForPostProcessed(const vk_rsrs* rsrs, renderer_backend* backend, VkCommandBuffer CmdBuffer)
+	void DrawForPostProcessed(kie_Camera* camera, kie_Scene* scene, uint32_t viewport_obj_count, vk_rsrs* rsrs, renderer_backend* backend)
 	{
-		vk::CommandBuffer Cmd(CmdBuffer);
+		vk::CommandBuffer Cmd(vk_command_buffer_[0]);
+		threeD_viewport_draw_buf_without_viewport_and_lights(camera, scene, backend, rsrs, 4, vk_command_buffer_[0], 1);
+
+
 		Cmd.setDepthTestEnable(VK_FALSE);
 		Cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, backend->mPostProcess.vk_pipeline_);
 		std::array<vk::DescriptorSet, 1> dsets = {backend->mPPDset};
-		std::array<uint32_t, 0> offsets{};
+		std::array<uint32_t, 1> offsets{};
 		Cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, backend->mPostProcess.vk_pipeline_layout_, 0, dsets, offsets);
 
 		auto viewport = vk::Viewport()

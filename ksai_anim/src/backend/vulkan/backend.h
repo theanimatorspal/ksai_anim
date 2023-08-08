@@ -13,12 +13,14 @@ typedef struct renderer_backend
 	pipeline_vk mShadowPipe;
 
 	pipeline_vk mPostProcess;
+	VkCommandBuffer mPPCmdBuffer;
 	VkBuffer mScreenQuadBufferV;
 	VkDeviceMemory mScreenQuadVmem;
 	VkDeviceMemory mScreenQuadImem;
 	VkBuffer mScreenQuadBufferI;
 	VkDescriptorPool mPPDpool;
 	VkDescriptorSet mPPDset;
+	VkSampler mPostSampler;
 
 	VkBuffer vbuffer;
 	VkDeviceMemory vbuffer_memory;
@@ -85,6 +87,7 @@ typedef struct renderer_backend
 
 	struct Shadow
 	{
+		VkCommandBuffer mCmdBuffer;
 		VkImage mDepthImage;
 		VkDeviceMemory mDepthImageMemory;
 		VkImageView mView;

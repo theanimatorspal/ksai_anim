@@ -378,7 +378,7 @@ void pick_physical_and_logical_devices(vk_rsrs *_rsrs, VkInstance instance)
 				.imageExtent = extent,
 				.imageArrayLayers = 1,
 				/*SPECIFIES THE AMOUN OF LAYER EACH IMAGE CONSISTS OF  ALWAYS ONE EXCEPT FOR STEREOSCOPIC 3d app*/
-				.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+				.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 				/* Rendering directly to the images */
 				/* For using post processing */
 				/*VK_IMAGE_USAGE_TRANSFER_DST_BIT*/
@@ -689,7 +689,7 @@ void create_swap_chain_image_views_render_pass(vk_rsrs *_rsrs)
 			.imageExtent = extent,
 			.imageArrayLayers = 1,
 			/*SPECIFIES THE AMOUN OF LAYER EACH IMAGE CONSISTS OF  ALWAYS ONE EXCEPT FOR STEREOSCOPIC 3d app*/
-			.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+			.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 			/* Rendering directly to the images */
 			/* For using post processing */
 			/*VK_IMAGE_USAGE_TRANSFER_DST_BIT*/

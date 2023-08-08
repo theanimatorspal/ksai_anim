@@ -169,12 +169,14 @@ int main(int argc, char *argv[])
 
 
 		ui_update(&resources.current_frame);
+
+		DrawShadows(&viewport_camera, &scene1, 4, &resources, &backend_renderer);
+
 		if (draw_backend_start(&resources, &backend_renderer) != -1 && running)
 		{
 			threeD_viewport_events(&viewport_camera, &scene1, &backend_renderer, resources.window, &window_event, &resources, current_selected);
 			threeD_viewport_update(&viewport_camera, &scene1, &backend_renderer, resources.window, &window_event, &resources, current_selected);
 
-			DrawShadows(&viewport_camera, &scene1, 4, &resources, &backend_renderer, vk_command_buffer_[resources.current_frame]);
 
 
 			draw_backend_begin(&resources, clear_color);
@@ -185,7 +187,6 @@ int main(int argc, char *argv[])
 				threeD_viewport_draw(&viewport_camera, &scene1, &backend_renderer, &resources, 4, false);
 			} else {
 				threeD_viewport_draw_buf_without_viewport_and_lights(&viewport_camera, &scene1, &backend_renderer, &resources, 4, vk_command_buffer_[resources.current_frame], 1);
-				DrawForPostProcessed(&resources, &backend_renderer, vk_command_buffer_[resources.current_frame]);
 			}
 
 			ui_render(&resources.current_frame, &resources);
@@ -195,6 +196,11 @@ int main(int argc, char *argv[])
 		else
 		{
 			draw_backend_wait(&resources);
+		}
+
+		if (current_pipeline != 0)
+		{
+			DrawForPostProcessed(&viewport_camera, &scene1, 4, &resources, &backend_renderer);
 		}
 
 	}

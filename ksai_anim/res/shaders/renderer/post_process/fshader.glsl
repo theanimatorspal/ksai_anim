@@ -48,10 +48,12 @@ layout(binding = 0) uniform uniform_buffer_object
 
 
 layout(binding = 1) uniform sampler2D texSampler;
+//layout(binding = 2) uniform sampler2D texSampler2;
 
 
 void main()
 {
 	out_color = (texture(texSampler, vert_texcoord));
+//	out_color += 0.5 * (texture(texSampler2, vert_texcoord));
 	out_color.a = 1;
 }
