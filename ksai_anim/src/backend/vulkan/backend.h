@@ -12,7 +12,7 @@ typedef struct renderer_backend
 	pipeline_vk constant_color;
 	pipeline_vk mShadowPipe;
 
-	pipeline_vk mPostProcess;
+	pipeline_vk mPPPipeline;
 	VkCommandBuffer mPPCmdBuffer;
 	VkBuffer mScreenQuadBufferV;
 	VkDeviceMemory mScreenQuadVmem;
@@ -20,7 +20,16 @@ typedef struct renderer_backend
 	VkBuffer mScreenQuadBufferI;
 	VkDescriptorPool mPPDpool;
 	VkDescriptorSet mPPDset;
+	VkFramebuffer mPPFrameBuffer;
 	VkSampler mPostSampler;
+	VkRenderPass mPPRenderPass;
+	VkImage mPPColor;
+	VkDeviceMemory mPPColorMem;
+	VkImageView mPPColorView;
+	VkImage mPPDepth;
+	VkDeviceMemory mPPDepthMem;
+	VkImageView mPPDepthView;
+
 
 	VkBuffer vbuffer;
 	VkDeviceMemory vbuffer_memory;

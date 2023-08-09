@@ -465,8 +465,9 @@ void VulkanPipeline::createPipelineForPP(const vk_rsrs *rsrs, renderer_backend *
     pool_sizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     pool_sizes[4].descriptorCount = MAX_FRAMES_IN_FLIGHT;
 
-    create_vulkan_pipeline3(
+    VulkanPipelines::PipelineForShadow(
         (vk_rsrs *)rsrs,
+        backend->mPPRenderPass,
         inPipeline,
         KSAI_VK_DESCRIPTOR_POOL_SIZE,
         bindings,
