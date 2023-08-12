@@ -97,6 +97,9 @@
     <ClCompile Include="src\vendor\stbi\stbi.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\application\frontend\Standalone.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\backend\vulkan\backend.h">
@@ -625,6 +628,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\application\application.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\application\frontend\Standalone.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

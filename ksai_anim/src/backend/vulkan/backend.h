@@ -12,6 +12,9 @@ typedef struct renderer_backend
 	pipeline_vk constant_color;
 	pipeline_vk mShadowPipe;
 
+
+	VkFramebuffer mBeforePPFrameBuffer;
+
 	pipeline_vk mPPPipeline;
 	VkCommandBuffer mPPCmdBuffer;
 	VkBuffer mScreenQuadBufferV;
@@ -29,6 +32,7 @@ typedef struct renderer_backend
 	VkImage mPPDepth;
 	VkDeviceMemory mPPDepthMem;
 	VkImageView mPPDepthView;
+
 
 
 	VkBuffer vbuffer;

@@ -168,6 +168,7 @@
     <ClCompile Include="src\application\frontend\app_ui_control.c" />
     <ClCompile Include="src\application\frontend\app_ui_view.c" />
     <ClCompile Include="src\application\frontend\3d_viewport.c" />
+    <ClCompile Include="src\application\frontend\Standalone.cpp" />
     <ClCompile Include="src\application\loaders\obj_loader.c" />
     <ClCompile Include="src\backend\ui\font.c" />
     <ClCompile Include="src\backend\ui\ui.c" />
@@ -197,6 +198,7 @@
     <ClInclude Include="src\application\frontend\3d_viewport.h" />
     <ClInclude Include="src\application\frontend\app_ui.h" />
     <ClInclude Include="src\application\frontend\PostProcessing.hpp" />
+    <ClInclude Include="src\application\frontend\Standalone.hpp" />
     <ClInclude Include="src\application\loaders\obj_loader.h" />
     <ClInclude Include="src\backend\ui\latex_colors.h" />
     <ClInclude Include="src\backend\ui\font.h" />

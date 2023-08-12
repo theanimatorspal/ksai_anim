@@ -331,6 +331,15 @@ extern "C" {
 			.setLayers(1);
 		inBackend->mPPFrameBuffer = d.createFramebuffer(FrameBufferCreateInfo);
 
+		FrameBufferCreateInfo = vk::FramebufferCreateInfo()
+			.setRenderPass(rsrs->vk_render_pass_)
+			.setAttachmentCount(2)
+			.setAttachments(Attachments)
+			.setWidth(rsrs->vk_swap_chain_image_extent_2d_.width)
+			.setHeight(rsrs->vk_swap_chain_image_extent_2d_.height)
+			.setLayers(1);
+		inBackend->mBeforePPFrameBuffer = d.createFramebuffer(FrameBufferCreateInfo);
+
 
 
 		std::array<vk::DescriptorPoolSize, KSAI_VK_DESCRIPTOR_POOL_SIZE> PoolSizes;
@@ -418,6 +427,7 @@ extern "C" {
 		d.destroyRenderPass(backend->mPPRenderPass);
 		d.destroySampler(backend->mPostSampler);
 		d.destroyFramebuffer(backend->mPPFrameBuffer);
+		d.destroyFramebuffer(backend->mBeforePPFrameBuffer);
 		pipeline_vk_destroy3(&backend->mPPPipeline);
 	}
 
@@ -432,12 +442,12 @@ extern "C" {
 		ClearValue.fill(
 			vk::ClearValue()
 			.setDepthStencil(vk::ClearDepthStencilValue(1.0f, 0.0f))
-			.setColor(vk::ClearColorValue(1.0f, 1.0f, 0.0f, 1.0f))
+			.setColor(vk::ClearColorValue(1.0f, 1.0f, 0.0f, 0.0f))
 			);
 		Cmd.beginRenderPass(
 			vk::RenderPassBeginInfo(
 				rsrs->vk_render_pass_,
-				rsrs->vk_swap_chain_frame_buffers_[0],
+				backend->mBeforePPFrameBuffer,
 				vk::Rect2D(vk::Offset2D(0, 0), rsrs->vk_swap_chain_image_extent_2d_),
 				ClearValue
 			), vk::SubpassContents::eInline);

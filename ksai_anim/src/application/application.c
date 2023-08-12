@@ -23,6 +23,7 @@
 #include <backend/vulkan/advanced.h>
 #include <backend/vulkan/offscreen.h>
 #include "frontend/PostProcessing.hpp"
+#include "frontend/Standalone.hpp"
 #include "application.h"
 
 void FillMenuBar(char  m[6][10][100])
@@ -128,10 +129,13 @@ int main(int argc, char *argv[])
 	ivec2s st = {.x = 0, .y = 0};
 	int current_pipeline = 0;
 	copy_scene_to_backend(&resources, &scene1, &backend_renderer);
+
+	CreateExternalWindow(&resources, instance);
 	while (running)
 	{
 		SDL_Event window_event;
 		SDL_WaitEvent(&window_event);
+
 
 		static int width, height;
 		SDL_GetWindowSize(resources.window, &width, &height);
@@ -198,9 +202,18 @@ int main(int argc, char *argv[])
 			draw_backend_wait(&resources);
 		}
 
-		if (current_pipeline != 0)
+		static bool present_external = true;
+		if (present_external && current_pipeline != 0)
 		{
-			DrawForPostProcessed(&viewport_camera, &scene1, 4, &resources, &backend_renderer);
+			ShowExternalWindow();
+			PresentToExternalWindow(&viewport_camera, &scene1, 4, &resources, &backend_renderer,  &current_pipeline);
+			present_external = false;
+			DestroyExternalWindow(instance);
+		} 
+
+		if (current_pipeline == 0)
+		{
+			present_external = true;
 		}
 
 	}
