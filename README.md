@@ -9,3 +9,9 @@ First Animation I rendered with this broken piece of shit.
 
 https://github.com/theanimatorspal/ksai_anim/assets/133136356/748ab2d9-334e-46e9-8c66-2b3aa529d439
 
+
+
+
+
+https://github.com/theanimatorspal/ksai_anim/assets/133136356/3c35f5e0-fc15-4330-b274-647e4bffa126
+
