@@ -3,6 +3,9 @@ This project is a 3D animation and rendering software as a submission for Graphi
 
 You cannot even save file and don't have undo feature. It is badly designed as this is the first time I am writing this long code. 12K ULOC (Useless lines of Code).
 
+Timelapse:
+https://youtu.be/CUaXP6BmwVE
+
 <img width="960" alt="image" src="https://github.com/theanimatorspal/ksai_anim/assets/133136356/4b90f01e-76a1-47f9-b393-bc3657a067ff">
 
 First Animation I rendered with this broken piece of shit.
