@@ -1,20 +1,80 @@
-# ksai_anim
-This project is a 3D animation and rendering software as a submission for Graphics Project of 5th semester (IOE, Pulchowk Campus). It is written in C17, SDL and Vulkan, and it does not use any external libraries or frameworks for graphics. Everything, including the user interface, the font rendering, and the viewport rendering, is done from scratch. The software is intended to be a learning project, but it is not yet fully functional or stable and I guess never will be. It may have bugs, glitches, or crashes, and it is not recommended for production use. 
+<h1 align="center">🎞️ ksai_anim</h1>
+<p align="center"><i>3D Animation & Rendering Software – Graphics Project (IOE, Pulchowk Campus)</i></p>
+<p align="center"><b>Built with:</b> C17 🧠 | SDL 🖥️ | Vulkan 🔥 (No external graphics libs!)</p>
 
-You cannot even save file and don't have undo feature. It is badly designed as this is the first time I am writing this long code. 12K ULOC (Useless lines of Code).
+---
 
-Timelapse:
-https://youtu.be/CUaXP6BmwVE
+## 🧵 About
 
-<img width="960" alt="image" src="https://github.com/theanimatorspal/ksai_anim/assets/133136356/4b90f01e-76a1-47f9-b393-bc3657a067ff">
+This project is a 3D animation and rendering software written completely from scratch — no external graphics libraries, no frameworks, just pain and pixels.
 
-First Animation I rendered with this broken piece of shit.
+> 💡 Originally submitted as a 5th semester Graphics Project at IOE, Pulchowk Campus.  
+> 📉 Roughly **12K ULOC** (Useless Lines of Code)
 
-https://github.com/theanimatorspal/ksai_anim/assets/133136356/748ab2d9-334e-46e9-8c66-2b3aa529d439
+---
 
+## 🛠️ What’s (Barely) Working
 
+| Feature              | Status       | Notes                          |
+|----------------------|--------------|--------------------------------|
+| UI                   | 🖐️ Handmade   | No libraries used              |
+| Font Rendering       | 🧠 Custom     | Built from scratch             |
+| Viewport Rendering   | 🔥 Vulkan     | Raw & low-level                |
+| Save File            | ❌ Missing    | You literally can't save       |
+| Undo/Redo            | ❌ Nope       | Mistakes are permanent         |
+| Stability            | 💀 Unstable   | May crash anytime              |
+| Design Quality       | 🤡 Chaotic    | First long project, be kind    |
 
+---
 
+## ⏱️ Timelapse
 
+[![Timelapse](https://img.youtube.com/vi/CUaXP6BmwVE/hqdefault.jpg)](https://youtu.be/CUaXP6BmwVE)
+
+---
+
+## 🎬 First Rendered Animation (yes, it works... kinda)
+
+<img width="960" alt="Preview Frame" src="https://github.com/theanimatorspal/ksai_anim/assets/133136356/4b90f01e-76a1-47f9-b393-bc3657a067ff">
+
+> First animation I rendered with this broken piece of shit. It’s cursed but it runs.
+
+---
+
+### 📹 Render Previews
+
+https://github.com/theanimatorspal/ksai_anim/assets/133136356/748ab2d9-334e-46e9-8c66-2b3aa529d439  
 https://github.com/theanimatorspal/ksai_anim/assets/133136356/3c35f5e0-fc15-4330-b274-647e4bffa126
+
+---
+
+## 🧨 Install Guide (a.k.a. The Ritual)
+
+```bash
+# Clone the regret
+git clone https://github.com/theanimatorspal/ksai_anim.git
+cd ksai_anim
+
+# Build the chaos
+make
+
+# Run the disaster (redirect output to crash log)
+./ksai_anim &> crash.log
+```
+
+> 📝 Disclaimer: Don't expect things to work. It compiles, and that’s the miracle.
+
+---
+
+## 💀 Known Issues
+
+- You can’t save your project
+- There’s no undo — mistakes are forever
+- Random crashes are part of the experience
+- Performance? It exists… somewhere
+- First-time user? So was I when I wrote this
+
+---
+
+> 🧠 This is a learning project, not a usable product. But hey — it renders, and that's something.
 
