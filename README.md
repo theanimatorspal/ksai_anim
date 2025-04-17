@@ -1,6 +1,14 @@
 <h1 align="center">🎞️ ksai_anim</h1>
 <p align="center"><i>3D Animation & Rendering Software – Graphics Project (IOE, Pulchowk Campus)</i></p>
 <p align="center"><b>Built with:</b> C17 🧠 | SDL 🖥️ | Vulkan 🔥 (No external graphics libs!)</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/build-unstable-red?style=flat-square&logo=github" />
+  <img src="https://img.shields.io/badge/bugcount-∞-blueviolet?style=flat-square&logo=bugatti" />
+  <img src="https://img.shields.io/badge/saves-none-lightgrey?style=flat-square&logo=floppydisk" />
+  <img src="https://img.shields.io/badge/crash%20rate-99.9%25-critical?style=flat-square&logo=ghost" />
+  <img src="https://img.shields.io/badge/mistakes-permanent-black?style=flat-square&logo=git" />
+  <img src="https://img.shields.io/badge/docs-nonexistent-yellow?style=flat-square&logo=readthedocs" />
+</p>
 
 ---
 
